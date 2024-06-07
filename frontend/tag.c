@@ -435,6 +435,7 @@ int main_tag(int argc, char *argv[], const char *argv0)
     }
 
 force_exit:
+    perror("error");
     SAFE_RELEASE(model);
     tagger_option_finish(&opt);
     return ret;
