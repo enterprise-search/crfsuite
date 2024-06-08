@@ -131,7 +131,7 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
                 } else {
                     cont.value = 1.0;
                 }
-                crfsuite_item_append_attribute(&item, &cont);
+                item.append(cont);
             }
             break;
         case IWA_NONE:

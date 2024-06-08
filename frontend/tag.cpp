@@ -321,7 +321,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
                     } else {
                         crfsuite_attribute_set(&cont, aid, 1.0);
                     }
-                    crfsuite_item_append_attribute(&item, &cont);
+                    item.append(cont);
                 }
             }
             break;

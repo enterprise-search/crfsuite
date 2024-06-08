@@ -143,6 +143,8 @@ struct crfsuite_item_t {
     size_t             cap_contents() const { return this->contents.capacity(); }
     /** Array of the attributes. */
     std::vector<crfsuite_attribute_t>    contents;
+public:
+    void append(const crfsuite_attribute_t& cont) { this->contents.push_back(cont); }
 };
 
 /**
@@ -828,13 +830,7 @@ void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src);
  */
 void crfsuite_item_swap(crfsuite_item_t* x, crfsuite_item_t* y);
 
-/**
- * Append an attribute to the item structure.
- *  @param  item        The pointer to crfsuite_item_t.
- *  @param  attr        The attribute to be added to the item.
- *  @return int         \c 0 if successful, \c -1 otherwise.
- */
-int  crfsuite_item_append_attribute(crfsuite_item_t* item, const crfsuite_attribute_t* attr);
+
 
 /**
  * Check whether the item has no attribute.

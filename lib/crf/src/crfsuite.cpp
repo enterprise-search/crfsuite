@@ -101,23 +101,6 @@ void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src)
     *dst = *src;
 }
 
-void crfsuite_item_swap(crfsuite_item_t* x, crfsuite_item_t* y)
-{
-    std::swap(*x, *y);
-}
-
-int crfsuite_item_append_attribute(crfsuite_item_t* item, const crfsuite_attribute_t* cont)
-{
-    item->contents.push_back(*cont);
-    return 0;
-}
-
-int  crfsuite_item_empty(crfsuite_item_t* item)
-{
-    return item->contents.empty();
-}
-
-
 
 
 void crfsuite_instance_init(crfsuite_instance_t* inst)
