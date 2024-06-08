@@ -919,13 +919,6 @@ void crfsuite_data_finish(crfsuite_data_t* data);
 void crfsuite_data_copy(crfsuite_data_t* dst, const crfsuite_data_t* src);
 
 /**
- * Swap the contents of two dataset structures.
- *  @param  x           The pointer to a dataset structure.
- *  @param  y           The pointer to another dataset structure.
- */
-void crfsuite_data_swap(crfsuite_data_t* x, crfsuite_data_t* y);
-
-/**
  * Append an instance to the dataset structure.
  *  @param  data        The pointer to crfsuite_data_t.
  *  @param  inst        The instance to be added to the dataset.

@@ -182,17 +182,6 @@ void crfsuite_data_copy(crfsuite_data_t* dst, const crfsuite_data_t* src)
     }
 }
 
-void crfsuite_data_swap(crfsuite_data_t* x, crfsuite_data_t* y)
-{
-    crfsuite_data_t tmp = *x;
-    x->num_instances = y->num_instances;
-    x->cap_instances = y->cap_instances;
-    x->instances = y->instances;
-    y->num_instances = tmp.num_instances;
-    y->cap_instances = tmp.cap_instances;
-    y->instances = tmp.instances;
-}
-
 int  crfsuite_data_append(crfsuite_data_t* data, const crfsuite_instance_t* inst)
 {
     if (0 < inst->num_items()) {
