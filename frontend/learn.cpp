@@ -386,7 +386,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
         /* Shuffle the instances. */
         for (i = 0;i < data.num_instances;++i) {
             int j = rand() % data.num_instances;
-            crfsuite_instance_swap(&data.instances[i], &data.instances[j]);
+            std::swap(data.instances[i], data.instances[j]);
         }
 
         /* Assign group numbers. */

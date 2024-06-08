@@ -269,7 +269,6 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
 
     /* Initialize the objects for instance and evaluation. */
     L = labels->num(labels);
-    crfsuite_instance_init(&inst);
     crfsuite_evaluation_init(&eval, L);
 
     /* Open the stream for the input data. */
@@ -302,7 +301,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
             break;
         case IWA_EOI:
             /* Append the item to the instance. */
-            crfsuite_instance_append(&inst, &item, lid);
+            inst.append(item, lid);
             item.contents.clear();
             break;
         case IWA_ITEM:
@@ -327,7 +326,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
             break;
         case IWA_NONE:
         case IWA_EOF:
-            if (!crfsuite_instance_empty(&inst)) {
+            if (!inst.empty()) {
                 /* Initialize the object to receive the tagging result. */
                 floatval_t score = 0;
                 std::vector<int> output(inst.num_items());
@@ -353,7 +352,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
                     output_result(fpo, tagger, &inst, output, labels, score, opt);
                 }
 
-                crfsuite_instance_finish(&inst);
+                inst.clear();
             }
             break;
         }
@@ -380,7 +379,7 @@ force_exit:
     }
 
     free(comment);
-    crfsuite_instance_finish(&inst);
+    inst.clear();
     crfsuite_evaluation_finish(&eval);
 
     SAFE_RELEASE(tagger);

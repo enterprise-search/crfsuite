@@ -60,7 +60,6 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
 {
     int n = 0;
     int lid = -1;
-    crfsuite_instance_t inst;
     crfsuite_item_t item;
     crfsuite_attribute_t cont;
     iwa_t* iwa = NULL;
@@ -71,7 +70,7 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
     int prev = 0, current = 0;
 
     /* Initialize the instance.*/
-    crfsuite_instance_init(&inst);
+    crfsuite_instance_t inst;
     inst.group = group;
 
     /* Obtain the file size. */
@@ -101,7 +100,7 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
         case IWA_EOI:
             /* Append the item to the instance. */
             if (0 <= lid) {
-                crfsuite_instance_append(&inst, &item, lid);
+                inst.append(item, lid);
             }
             item.contents.clear();
             break;
@@ -138,7 +137,7 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
         case IWA_EOF:
             /* Put the training instance. */
             crfsuite_data_append(data, &inst);
-            crfsuite_instance_finish(&inst);
+            inst.clear();
             inst.group = group;
             inst.weight = 1.;
             ++n;

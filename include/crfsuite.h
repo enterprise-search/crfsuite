@@ -168,6 +168,19 @@ public:
     crfsuite_instance_t() : weight(1.0), group(0)
     {
     }
+
+    void append(const crfsuite_item_t& item, int label)
+    {
+        this->items.push_back(item);
+        this->labels.push_back(label);
+    }
+
+    void clear() {
+        this->items.clear();
+        this->labels.clear();
+    }
+
+    bool empty() const { return (this->num_items() == 0); }
 };
 
 /**
@@ -838,58 +851,6 @@ void crfsuite_item_swap(crfsuite_item_t* x, crfsuite_item_t* y);
  *  @return int         \c 1 if the item has no attribute, \c 0 otherwise.
  */
 int  crfsuite_item_empty(crfsuite_item_t* item);
-
-
-
-/**
- * Initialize an instance structure.
- *  @param  seq         The pointer to crfsuite_instance_t.
- */
-void crfsuite_instance_init(crfsuite_instance_t* seq);
-
-/**
- * Initialize an instance structure with the number of items.
- *  @param  seq         The pointer to crfsuite_instance_t.
- *  @param  num_items   The number of items.
- */
-void crfsuite_instance_init_n(crfsuite_instance_t* seq, int num_items);
-
-/**
- * Uninitialize an instance structure.
- *  @param  seq         The pointer to crfsuite_instance_t.
- */
-void crfsuite_instance_finish(crfsuite_instance_t* seq);
-
-/**
- * Copy the content of an instance structure.
- *  @param  dst         The pointer to the destination.
- *  @param  src         The pointer to the source.
- */
-void crfsuite_instance_copy(crfsuite_instance_t* dst, const crfsuite_instance_t* src);
-
-/**
- * Swap the contents of two instance structures.
- *  @param  x           The pointer to an instance structure.
- *  @param  y           The pointer to another instance structure.
- */
-void crfsuite_instance_swap(crfsuite_instance_t* x, crfsuite_instance_t* y);
-
-/**
- * Append a pair of item and label to the instance structure.
- *  @param  seq         The pointer to crfsuite_instance_t.
- *  @param  item        The item to be added to the instance.
- *  @param  label       The label to be added to the instance.
- *  @return int         \c 0 if successful, \c -1 otherwise.
- */
-int  crfsuite_instance_append(crfsuite_instance_t* seq, const crfsuite_item_t* item, int label);
-
-/**
- * Check whether the instance has no item.
- *  @param  seq         The pointer to crfsuite_instance_t.
- *  @return int         \c 1 if the instance has no attribute, \c 0 otherwise.
- */
-int  crfsuite_instance_empty(crfsuite_instance_t* seq);
-
 
 
 /**

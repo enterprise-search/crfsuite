@@ -102,50 +102,6 @@ void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src)
 }
 
 
-
-void crfsuite_instance_init(crfsuite_instance_t* inst)
-{
-    memset(inst, 0, sizeof(*inst));
-    inst->weight = 1.;
-}
-
-void crfsuite_instance_finish(crfsuite_instance_t* inst)
-{
-    int i;
-
-    for (i = 0;i < inst->num_items();++i) {
-        inst->items[i].contents.clear();
-    }
-    inst->labels.clear();
-    inst->items.clear();
-    crfsuite_instance_init(inst);
-}
-
-void crfsuite_instance_copy(crfsuite_instance_t* dst, const crfsuite_instance_t* src)
-{
-    *dst = *src;
-}
-
-void crfsuite_instance_swap(crfsuite_instance_t* x, crfsuite_instance_t* y)
-{
-    std::swap(*x, *y);
-}
-
-int crfsuite_instance_append(crfsuite_instance_t* inst, const crfsuite_item_t* item, int label)
-{
-    inst->items.push_back(*item);
-    inst->labels.push_back(label);
-    return 0;
-}
-
-int  crfsuite_instance_empty(crfsuite_instance_t* inst)
-{
-    return (inst->num_items() == 0);
-}
-
-
-
-
 void crfsuite_data_init(crfsuite_data_t* data)
 {
     memset(data, 0, sizeof(*data));
@@ -162,10 +118,7 @@ void crfsuite_data_init_n(crfsuite_data_t* data, int n)
 void crfsuite_data_finish(crfsuite_data_t* data)
 {
     int i;
-
-    for (i = 0;i < data->num_instances;++i) {
-        crfsuite_instance_finish(&data->instances[i]);
-    }
+   
     free(data->instances);
     crfsuite_data_init(data);
 }
@@ -178,7 +131,7 @@ void crfsuite_data_copy(crfsuite_data_t* dst, const crfsuite_data_t* src)
     dst->cap_instances = src->cap_instances;
     dst->instances = (crfsuite_instance_t*)calloc(dst->num_instances, sizeof(crfsuite_instance_t));
     for (i = 0;i < dst->num_instances;++i) {
-        crfsuite_instance_copy(&dst->instances[i], &src->instances[i]);
+        dst->instances[i] = src->instances[i];
     }
 }
 
@@ -190,7 +143,7 @@ int  crfsuite_data_append(crfsuite_data_t* data, const crfsuite_instance_t* inst
             data->instances = (crfsuite_instance_t*)realloc(
                 data->instances, sizeof(crfsuite_instance_t) * data->cap_instances);
         }
-        crfsuite_instance_copy(&data->instances[data->num_instances++], inst);
+        data->instances[data->num_instances++] = *inst;
     }
     return 0;
 }
