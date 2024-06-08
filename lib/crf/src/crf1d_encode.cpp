@@ -132,7 +132,7 @@ static void crf1de_state_score(
 {
     int i, t, r;
     crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items;
+    const int T = inst->num_items();
     const int L = crf1de->num_labels;
 
     /* Loop over the items in the sequence. */
@@ -141,7 +141,7 @@ static void crf1de_state_score(
         floatval_t *state = STATE_SCORE(ctx, t);
 
         /* Loop over the contents (attributes) attached to the item. */
-        for (i = 0;i < item->num_contents;++i) {
+        for (i = 0;i < item->num_contents();++i) {
             /* Access the list of state features associated with the attribute. */
             int a = item->contents[i].aid;
             const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
@@ -168,7 +168,7 @@ crf1de_state_score_scaled(
 {
     int i, t, r;
     crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items;
+    const int T = inst->num_items();
     const int L = crf1de->num_labels;
 
     /* Forward to the non-scaling version for fast computation when scale == 1. */
@@ -183,7 +183,7 @@ crf1de_state_score_scaled(
         floatval_t *state = STATE_SCORE(ctx, t);
 
         /* Loop over the contents (attributes) attached to the item. */
-        for (i = 0;i < item->num_contents;++i) {
+        for (i = 0;i < item->num_contents();++i) {
             /* Access the list of state features associated with the attribute. */
             int a = item->contents[i].aid;
             const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
@@ -257,14 +257,14 @@ static void
 crf1de_features_on_path(
     crf1de_t *crf1de,
     const crfsuite_instance_t *inst,
-    const int *labels,
+    const std::vector<int>& labels,
     crfsuite_encoder_features_on_path_callback func,
     void *instance
     )
 {
     int c, i = -1, t, r;
     crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items;
+    const int T = inst->num_items();
     const int L = crf1de->num_labels;
 
     /* Loop over the items in the sequence. */
@@ -273,7 +273,7 @@ crf1de_features_on_path(
         const int j = labels[t];
 
         /* Loop over the contents (attributes) attached to the item. */
-        for (c = 0;c < item->num_contents;++c) {
+        for (c = 0;c < item->num_contents();++c) {
             /* Access the list of state features associated with the attribute. */
             int a = item->contents[c].aid;
             const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
@@ -310,14 +310,14 @@ static void
 crf1de_observation_expectation(
     crf1de_t* crf1de,
     const crfsuite_instance_t* inst,
-    const int *labels,
+    const std::vector<int>& labels,
     floatval_t *w,
     const floatval_t scale
     )
 {
     int c, i = -1, t, r;
     crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items;
+    const int T = inst->num_items();
     const int L = crf1de->num_labels;
 
     /* Loop over the items in the sequence. */
@@ -326,7 +326,7 @@ crf1de_observation_expectation(
         const int j = labels[t];
 
         /* Loop over the contents (attributes) attached to the item. */
-        for (c = 0;c < item->num_contents;++c) {
+        for (c = 0;c < item->num_contents();++c) {
             /* Access the list of state features associated with the attribute. */
             int a = item->contents[c].aid;
             const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
@@ -371,7 +371,7 @@ crf1de_model_expectation(
     crf1d_context_t* ctx = crf1de->ctx;
     const feature_refs_t *attr = NULL, *trans = NULL;
     const crfsuite_item_t* item = NULL;
-    const int T = inst->num_items;
+    const int T = inst->num_items();
     const int L = crf1de->num_labels;
 
     for (t = 0;t < T;++t) {
@@ -379,7 +379,7 @@ crf1de_model_expectation(
 
         /* Compute expectations for state features at position #t. */
         item = &inst->items[t];
-        for (c = 0;c < item->num_contents;++c) {
+        for (c = 0;c < item->num_contents();++c) {
             /* Access the attribute. */
             floatval_t value = item->contents[c].value;
             a = item->contents[c].aid;
@@ -432,8 +432,8 @@ crf1de_set_data(
     /* Find the maximum length of items in the data set. */
     for (i = 0;i < N;++i) {
         const crfsuite_instance_t *inst = dataset_get(ds, i);
-        if (T < inst->num_items) {
-            T = inst->num_items;
+        if (T < inst->num_items()) {
+            T = inst->num_items();
         }
     }
 
@@ -583,7 +583,7 @@ crf1de_save_model(
 
             /* Write the feature. */
             if (ret = writer->crf1dmw_put_feature(fmap[k], &feat)) {
-                goto error_exit;
+                throw std::runtime_error("put feature");
             }
         }
     }
@@ -607,7 +607,7 @@ crf1de_save_model(
         labels->to_string(labels, l, &str);
         if (str != NULL) {
             if (ret = writer->crf1dmw_put_label(l, str)) {
-                goto error_exit;
+                throw std::runtime_error("put_label");
             }
             labels->free(labels, str);
         }
@@ -750,7 +750,7 @@ void tag_encoder::set_level(int level)
 
     /* LEVEL_INSTANCE: set state scores. */
     if (LEVEL_INSTANCE <= level && prev < LEVEL_INSTANCE) {
-        crf1de->ctx->crf1dc_set_num_items(this->inst->num_items);
+        crf1de->ctx->crf1dc_set_num_items(this->inst->num_items());
         crf1de->ctx->crf1dc_reset(RF_STATE);
         crf1de_state_score_scaled(crf1de, this->inst, this->w, this->scale);
     }
@@ -826,7 +826,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
         const crfsuite_instance_t *seq = dataset_get(ds, i);
 
         /* Set label sequences and state scores. */
-        crf1de->ctx->crf1dc_set_num_items(seq->num_items);
+        crf1de->ctx->crf1dc_set_num_items(seq->num_items());
         crf1de->ctx->crf1dc_reset(RF_STATE);
         crf1de_state_score(crf1de, seq, w);
         crf1de->ctx->crf1dc_exp_state();
@@ -850,7 +850,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const int *path, crfsuite_encoder_features_on_path_callback func, void *instance)
+int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::vector<int>& path, crfsuite_encoder_features_on_path_callback func, void *instance)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     crf1de_features_on_path(crf1de, inst, path, func, instance);
@@ -884,7 +884,7 @@ int tag_encoder::set_instance(const crfsuite_instance_t *inst)
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
-int tag_encoder::score(const int *path, floatval_t *ptr_score)
+int tag_encoder::score(const std::vector<int>& path, floatval_t *ptr_score)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     *ptr_score = crf1de->ctx->crf1dc_score(path);
@@ -892,7 +892,7 @@ int tag_encoder::score(const int *path, floatval_t *ptr_score)
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
-int tag_encoder::viterbi(int *path, floatval_t *ptr_score)
+int tag_encoder::viterbi(std::vector<int>& path, floatval_t *ptr_score)
 {
     int i;
     floatval_t score;

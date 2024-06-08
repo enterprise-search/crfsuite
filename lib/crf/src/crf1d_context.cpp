@@ -417,7 +417,7 @@ void crf1dc_marginal_without_beta()
 }
 #endif
 
-floatval_t crf1d_context_t::crf1dc_score(const int *labels)
+floatval_t crf1d_context_t::crf1dc_score(const std::vector<int>& labels)
 {
     int i, j, t;
     floatval_t ret = 0;
@@ -449,7 +449,7 @@ floatval_t crf1d_context_t::crf1dc_lognorm()
     return this->log_norm;
 }
 
-floatval_t crf1d_context_t::crf1dc_viterbi(int *labels)
+floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 {
     int i, j, t;
     int *back = NULL;
@@ -540,7 +540,6 @@ void crf1dc_debug_context(FILE *fp)
     crf1d_context_t *ctx = new crf1d_context_t(CTXF_MARGINALS, L, T);
     floatval_t *trans = NULL, *state = NULL;
     floatval_t scores[3][3][3];
-    int labels[3];
 
     /* Initialize the state scores. */
     state = EXP_STATE_SCORE(ctx, 0);
@@ -598,10 +597,7 @@ void crf1dc_debug_context(FILE *fp)
             for (y3 = 0;y3 < L;++y3) {
                 floatval_t logp;
 
-                labels[0] = y1;
-                labels[1] = y2;
-                labels[2] = y3;
-                logp = ctx->crf1dc_score(labels) - ctx->crf1dc_lognorm();
+                logp = ctx->crf1dc_score({y1, y2, y3}) - ctx->crf1dc_lognorm();
 
                 fprintf(fp, "Check for the sequence %d-%d-%d... ", y1, y2, y3);
                 check_values(fp, exp(logp), scores[y1][y2][y3] / norm);

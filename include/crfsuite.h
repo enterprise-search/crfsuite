@@ -138,11 +138,11 @@ struct crfsuite_attribute_t {
  */
 struct crfsuite_item_t {
     /** Number of contents associated with the item. */
-    int             num_contents;
+    size_t             num_contents() const { return this->contents.size(); }
     /** Maximum number of contents (internal use). */
-    int             cap_contents;
+    size_t             cap_contents() const { return this->contents.capacity(); }
     /** Array of the attributes. */
-    crfsuite_attribute_t    *contents;
+    std::vector<crfsuite_attribute_t>    contents;
 };
 
 /**
@@ -151,19 +151,19 @@ struct crfsuite_item_t {
  */
 struct crfsuite_instance_t {
     /** Number of items/labels in the sequence. */
-    int         num_items;
+    size_t         num_items() const { return this->items.size(); }
     /** Maximum number of items/labels (internal use). */
-    int         cap_items;
+    size_t         cap_items() const { return this->items.capacity(); }
     /** Array of the item sequence. */
-    crfsuite_item_t  *items;
+    std::vector<crfsuite_item_t>  items;
     /** Array of the label sequence. */
-    int         *labels;
+    std::vector<int>         labels;
     /** Instance weight. */
     floatval_t  weight;
     /** Group ID of the instance. */
 	int         group;
 public:
-    crfsuite_instance_t() : weight(1.0)
+    crfsuite_instance_t() : weight(1.0), group(0)
     {
     }
 };
@@ -430,7 +430,7 @@ struct tag_crfsuite_tagger {
      *                      score of the Viterbi label sequence.
      *  @return int         The status code.
      */
-    int (*viterbi)(crfsuite_tagger_t* tagger, int *labels, floatval_t *ptr_score);
+    int (*viterbi)(crfsuite_tagger_t* tagger, std::vector<int>& labels, floatval_t *ptr_score);
 
     /**
      * Compute the score of a label sequence.
@@ -440,7 +440,7 @@ struct tag_crfsuite_tagger {
      *                      score of the label sequence.
      *  @return int         The status code.
      */
-    int (*score)(crfsuite_tagger_t* tagger, int *path, floatval_t *ptr_score);
+    int (*score)(crfsuite_tagger_t* tagger, std::vector<int>& path, floatval_t *ptr_score);
 
     /**
      * Compute the log of the partition factor (normalization constant).
@@ -996,7 +996,7 @@ void crfsuite_evaluation_clear(crfsuite_evaluation_t* eval);
  *  @param  T           The length of the label sequence.
  *  @return int         \c 0 if succeeded, \c 1 otherwise.
  */
-int crfsuite_evaluation_accmulate(crfsuite_evaluation_t* eval, const int* reference, const int* prediction, int T);
+int crfsuite_evaluation_accmulate(crfsuite_evaluation_t* eval, const std::vector<int>& reference, const std::vector<int>& prediction, int T);
 
 /**
  * Finalize the evaluation result.

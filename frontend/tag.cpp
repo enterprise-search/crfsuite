@@ -154,7 +154,7 @@ output_result(
     FILE *fpo,
     crfsuite_tagger_t *tagger,
     const crfsuite_instance_t *inst,
-    int *output,
+    std::vector<int>& output,
     crfsuite_dictionary_t *labels,
     floatval_t score,
     const tagger_option_t* opt
@@ -171,7 +171,7 @@ output_result(
         fprintf(fpo, "@probability\t%f\n", exp(score - lognorm));
     }
 
-    for (i = 0;i < inst->num_items;++i) {
+    for (i = 0;i < inst->num_items();++i) {
         if (opt->reference) {
             labels->to_string(labels, inst->labels[i], &label);
             fprintf(fpo, "%s\t", label);
@@ -211,13 +211,13 @@ output_instance(
 {
     int i, j;
 
-    for (i = 0;i < inst->num_items;++i) {
+    for (i = 0;i < inst->num_items();++i) {
         const char *label = NULL;
         labels->to_string(labels, inst->labels[i], &label);
         fprintf(fpo, "%s", label);
         labels->free(labels, label);
 
-        for (j = 0;j < inst->items[i].num_contents;++j) {
+        for (j = 0;j < inst->items[i].num_contents();++j) {
             const char *attr = NULL;
             attrs->to_string(attrs, inst->items[i].contents[j].aid, &attr);
             fprintf(fpo, "\t%s:%f", attr, inst->items[i].contents[j].value);
@@ -330,7 +330,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
             if (!crfsuite_instance_empty(&inst)) {
                 /* Initialize the object to receive the tagging result. */
                 floatval_t score = 0;
-                int *output = (int*)calloc(sizeof(int), inst.num_items);
+                std::vector<int> output(inst.num_items());
 
                 /* Set the instance to the tagger. */
                 if ((ret = tagger->set(tagger, &inst))) {
@@ -346,14 +346,13 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
 
                 /* Accumulate the tagging performance. */
                 if (opt->evaluate) {
-                    crfsuite_evaluation_accmulate(&eval, inst.labels, output, inst.num_items);
+                    crfsuite_evaluation_accmulate(&eval, inst.labels, output, inst.num_items());
                 }
 
                 if (!opt->quiet) {
                     output_result(fpo, tagger, &inst, output, labels, score, opt);
                 }
 
-                free(output);
                 crfsuite_instance_finish(&inst);
             }
             break;

@@ -132,7 +132,7 @@ struct tag_encoder
      */
     int objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g);
 
-    int features_on_path(const crfsuite_instance_t *inst, const int *path, crfsuite_encoder_features_on_path_callback func, void *instance);
+    int features_on_path(const crfsuite_instance_t *inst, const std::vector<int>& path, crfsuite_encoder_features_on_path_callback func, void *instance);
 
 
 
@@ -142,8 +142,8 @@ struct tag_encoder
     /* Level 0. */
 
     /* Level 1 (feature weights). */
-    int score(const int *path, floatval_t *ptr_score);
-    int viterbi(int *path, floatval_t *ptr_score);
+    int score(const std::vector<int>& path, floatval_t *ptr_score);
+    int viterbi(std::vector<int>& path, floatval_t *ptr_score);
 
     /* Level 2 (forward-backward). */
     int partition_factor(floatval_t *ptr_pf);

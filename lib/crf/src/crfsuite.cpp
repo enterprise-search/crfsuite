@@ -103,57 +103,31 @@ void crfsuite_item_init(crfsuite_item_t* item)
     memset(item, 0, sizeof(*item));
 }
 
-void crfsuite_item_init_n(crfsuite_item_t* item, int num_contents)
-{
-    crfsuite_item_init(item);
-    item->num_contents = num_contents;
-    item->cap_contents = num_contents;
-    item->contents = (crfsuite_attribute_t*)calloc(num_contents, sizeof(crfsuite_attribute_t));
-}
-
 void crfsuite_item_finish(crfsuite_item_t* item)
 {
-    free(item->contents);
+    item->contents.clear();
     crfsuite_item_init(item);
 }
 
 void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src)
 {
-    int i;
-
-    dst->num_contents = src->num_contents;
-    dst->cap_contents = src->cap_contents;
-    dst->contents = (crfsuite_attribute_t*)calloc(dst->num_contents, sizeof(crfsuite_attribute_t));
-    for (i = 0;i < dst->num_contents;++i) {
-        crfsuite_attribute_copy(&dst->contents[i], &src->contents[i]);
-    }
+    *dst = *src;
 }
 
 void crfsuite_item_swap(crfsuite_item_t* x, crfsuite_item_t* y)
 {
-    crfsuite_item_t tmp = *x;
-    x->num_contents = y->num_contents;
-    x->cap_contents = y->cap_contents;
-    x->contents = y->contents;
-    y->num_contents = tmp.num_contents;
-    y->cap_contents = tmp.cap_contents;
-    y->contents = tmp.contents;
+    std::swap(*x, *y);
 }
 
 int crfsuite_item_append_attribute(crfsuite_item_t* item, const crfsuite_attribute_t* cont)
 {
-    if (item->cap_contents <= item->num_contents) {
-        item->cap_contents = (item->cap_contents + 1) * 2;
-        item->contents = (crfsuite_attribute_t*)realloc(
-            item->contents, sizeof(crfsuite_attribute_t) * item->cap_contents);
-    }
-    crfsuite_attribute_copy(&item->contents[item->num_contents++], cont);
+    item->contents.push_back(*cont);
     return 0;
 }
 
 int  crfsuite_item_empty(crfsuite_item_t* item)
 {
-    return (item->num_contents == 0);
+    return item->contents.empty();
 }
 
 
@@ -165,76 +139,38 @@ void crfsuite_instance_init(crfsuite_instance_t* inst)
     inst->weight = 1.;
 }
 
-void crfsuite_instance_init_n(crfsuite_instance_t* inst, int num_items)
-{
-    crfsuite_instance_init(inst);
-    inst->num_items = num_items;
-    inst->cap_items = num_items;
-    inst->items = (crfsuite_item_t*)calloc(num_items, sizeof(crfsuite_item_t));
-    inst->labels = (int*)calloc(num_items, sizeof(int));
-}
-
 void crfsuite_instance_finish(crfsuite_instance_t* inst)
 {
     int i;
 
-    for (i = 0;i < inst->num_items;++i) {
+    for (i = 0;i < inst->num_items();++i) {
         crfsuite_item_finish(&inst->items[i]);
     }
-    free(inst->labels);
-    free(inst->items);
+    inst->labels.clear();
+    inst->items.clear();
     crfsuite_instance_init(inst);
 }
 
 void crfsuite_instance_copy(crfsuite_instance_t* dst, const crfsuite_instance_t* src)
 {
-    int i;
-
-    dst->num_items = src->num_items;
-    dst->cap_items = src->cap_items;
-    dst->items = (crfsuite_item_t*)calloc(dst->num_items, sizeof(crfsuite_item_t));
-    dst->labels = (int*)calloc(dst->num_items, sizeof(int));
-    dst->weight = src->weight;
-    dst->group = src->group;
-    for (i = 0;i < dst->num_items;++i) {
-        crfsuite_item_copy(&dst->items[i], &src->items[i]);
-        dst->labels[i] = src->labels[i];
-    }
+    *dst = *src;
 }
 
 void crfsuite_instance_swap(crfsuite_instance_t* x, crfsuite_instance_t* y)
 {
-    crfsuite_instance_t tmp = *x;
-    x->num_items = y->num_items;
-    x->cap_items = y->cap_items;
-    x->items = y->items;
-    x->labels = y->labels;
-    x->weight = y->weight;
-    x->group = y->group;
-    y->num_items = tmp.num_items;
-    y->cap_items = tmp.cap_items;
-    y->items = tmp.items;
-    y->labels = tmp.labels;
-    y->weight = tmp.weight;
-    y->group = tmp.group;
+    std::swap(*x, *y);
 }
 
 int crfsuite_instance_append(crfsuite_instance_t* inst, const crfsuite_item_t* item, int label)
 {
-    if (inst->cap_items <= inst->num_items) {
-        inst->cap_items = (inst->cap_items + 1) * 2;
-        inst->items = (crfsuite_item_t*)realloc(inst->items, sizeof(crfsuite_item_t) * inst->cap_items);
-        inst->labels = (int*)realloc(inst->labels, sizeof(int) * inst->cap_items);
-    }
-    crfsuite_item_copy(&inst->items[inst->num_items], item);
-    inst->labels[inst->num_items] = label;
-    ++inst->num_items;
+    inst->items.push_back(*item);
+    inst->labels.push_back(label);
     return 0;
 }
 
 int  crfsuite_instance_empty(crfsuite_instance_t* inst)
 {
-    return (inst->num_items == 0);
+    return (inst->num_items() == 0);
 }
 
 
@@ -289,7 +225,7 @@ void crfsuite_data_swap(crfsuite_data_t* x, crfsuite_data_t* y)
 
 int  crfsuite_data_append(crfsuite_data_t* data, const crfsuite_instance_t* inst)
 {
-    if (0 < inst->num_items) {
+    if (0 < inst->num_items()) {
         if (data->cap_instances <= data->num_instances) {
             data->cap_instances = (data->cap_instances + 1) * 2;
             data->instances = (crfsuite_instance_t*)realloc(
@@ -304,8 +240,8 @@ int crfsuite_data_maxlength(crfsuite_data_t* data)
 {
     int i, T = 0;
     for (i = 0;i < data->num_instances;++i) {
-        if (T < data->instances[i].num_items) {
-            T = data->instances[i].num_items;
+        if (T < data->instances[i].num_items()) {
+            T = data->instances[i].num_items();
         }
     }
     return T;
@@ -315,7 +251,7 @@ int  crfsuite_data_totalitems(crfsuite_data_t* data)
 {
     int i, n = 0;
     for (i = 0;i < data->num_instances;++i) {
-        n += data->instances[i].num_items;
+        n += data->instances[i].num_items();
     }
     return n;
 }
@@ -364,7 +300,7 @@ void crfsuite_evaluation_finish(crfsuite_evaluation_t* eval)
     memset(eval, 0, sizeof(*eval));
 }
 
-int crfsuite_evaluation_accmulate(crfsuite_evaluation_t* eval, const int* reference, const int* prediction, int T)
+int crfsuite_evaluation_accmulate(crfsuite_evaluation_t* eval, const std::vector<int>& reference, const std::vector<int>& prediction, int T)
 {
     int t, nc = 0;
 

@@ -161,7 +161,7 @@ crf1df_feature_t* crf1df_generate(
         int prev = L, cur = 0;
         const crfsuite_item_t* item = NULL;
         const crfsuite_instance_t* seq = dataset_get(ds, s);
-        const int T = seq->num_items;
+        const int T = seq->num_items();
 
         /* Loop over the items in the sequence. */
         for (t = 0;t < T;++t) {
@@ -178,7 +178,7 @@ crf1df_feature_t* crf1df_generate(
                 featureset_add(set, &f);
             }
 
-            for (c = 0;c < item->num_contents;++c) {
+            for (c = 0;c < item->num_contents();++c) {
                 /* State feature: attribute #a -> state #(item->yid). */
                 f.type = FT_STATE;
                 f.src = item->contents[c].aid;

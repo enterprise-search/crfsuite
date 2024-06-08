@@ -71,7 +71,7 @@ static void update_weights(void *instance, int fid, floatval_t value)
     ud->ws[fid] += ud->cs * value;
 }
 
-static int diff(int *x, int *y, int n)
+static int diff(const std::vector<int>& x, const std::vector<int>& y, int n)
 {
     int i, d = 0;
     for (i = 0;i < n;++i) {
@@ -113,7 +113,6 @@ int crfsuite_train_averaged_perceptron(
     )
 {
     int n, i, c, ret = 0;
-    int *viterbi = NULL;
     floatval_t *w = NULL;
     floatval_t *ws = NULL;
     floatval_t *wa = NULL;
@@ -134,10 +133,10 @@ int crfsuite_train_averaged_perceptron(
     w = (floatval_t*)calloc(sizeof(floatval_t), K);
     ws = (floatval_t*)calloc(sizeof(floatval_t), K);
     wa = (floatval_t*)calloc(sizeof(floatval_t), K);
-    viterbi = (int*)calloc(sizeof(int), T);
-    if (w == NULL || ws == NULL || wa == NULL || viterbi == NULL) {
+    std::vector<int> viterbi(T);
+    if (w == NULL || ws == NULL || wa == NULL) {
         ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        throw std::runtime_error("OOM");
     }
 
     /* Show the parameters. */
@@ -172,7 +171,7 @@ int crfsuite_train_averaged_perceptron(
             gm->viterbi(viterbi, &score);
 
             /* Compute the number of different labels. */
-            d = diff(inst->labels, viterbi, inst->num_items);
+            d = diff(inst->labels, viterbi, inst->num_items());
             if (0 < d) {
                 /*
                     For every feature k on the correct path:
@@ -191,7 +190,7 @@ int crfsuite_train_averaged_perceptron(
                 gm->features_on_path(inst, viterbi, update_weights, &ud);
 
                 /* We define the loss as the ratio of wrongly predicted labels. */
-                loss += d / (floatval_t)inst->num_items * inst->weight;
+                loss += d / (floatval_t)inst->num_items() * inst->weight;
             }
 
             ++c;
@@ -225,14 +224,12 @@ int crfsuite_train_averaged_perceptron(
     logging(lg, "Total seconds required for training: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
     logging(lg, "\n");
 
-    free(viterbi);
     free(ws);
     free(w);
     *ptr_w = wa;
     return ret;
 
 error_exit:
-    free(viterbi);
     free(wa);
     free(ws);
     free(w);

@@ -61,7 +61,7 @@ void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
     crf1dm_t* model = crf1dt->model;
     crf1d_context_t* ctx = crf1dt->ctx;
     const crfsuite_item_t* item = NULL;
-    const int T = inst->num_items;
+    const int T = inst->num_items();
     const int L = crf1dt->num_labels;
 
     /* Loop over the items in the sequence. */
@@ -70,7 +70,7 @@ void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
         state = STATE_SCORE(ctx, t);
 
         /* Loop over the contents (attributes) attached to the item. */
-        for (i = 0;i < item->num_contents;++i) {
+        for (i = 0;i < item->num_contents();++i) {
             /* Access the list of state features associated with the attribute. */
             a = item->contents[i].aid;
             model->crf1dm_get_attrref(a, &attr);
@@ -178,7 +178,7 @@ static int tagger_set(crfsuite_tagger_t* tagger, crfsuite_instance_t *inst)
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
-    ctx->crf1dc_set_num_items(inst->num_items);
+    ctx->crf1dc_set_num_items(inst->num_items());
     crf1dt->ctx->crf1dc_reset(RF_STATE);
     crf1dt->crf1dt_state_score(inst);
     crf1dt->level = LEVEL_SET;
@@ -192,7 +192,7 @@ static int tagger_length(crfsuite_tagger_t* tagger)
     return ctx->num_items;
 }
 
-static int tagger_viterbi(crfsuite_tagger_t* tagger, int *labels, floatval_t *ptr_score)
+static int tagger_viterbi(crfsuite_tagger_t* tagger, std::vector<int>& labels, floatval_t *ptr_score)
 {
     floatval_t score;
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
@@ -206,7 +206,7 @@ static int tagger_viterbi(crfsuite_tagger_t* tagger, int *labels, floatval_t *pt
     return 0;
 }
 
-static int tagger_score(crfsuite_tagger_t* tagger, int *path, floatval_t *ptr_score)
+static int tagger_score(crfsuite_tagger_t* tagger, std::vector<int>& path, floatval_t *ptr_score)
 {
     floatval_t score;
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;

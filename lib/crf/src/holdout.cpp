@@ -50,7 +50,6 @@ void tag_encoder::holdout_evaluation(
     int i;
     crfsuite_evaluation_t eval;
     const int N = ds->num_instances;
-    int *viterbi = NULL;
     int max_length = 0;
 
     /* Initialize the evaluation table. */
@@ -62,19 +61,15 @@ void tag_encoder::holdout_evaluation(
         floatval_t score;
         const crfsuite_instance_t *inst = dataset_get(ds, i);
 
-        if (max_length < inst->num_items) {
-            free(viterbi);
-            viterbi = (int*)malloc(sizeof(int) * inst->num_items);
-        }
+        std::vector<int> viterbi(inst->num_items());
 
         this->set_instance(inst);
         this->viterbi(viterbi, &score);
 
-        crfsuite_evaluation_accmulate(&eval, inst->labels, viterbi, inst->num_items);
+        crfsuite_evaluation_accmulate(&eval, inst->labels, viterbi, inst->num_items());
     }
 
     /* Report the performance. */
     crfsuite_evaluation_finalize(&eval);
     crfsuite_evaluation_output(&eval, ds->data->labels, lg->func, lg->instance);
-	if(viterbi)free(viterbi);
 }

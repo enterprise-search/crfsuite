@@ -168,7 +168,7 @@ static void delta_add(delta_t *dc, floatval_t *w, floatval_t *ws, const floatval
     }
 }
 
-static int diff(int *x, int *y, int n)
+static int diff(const std::vector<int>& x, const std::vector<int>& y, int n)
 {
     int i, d = 0;
     for (i = 0;i < n;++i) {
@@ -255,7 +255,6 @@ int crfsuite_train_passive_aggressive(
     )
 {
     int n, i, u, ret = 0;
-    int *viterbi = NULL;
     floatval_t *w = NULL, *ws = NULL, *wa = NULL;
     const int N = trainset->num_instances;
     const int K = gm->num_features;
@@ -269,7 +268,7 @@ int crfsuite_train_passive_aggressive(
 	/* Initialize the variable. */
     if (delta_init(&dc, K) != 0) {
         ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        throw std::runtime_error("OOM");
     }
 
     /* Obtain parameter values. */
@@ -279,8 +278,8 @@ int crfsuite_train_passive_aggressive(
     w = (floatval_t*)calloc(sizeof(floatval_t), K);
     ws = (floatval_t*)calloc(sizeof(floatval_t), K);
     wa = (floatval_t*)calloc(sizeof(floatval_t), K);
-    viterbi = (int*)calloc(sizeof(int), T);
-    if (w == NULL || ws == NULL || wa == NULL || viterbi == NULL) {
+    std::vector<int> viterbi(T);
+    if (w == NULL || ws == NULL || wa == NULL) {
         ret = CRFSUITEERR_OUTOFMEMORY;
         goto error_exit;
     }
@@ -335,7 +334,7 @@ int crfsuite_train_passive_aggressive(
             gm->viterbi(viterbi, &sv);
 
             /* Compute the number of different labels. */
-            d = diff(inst->labels, viterbi, inst->num_items);
+            d = diff(inst->labels, viterbi, inst->num_items());
             if (0 < d) {
                 floatval_t sc, norm2;
                 floatval_t tau, cost;
@@ -416,7 +415,6 @@ int crfsuite_train_passive_aggressive(
     logging(lg, "Total seconds required for training: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
     logging(lg, "\n");
 
-    free(viterbi);
     free(ws);
     free(w);
     *ptr_w = wa;
@@ -424,7 +422,6 @@ int crfsuite_train_passive_aggressive(
     return ret;
 
 error_exit:
-    free(viterbi);
     free(wa);
     free(ws);
     free(w);
