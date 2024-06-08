@@ -802,7 +802,7 @@ error_exit:
 
 crf1dm_t* crf1dm_new_from_memory(const void *data, size_t size)
 {
-    return crf1dm_new_impl(NULL, data, size);
+    return crf1dm_new_impl(NULL, (const uint8_t*)data, size);
 }
 
 void crf1dm_close(crf1dm_t* model)

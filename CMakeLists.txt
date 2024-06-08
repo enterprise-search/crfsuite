@@ -29,23 +29,23 @@ include_directories(${cqdb_INCLUDE_DIR})
 
 FILE (GLOB
       SOURCES
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_context.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_encode.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_context.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_encode.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_feature.cpp
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_model.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_tag.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_model.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_tag.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite.cpp
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite_train.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/dataset.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite_train.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/dataset.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/dictionary.cpp
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/holdout.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/logging.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/params.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_arow.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_averaged_perceptron.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_l2sgd.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_lbfgs.c
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_passive_aggressive.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/holdout.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/logging.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/params.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_arow.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_averaged_perceptron.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_l2sgd.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_lbfgs.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_passive_aggressive.cpp
 )
 
 # set_source_files_properties(${PROJECT_SOURCE_DIR}/lib/crf/src/quark.cpp PROPERTIES LANGUAGE CXX)
