@@ -126,23 +126,23 @@ typedef struct tag_crfsuite_params crfsuite_params_t;
  * An attribute.
  *  An attribute consists of an attribute id with its value.
  */
-typedef struct {
+struct crfsuite_attribute_t {
     int         aid;                /**< Attribute id. */
     floatval_t  value;              /**< Value of the attribute. */
-} crfsuite_attribute_t;
+};
 
 /**
  * An item.
  *  An item consists of an array of attributes.
  */
-typedef struct {
+struct crfsuite_item_t {
     /** Number of contents associated with the item. */
     int             num_contents;
     /** Maximum number of contents (internal use). */
     int             cap_contents;
     /** Array of the attributes. */
     crfsuite_attribute_t    *contents;
-} crfsuite_item_t;
+};
 
 /**
  * An instance (sequence of items and labels).
