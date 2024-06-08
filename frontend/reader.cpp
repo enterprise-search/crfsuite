@@ -123,7 +123,6 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
                     lid = labels->get(labels, token->attr);
                 }
             } else {
-                crfsuite_attribute_init(&cont);
                 cont.aid = attrs->get(attrs, token->attr);
                 if (token->value && *token->value) {
                     cont.value = atof(token->value);

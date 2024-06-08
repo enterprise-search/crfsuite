@@ -316,9 +316,11 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
                 if (0 <= aid) {
                     /* Associate the attribute with the current item. */
                     if (token->value && *token->value) {
-                        crfsuite_attribute_set(&cont, aid, atof(token->value));
+                        cont.aid = aid;
+                        cont.value = atof(token->value);
                     } else {
-                        crfsuite_attribute_set(&cont, aid, 1.0);
+                        cont.aid = aid;
+                        cont.value = 1.0;
                     }
                     item.append(cont);
                 }

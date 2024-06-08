@@ -67,20 +67,6 @@ int crfsuite_create_instance_from_memory(const void *data, size_t size, void **p
     return ret;
 }
 
-
-void crfsuite_attribute_init(crfsuite_attribute_t* cont)
-{
-    memset(cont, 0, sizeof(*cont));
-    cont->value = 1;
-}
-
-void crfsuite_attribute_set(crfsuite_attribute_t* cont, int aid, floatval_t value)
-{
-    crfsuite_attribute_init(cont);
-    cont->aid = aid;
-    cont->value = value;
-}
-
 static char *safe_strncpy(char *dst, const char *src, size_t n)
 {
     strncpy(dst, src, n-1);

@@ -130,6 +130,10 @@ typedef struct tag_crfsuite_params crfsuite_params_t;
 struct crfsuite_attribute_t {
     int         aid;                /**< Attribute id. */
     floatval_t  value;              /**< Value of the attribute. */
+public:
+    crfsuite_attribute_t(int aid, floatval_t value) : aid(aid), value(value) {}
+    crfsuite_attribute_t(int aid) : aid(aid), value(1.0) {}
+    crfsuite_attribute_t() : aid(0), value(1.0) {}
 };
 
 /**
@@ -819,67 +823,6 @@ int crfsuite_create_tagger(
  * \addtogroup crfsuite_data
  * @{
  */
-
-/**
- * Initialize an attribute structure.
- *  @param  attr        The pointer to crfsuite_attribute_t.
- */
-void crfsuite_attribute_init(crfsuite_attribute_t* attr);
-
-/**
- * Set an attribute and its value.
- *  @param  attr        The pointer to crfsuite_attribute_t.
- *  @param  aid         The attribute identifier.
- *  @param  value       The attribute value.
- */
-void crfsuite_attribute_set(crfsuite_attribute_t* attr, int aid, floatval_t value);
-
-/**
- * Copy the content of an attribute structure.
- *  @param  dst         The pointer to the destination.
- *  @param  src         The pointer to the source.
- */
-void crfsuite_attribute_copy(crfsuite_attribute_t* dst, const crfsuite_attribute_t* src);
-
-/**
- * Swap the contents of two attribute structures.
- *  @param  x           The pointer to an attribute structure.
- *  @param  y           The pointer to another attribute structure.
- */
-void crfsuite_attribute_swap(crfsuite_attribute_t* x, crfsuite_attribute_t* y);
-
-/**
- * Initialize an item structure with the number of attributes.
- *  @param  item        The pointer to crfsuite_item_t.
- *  @param  num_attributes  The number of attributes.
- */
-void crfsuite_item_init_n(crfsuite_item_t* item, int num_attributes);
-
-
-
-/**
- * Copy the content of an item structure.
- *  @param  dst         The pointer to the destination.
- *  @param  src         The pointer to the source.
- */
-void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src);
-
-/**
- * Swap the contents of two item structures.
- *  @param  x           The pointer to an item structure.
- *  @param  y           The pointer to another item structure.
- */
-void crfsuite_item_swap(crfsuite_item_t* x, crfsuite_item_t* y);
-
-
-
-/**
- * Check whether the item has no attribute.
- *  @param  item        The pointer to crfsuite_item_t.
- *  @return int         \c 1 if the item has no attribute, \c 0 otherwise.
- */
-int  crfsuite_item_empty(crfsuite_item_t* item);
-
 
 /**@}*/
 
