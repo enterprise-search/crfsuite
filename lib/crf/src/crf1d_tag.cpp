@@ -121,9 +121,9 @@ void crf1dt_t::crf1dt_set_level(int level)
     crf1d_context_t* ctx = crf1dt->ctx;
 
     if (level <= LEVEL_ALPHABETA && prev < LEVEL_ALPHABETA) {
-        crf1dc_exp_state(ctx);
-        crf1dc_alpha_score(ctx);
-        crf1dc_beta_score(ctx);
+        ctx->crf1dc_exp_state();
+        ctx->crf1dc_alpha_score();
+        ctx->crf1dc_beta_score();
     }
 
     crf1dt->level = level;
@@ -134,7 +134,7 @@ void crf1dt_t::crf1dt_delete()
     crf1dt_t* crf1dt = this;
     /* Note: we don't own the model object (crf1t->model). */
     if (crf1dt->ctx != NULL) {
-        crf1dc_delete(crf1dt->ctx);
+        delete crf1dt->ctx;
         crf1dt->ctx = NULL;
     }
     free(crf1dt);
@@ -145,11 +145,11 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
     this->num_labels = crf1dm->crf1dm_get_num_labels();
     this->num_attributes = crf1dm->crf1dm_get_num_attrs();
     this->model = crf1dm;
-    this->ctx = crf1dc_new(CTXF_VITERBI | CTXF_MARGINALS, this->num_labels, 0);
+    this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, this->num_labels, 0);
     // TODO: assert (this->ctx != NULL);
-    crf1dc_reset(this->ctx, RF_TRANS);
+    this->ctx->crf1dc_reset(RF_TRANS);
     this->crf1dt_transition_score();
-    crf1dc_exp_transition(this->ctx);
+    this->ctx->crf1dc_exp_transition();
     this->level = LEVEL_NONE;
 }
 
@@ -178,8 +178,8 @@ static int tagger_set(crfsuite_tagger_t* tagger, crfsuite_instance_t *inst)
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
-    crf1dc_set_num_items(ctx, inst->num_items);
-    crf1dc_reset(crf1dt->ctx, RF_STATE);
+    ctx->crf1dc_set_num_items(inst->num_items);
+    crf1dt->ctx->crf1dc_reset(RF_STATE);
     crf1dt->crf1dt_state_score(inst);
     crf1dt->level = LEVEL_SET;
     return 0;
@@ -198,7 +198,7 @@ static int tagger_viterbi(crfsuite_tagger_t* tagger, int *labels, floatval_t *pt
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
 
-    score = crf1dc_viterbi(ctx, labels);
+    score = ctx->crf1dc_viterbi(labels);
     if (ptr_score != NULL) {
         *ptr_score = score;
     }
@@ -211,7 +211,7 @@ static int tagger_score(crfsuite_tagger_t* tagger, int *path, floatval_t *ptr_sc
     floatval_t score;
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
-    score = crf1dc_score(ctx, path);
+    score = ctx->crf1dc_score(path);
     if (ptr_score != NULL) {
         *ptr_score = score;
     }
@@ -222,7 +222,7 @@ static int tagger_lognorm(crfsuite_tagger_t* tagger, floatval_t *ptr_norm)
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
-    *ptr_norm = crf1dc_lognorm(crf1dt->ctx);
+    *ptr_norm = crf1dt->ctx->crf1dc_lognorm();
     return 0;
 }
 
@@ -230,7 +230,7 @@ static int tagger_marginal_point(crfsuite_tagger_t *tagger, int l, int t, floatv
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
-    *ptr_prob = crf1dc_marginal_point(crf1dt->ctx, l, t);
+    *ptr_prob = crf1dt->ctx->crf1dc_marginal_point(l, t);
     return 0;
 }
 
@@ -238,7 +238,7 @@ static int tagger_marginal_path(crfsuite_tagger_t *tagger, const int *path, int 
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
     crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
-    *ptr_prob = crf1dc_marginal_path(crf1dt->ctx, path, begin, end);
+    *ptr_prob = crf1dt->ctx->crf1dc_marginal_path(path, begin, end);
     return 0;
 }
 

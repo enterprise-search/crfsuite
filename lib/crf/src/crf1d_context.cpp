@@ -48,155 +48,141 @@
 
 
 
-crf1d_context_t* crf1dc_new(int flag, int L, int T)
+crf1d_context_t::crf1d_context_t(int flag, int L, int T)
 {
     int ret = 0;
-    crf1d_context_t* ctx = NULL;
 
-    ctx = (crf1d_context_t*)calloc(1, sizeof(crf1d_context_t));
-    if (ctx != NULL) {
-        ctx->flag = flag;
-        ctx->num_labels = L;
+    this->flag = flag;
+    this->num_labels = L;
 
-        ctx->trans = (floatval_t*)calloc(L * L, sizeof(floatval_t));
-        if (ctx->trans == NULL) goto error_exit;
+    this->trans = (floatval_t*)calloc(L * L, sizeof(floatval_t));
+    if (this->trans == NULL) printf("callc\n");
 
-        if (ctx->flag & CTXF_MARGINALS) {
-            ctx->exp_trans = (floatval_t*)_aligned_malloc((L * L + 4) * sizeof(floatval_t), 16);
-            if (ctx->exp_trans == NULL) goto error_exit;
-            ctx->mexp_trans = (floatval_t*)calloc(L * L, sizeof(floatval_t));
-            if (ctx->mexp_trans == NULL) goto error_exit;
-        }
-
-        if (ret = crf1dc_set_num_items(ctx, T)) {
-            goto error_exit;
-        }
-
-        /* T gives the 'hint' for maximum length of items. */
-        ctx->num_items = 0;
+    if (this->flag & CTXF_MARGINALS) {
+        this->exp_trans = (floatval_t*)_aligned_malloc((L * L + 4) * sizeof(floatval_t), 16);
+        if (this->exp_trans == NULL) printf("trans exp\n");
+        this->mexp_trans = (floatval_t*)calloc(L * L, sizeof(floatval_t));
+        if (this->mexp_trans == NULL) printf("mexp_trans\n");
     }
 
-    return ctx;
-
-error_exit:
-    crf1dc_delete(ctx);
-    return NULL;
+    if (ret = this->crf1dc_set_num_items(T)) {
+        printf("set num items\n");
+    }
+    /* T gives the 'hint' for maximum length of items. */
+    this->num_items = 0;
 }
 
-int crf1dc_set_num_items(crf1d_context_t* ctx, int T)
+int crf1d_context_t::crf1dc_set_num_items(int T)
 {
-    const int L = ctx->num_labels;
+    const int L = this->num_labels;
 
-    ctx->num_items = T;
+    this->num_items = T;
 
-    if (ctx->cap_items < T) {
-        free(ctx->backward_edge);
-        free(ctx->mexp_state);
-        _aligned_free(ctx->exp_state);
-        free(ctx->scale_factor);
-        free(ctx->row);
-        free(ctx->beta_score);
-        free(ctx->alpha_score);
-        free(ctx->state);
+    if (this->cap_items < T) {
+        free(this->backward_edge);
+        free(this->mexp_state);
+        _aligned_free(this->exp_state);
+        free(this->scale_factor);
+        free(this->row);
+        free(this->beta_score);
+        free(this->alpha_score);
+        free(this->state);
 
-        ctx->alpha_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        if (ctx->alpha_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
-        ctx->beta_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        if (ctx->beta_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
-        ctx->scale_factor = (floatval_t*)calloc(T, sizeof(floatval_t));
-        if (ctx->scale_factor == NULL) return CRFSUITEERR_OUTOFMEMORY;
-        ctx->row = (floatval_t*)calloc(L, sizeof(floatval_t));
-        if (ctx->row == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->alpha_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
+        if (this->alpha_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->beta_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
+        if (this->beta_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->scale_factor = (floatval_t*)calloc(T, sizeof(floatval_t));
+        if (this->scale_factor == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->row = (floatval_t*)calloc(L, sizeof(floatval_t));
+        if (this->row == NULL) return CRFSUITEERR_OUTOFMEMORY;
 
-        if (ctx->flag & CTXF_VITERBI) {
-            ctx->backward_edge = (int*)calloc(T * L, sizeof(int));
-            if (ctx->backward_edge == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        if (this->flag & CTXF_VITERBI) {
+            this->backward_edge = (int*)calloc(T * L, sizeof(int));
+            if (this->backward_edge == NULL) return CRFSUITEERR_OUTOFMEMORY;
         }
 
-        ctx->state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        if (ctx->state == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
+        if (this->state == NULL) return CRFSUITEERR_OUTOFMEMORY;
 
-        if (ctx->flag & CTXF_MARGINALS) {
-            ctx->exp_state = (floatval_t*)_aligned_malloc((T * L + 4) * sizeof(floatval_t), 16);
-            if (ctx->exp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
-            ctx->mexp_state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-            if (ctx->mexp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        if (this->flag & CTXF_MARGINALS) {
+            this->exp_state = (floatval_t*)_aligned_malloc((T * L + 4) * sizeof(floatval_t), 16);
+            if (this->exp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
+            this->mexp_state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
+            if (this->mexp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
         }
 
-        ctx->cap_items = T;
+        this->cap_items = T;
     }
 
     return 0;
 }
 
-void crf1dc_delete(crf1d_context_t* ctx)
+crf1d_context_t::~crf1d_context_t()
 {
-    if (ctx != NULL) {
-        free(ctx->backward_edge);
-        free(ctx->mexp_state);
-        _aligned_free(ctx->exp_state);
-        free(ctx->state);
-        free(ctx->scale_factor);
-        free(ctx->row);
-        free(ctx->beta_score);
-        free(ctx->alpha_score);
-        free(ctx->mexp_trans);
-        _aligned_free(ctx->exp_trans);
-        free(ctx->trans);
-    }
-    free(ctx);
+    free(this->backward_edge);
+    free(this->mexp_state);
+    _aligned_free(this->exp_state);
+    free(this->state);
+    free(this->scale_factor);
+    free(this->row);
+    free(this->beta_score);
+    free(this->alpha_score);
+    free(this->mexp_trans);
+    _aligned_free(this->exp_trans);
+    free(this->trans);
 }
 
-void crf1dc_reset(crf1d_context_t* ctx, int flag)
+void crf1d_context_t::crf1dc_reset(int flag)
 {
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
     if (flag & RF_STATE) {
-        veczero(ctx->state, T*L);
+        veczero(this->state, T*L);
     }
     if (flag & RF_TRANS) {
-        veczero(ctx->trans, L*L);
+        veczero(this->trans, L*L);
     }
 
-    if (ctx->flag & CTXF_MARGINALS) {
-        veczero(ctx->mexp_state, T*L);
-        veczero(ctx->mexp_trans, L*L);
-        ctx->log_norm = 0;
+    if (this->flag & CTXF_MARGINALS) {
+        veczero(this->mexp_state, T*L);
+        veczero(this->mexp_trans, L*L);
+        this->log_norm = 0;
     }
 }
 
-void crf1dc_exp_state(crf1d_context_t* ctx)
+void crf1d_context_t::crf1dc_exp_state()
 {
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
-    veccopy(ctx->exp_state, ctx->state, L * T);
-    vecexp(ctx->exp_state, L * T);
+    veccopy(this->exp_state, this->state, L * T);
+    vecexp(this->exp_state, L * T);
 }
 
-void crf1dc_exp_transition(crf1d_context_t* ctx)
+void crf1d_context_t::crf1dc_exp_transition()
 {
-    const int L = ctx->num_labels;
+    const int L = this->num_labels;
 
-    veccopy(ctx->exp_trans, ctx->trans, L * L);
-    vecexp(ctx->exp_trans, L * L);
+    veccopy(this->exp_trans, this->trans, L * L);
+    vecexp(this->exp_trans, L * L);
 }
 
-void crf1dc_alpha_score(crf1d_context_t* ctx)
+void crf1d_context_t::crf1dc_alpha_score()
 {
     int i, t;
     floatval_t sum, *cur = NULL;
-    floatval_t *scale = &ctx->scale_factor[0];
+    floatval_t *scale = &this->scale_factor[0];
     const floatval_t *prev = NULL, *trans = NULL, *state = NULL;
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
     /* Compute the alpha scores on nodes (0, *).
         alpha[0][j] = state[0][j]
      */
-    cur = ALPHA_SCORE(ctx, 0);
-    state = EXP_STATE_SCORE(ctx, 0);
+    cur = ALPHA_SCORE(this, 0);
+    state = EXP_STATE_SCORE(this, 0);
     veccopy(cur, state, L);
     sum = vecsum(cur, L);
     *scale = (sum != 0.) ? 1. / sum : 1.;
@@ -207,13 +193,13 @@ void crf1dc_alpha_score(crf1d_context_t* ctx)
         alpha[t][j] = state[t][j] * \sum_{i} alpha[t-1][i] * trans[i][j]
      */
     for (t = 1;t < T;++t) {
-        prev = ALPHA_SCORE(ctx, t-1);
-        cur = ALPHA_SCORE(ctx, t);
-        state = EXP_STATE_SCORE(ctx, t);
+        prev = ALPHA_SCORE(this, t-1);
+        cur = ALPHA_SCORE(this, t);
+        state = EXP_STATE_SCORE(this, t);
 
         veczero(cur, L);
         for (i = 0;i < L;++i) {
-            trans = EXP_TRANS_SCORE(ctx, i);
+            trans = EXP_TRANS_SCORE(this, i);
             vecaadd(cur, prev[i], trans, L);
         }
         vecmul(cur, state, L);
@@ -227,36 +213,36 @@ void crf1dc_alpha_score(crf1d_context_t* ctx)
         norm = 1. / (C[0] * C[1] ... * C[T-1])
         log(norm) = - \sum_{t = 0}^{T-1} log(C[t]).
      */
-    ctx->log_norm = -vecsumlog(ctx->scale_factor, T);
+    this->log_norm = -vecsumlog(this->scale_factor, T);
 }
 
-void crf1dc_beta_score(crf1d_context_t* ctx)
+void crf1d_context_t::crf1dc_beta_score()
 {
     int i, t;
     floatval_t *cur = NULL;
-    floatval_t *row = ctx->row;
+    floatval_t *row = this->row;
     const floatval_t *next = NULL, *state = NULL, *trans = NULL;
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
-    const floatval_t *scale = &ctx->scale_factor[T-1];
+    const int T = this->num_items;
+    const int L = this->num_labels;
+    const floatval_t *scale = &this->scale_factor[T-1];
 
     /* Compute the beta scores at (T-1, *). */
-    cur = BETA_SCORE(ctx, T-1);
+    cur = BETA_SCORE(this, T-1);
     vecset(cur, *scale, L);
     --scale;
 
     /* Compute the beta scores at (t, *). */
     for (t = T-2;0 <= t;--t) {
-        cur = BETA_SCORE(ctx, t);
-        next = BETA_SCORE(ctx, t+1);
-        state = EXP_STATE_SCORE(ctx, t+1);
+        cur = BETA_SCORE(this, t);
+        next = BETA_SCORE(this, t+1);
+        state = EXP_STATE_SCORE(this, t+1);
 
         veccopy(row, next, L);
         vecmul(row, state, L);
 
         /* Compute the beta score at (t, i). */
         for (i = 0;i < L;++i) {
-            trans = EXP_TRANS_SCORE(ctx, i);
+            trans = EXP_TRANS_SCORE(this, i);
             cur[i] = vecdot(trans, row, L);
         }
         vecscale(cur, *scale, L);
@@ -264,11 +250,11 @@ void crf1dc_beta_score(crf1d_context_t* ctx)
     }
 }
 
-void crf1dc_marginals(crf1d_context_t* ctx)
+void crf1d_context_t::crf1dc_marginals()
 {
     int i, j, t;
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
     /*
         Compute the model expectations of states.
@@ -276,12 +262,12 @@ void crf1dc_marginals(crf1d_context_t* ctx)
                    = (1. / C[t]) * fwd'[t][i] * bwd'[t][i]
      */
     for (t = 0;t < T;++t) {
-        floatval_t *fwd = ALPHA_SCORE(ctx, t);
-        floatval_t *bwd = BETA_SCORE(ctx, t);
-        floatval_t *prob = STATE_MEXP(ctx, t);
+        floatval_t *fwd = ALPHA_SCORE(this, t);
+        floatval_t *bwd = BETA_SCORE(this, t);
+        floatval_t *prob = STATE_MEXP(this, t);
         veccopy(prob, fwd, L);
         vecmul(prob, bwd, L);
-        vecscale(prob, 1. / ctx->scale_factor[t], L);
+        vecscale(prob, 1. / this->scale_factor[t], L);
     }
 
     /*
@@ -294,18 +280,18 @@ void crf1dc_marginals(crf1d_context_t* ctx)
         probabilities p(t,i,t+1,j) over t.
      */
     for (t = 0;t < T-1;++t) {
-        floatval_t *fwd = ALPHA_SCORE(ctx, t);
-        floatval_t *state = EXP_STATE_SCORE(ctx, t+1);
-        floatval_t *bwd = BETA_SCORE(ctx, t+1);
-        floatval_t *row = ctx->row;
+        floatval_t *fwd = ALPHA_SCORE(this, t);
+        floatval_t *state = EXP_STATE_SCORE(this, t+1);
+        floatval_t *bwd = BETA_SCORE(this, t+1);
+        floatval_t *row = this->row;
 
         /* row[j] = state[t+1][j] * bwd'[t+1][j] */
         veccopy(row, bwd, L);
         vecmul(row, state, L);
 
         for (i = 0;i < L;++i) {
-            floatval_t *edge = EXP_TRANS_SCORE(ctx, i);
-            floatval_t *prob = TRANS_MEXP(ctx, i);
+            floatval_t *edge = EXP_TRANS_SCORE(this, i);
+            floatval_t *prob = TRANS_MEXP(this, i);
             for (j = 0;j < L;++j) {
                 prob[j] += fwd[i] * edge[j] * row[j];
             }
@@ -313,14 +299,14 @@ void crf1dc_marginals(crf1d_context_t* ctx)
     }
 }
 
-floatval_t crf1dc_marginal_point(crf1d_context_t *ctx, int l, int t)
+floatval_t crf1d_context_t::crf1dc_marginal_point(int l, int t)
 {
-    floatval_t *fwd = ALPHA_SCORE(ctx, t);
-    floatval_t *bwd = BETA_SCORE(ctx, t);
-    return fwd[l] * bwd[l] / ctx->scale_factor[t];
+    floatval_t *fwd = ALPHA_SCORE(this, t);
+    floatval_t *bwd = BETA_SCORE(this, t);
+    return fwd[l] * bwd[l] / this->scale_factor[t];
 }
 
-floatval_t crf1dc_marginal_path(crf1d_context_t *ctx, const int *path, int begin, int end)
+floatval_t crf1d_context_t::crf1dc_marginal_path(const int *path, int begin, int end)
 {
     int t;
     /*
@@ -333,14 +319,14 @@ floatval_t crf1dc_marginal_path(crf1d_context_t *ctx, const int *path, int begin
                 = fwd[begin][a] * edge[a][b] * state[begin+1][b] * ... * edge[y][z] * state[end-1][z] * bwd[end-1][z] / norm
                 = fwd'[begin][a] * edge[a][b] * state[begin+1][b] * ... * edge[y][z] * state[end-1][z] * bwd'[end-1][z] * (C[begin+1] * ... * C[end-2])
      */
-    floatval_t *fwd = ALPHA_SCORE(ctx, begin);
-    floatval_t *bwd = BETA_SCORE(ctx, end-1);
-    floatval_t prob = fwd[path[begin]] * bwd[path[end-1]] / ctx->scale_factor[begin];
+    floatval_t *fwd = ALPHA_SCORE(this, begin);
+    floatval_t *bwd = BETA_SCORE(this, end-1);
+    floatval_t prob = fwd[path[begin]] * bwd[path[end-1]] / this->scale_factor[begin];
 
     for (t = begin;t < end-1;++t) {
-        floatval_t *state = EXP_STATE_SCORE(ctx, t+1);
-        floatval_t *edge = EXP_TRANS_SCORE(ctx, path[t]);
-        prob *= (edge[path[t+1]] * state[path[t+1]] * ctx->scale_factor[t]);
+        floatval_t *state = EXP_STATE_SCORE(this, t+1);
+        floatval_t *edge = EXP_TRANS_SCORE(this, path[t]);
+        prob *= (edge[path[t+1]] * state[path[t+1]] * this->scale_factor[t]);
     }
 
     return prob;
@@ -350,23 +336,23 @@ floatval_t crf1dc_marginal_path(crf1d_context_t *ctx, const int *path, int begin
 /* Sigh, this was found to be slower than the forward-backward algorithm. */
 
 #define    ADJACENCY(ctx, i) \
-    (&MATRIX(ctx->adj, ctx->num_labels, 0, i))
+    (&MATRIX(this->adj, this->num_labels, 0, i))
 
-void crf1dc_marginal_without_beta(crf1d_context_t* ctx)
+void crf1dc_marginal_without_beta()
 {
     int i, j, t;
     floatval_t *prob = NULL;
-    floatval_t *row = ctx->row;
+    floatval_t *row = this->row;
     const floatval_t *fwd = NULL;
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
     /*
         Compute marginal probabilities of states at T-1
             p(T-1,j) = fwd'[T-1][j]
      */
-    fwd = ALPHA_SCORE(ctx, T-1);
-    prob = STATE_MEXP(ctx, T-1);
+    fwd = ALPHA_SCORE(this, T-1);
+    prob = STATE_MEXP(this, T-1);
     veccopy(prob, fwd, L);
 
     /*
@@ -375,10 +361,10 @@ void crf1dc_marginal_without_beta(crf1d_context_t* ctx)
             2) Compute p(t,i) using p(t-1,i,t,j)
      */
     for (t = T-1;0 < t;--t) {
-        fwd = ALPHA_SCORE(ctx, t-1);
-        prob = STATE_MEXP(ctx, t);
+        fwd = ALPHA_SCORE(this, t-1);
+        prob = STATE_MEXP(this, t);
 
-        veczero(ctx->adj, L*L);
+        veczero(this->adj, L*L);
         veczero(row, L);
 
         /*
@@ -387,8 +373,8 @@ void crf1dc_marginal_without_beta(crf1d_context_t* ctx)
                 row[j] = \sum_{i} adj[i][j]
          */
         for (i = 0;i < L;++i) {
-            floatval_t *adj = ADJACENCY(ctx, i);
-            floatval_t *edge = EXP_TRANS_SCORE(ctx, i);
+            floatval_t *adj = ADJACENCY(this, i);
+            floatval_t *edge = EXP_TRANS_SCORE(this, i);
             vecaadd(adj, fwd[i], edge, L);
             vecadd(row, adj, L);
         }
@@ -404,7 +390,7 @@ void crf1dc_marginal_without_beta(crf1d_context_t* ctx)
             Apply the partition factor z (row[j]) to adj[i][j].
          */
         for (i = 0;i < L;++i) {
-            floatval_t *adj = ADJACENCY(ctx, i);
+            floatval_t *adj = ADJACENCY(this, i);
             vecmul(adj, row, L);
         }
 
@@ -413,8 +399,8 @@ void crf1dc_marginal_without_beta(crf1d_context_t* ctx)
             accumulate model expectations of transitions.
          */
         for (i = 0;i < L;++i) {
-            floatval_t *adj = ADJACENCY(ctx, i);
-            floatval_t *prob = TRANS_MEXP(ctx, i);
+            floatval_t *adj = ADJACENCY(this, i);
+            floatval_t *prob = TRANS_MEXP(this, i);
             vecadd(prob, adj, L);
         }
 
@@ -422,33 +408,33 @@ void crf1dc_marginal_without_beta(crf1d_context_t* ctx)
             Compute the marginal probability of states at t-1.
                 p(t-1,i) = \sum_{j} p(t-1,i,t,j)
          */
-        prob = STATE_MEXP(ctx, t-1);
+        prob = STATE_MEXP(this, t-1);
         for (i = 0;i < L;++i) {
-            floatval_t *adj = ADJACENCY(ctx, i);
+            floatval_t *adj = ADJACENCY(this, i);
             prob[i] = vecsum(adj, L);
         }
     }
 }
 #endif
 
-floatval_t crf1dc_score(crf1d_context_t* ctx, const int *labels)
+floatval_t crf1d_context_t::crf1dc_score(const int *labels)
 {
     int i, j, t;
     floatval_t ret = 0;
     const floatval_t *state = NULL, *cur = NULL, *trans = NULL;
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
     /* Stay at (0, labels[0]). */
     i = labels[0];
-    state = STATE_SCORE(ctx, 0);
+    state = STATE_SCORE(this, 0);
     ret = state[i];
 
     /* Loop over the rest of items. */
     for (t = 1;t < T;++t) {
         j = labels[t];
-        trans = TRANS_SCORE(ctx, i);
-        state = STATE_SCORE(ctx, t);
+        trans = TRANS_SCORE(this, i);
+        state = STATE_SCORE(this, t);
 
         /* Transit from (t-1, i) to (t, j). */
         ret += trans[j];
@@ -458,38 +444,38 @@ floatval_t crf1dc_score(crf1d_context_t* ctx, const int *labels)
     return ret;
 }
 
-floatval_t crf1dc_lognorm(crf1d_context_t* ctx)
+floatval_t crf1d_context_t::crf1dc_lognorm()
 {
-    return ctx->log_norm;
+    return this->log_norm;
 }
 
-floatval_t crf1dc_viterbi(crf1d_context_t* ctx, int *labels)
+floatval_t crf1d_context_t::crf1dc_viterbi(int *labels)
 {
     int i, j, t;
     int *back = NULL;
     floatval_t max_score, score, *cur = NULL;
     int argmax_score;
     const floatval_t *prev = NULL, *state = NULL, *trans = NULL;
-    const int T = ctx->num_items;
-    const int L = ctx->num_labels;
+    const int T = this->num_items;
+    const int L = this->num_labels;
 
     /*
         This function assumes state and trans scores to be in the logarithm domain.
      */
 
     /* Compute the scores at (0, *). */
-    cur = ALPHA_SCORE(ctx, 0);
-    state = STATE_SCORE(ctx, 0);
+    cur = ALPHA_SCORE(this, 0);
+    state = STATE_SCORE(this, 0);
     for (j = 0;j < L;++j) {
         cur[j] = state[j];
     }
 
     /* Compute the scores at (t, *). */
     for (t = 1;t < T;++t) {
-        prev = ALPHA_SCORE(ctx, t-1);
-        cur = ALPHA_SCORE(ctx, t);
-        state = STATE_SCORE(ctx, t);
-        back = BACKWARD_EDGE_AT(ctx, t);
+        prev = ALPHA_SCORE(this, t-1);
+        cur = ALPHA_SCORE(this, t);
+        state = STATE_SCORE(this, t);
+        back = BACKWARD_EDGE_AT(this, t);
 
         /* Compute the score of (t, j). */
         for (j = 0;j < L;++j) {
@@ -497,7 +483,7 @@ floatval_t crf1dc_viterbi(crf1d_context_t* ctx, int *labels)
             argmax_score = -1;
             for (i = 0;i < L;++i) {
                 /* Transit from (t-1, i) to (t, j). */
-                trans = TRANS_SCORE(ctx, i);
+                trans = TRANS_SCORE(this, i);
                 score = prev[i] + trans[j];
 
                 /* Store this path if it has the maximum score. */
@@ -515,7 +501,7 @@ floatval_t crf1dc_viterbi(crf1d_context_t* ctx, int *labels)
 
     /* Find the node (#T, #i) that reaches EOS with the maximum score. */
     max_score = -FLOAT_MAX;
-    prev = ALPHA_SCORE(ctx, T-1);
+    prev = ALPHA_SCORE(this, T-1);
     /* Set a score for T-1 to be overwritten later. Just in case we don't
        end up with something beating -FLOAT_MAX. */
     labels[T-1] = 0;
@@ -528,7 +514,7 @@ floatval_t crf1dc_viterbi(crf1d_context_t* ctx, int *labels)
 
     /* Tag labels by tracing the backward links. */
     for (t = T-2;0 <= t;--t) {
-        back = BACKWARD_EDGE_AT(ctx, t+1);
+        back = BACKWARD_EDGE_AT(this, t+1);
         labels[t] = back[labels[t+1]];
     }
 
@@ -551,7 +537,7 @@ void crf1dc_debug_context(FILE *fp)
     floatval_t norm = 0;
     const int L = 3;
     const int T = 3;
-    crf1d_context_t *ctx = crf1dc_new(CTXF_MARGINALS, L, T);
+    crf1d_context_t *ctx = new crf1d_context_t(CTXF_MARGINALS, L, T);
     floatval_t *trans = NULL, *state = NULL;
     floatval_t scores[3][3][3];
     int labels[3];
@@ -573,8 +559,8 @@ void crf1dc_debug_context(FILE *fp)
     trans[0] = .5;    trans[1] = .2;    trans[2] = .1;
 
     ctx->num_items = ctx->cap_items;
-    crf1dc_alpha_score(ctx);
-    crf1dc_beta_score(ctx);
+    ctx->crf1dc_alpha_score();
+    ctx->crf1dc_beta_score();
 
     /* Compute the score of every label sequence. */
     for (y1 = 0;y1 < L;++y1) {
@@ -615,7 +601,7 @@ void crf1dc_debug_context(FILE *fp)
                 labels[0] = y1;
                 labels[1] = y2;
                 labels[2] = y3;
-                logp = crf1dc_score(ctx, labels) - crf1dc_lognorm(ctx);
+                logp = ctx->crf1dc_score(labels) - ctx->crf1dc_lognorm();
 
                 fprintf(fp, "Check for the sequence %d-%d-%d... ", y1, y2, y3);
                 check_values(fp, exp(logp), scores[y1][y2][y3] / norm);

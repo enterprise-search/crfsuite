@@ -68,7 +68,7 @@ enum {
  * Context structure.
  *  This structure maintains internal data for an instance.
  */
-typedef struct {
+struct crf1d_context_t {
     /**
      * Flag specifying the functionality.
      */
@@ -175,8 +175,27 @@ typedef struct {
      *  This member is available only with CTXF_MARGINALS flag.
      */
     floatval_t *mexp_trans;
+        
+public:
+    crf1d_context_t(int flag, int L, int T);
+    ~crf1d_context_t();
 
-} crf1d_context_t;
+    int crf1dc_set_num_items( int T);
+    void crf1dc_reset( int flag);
+    void crf1dc_exp_state();
+    void crf1dc_exp_transition();
+    void crf1dc_alpha_score();
+    void crf1dc_beta_score();
+    void crf1dc_marginals();
+    floatval_t crf1dc_marginal_point(crf1d_context_t *ctx, int l, int t);
+    floatval_t crf1dc_marginal_path(crf1d_context_t *ctx, const int *path, int begin, int end);
+    floatval_t crf1dc_score( const int *labels);
+    floatval_t crf1dc_lognorm();
+    floatval_t crf1dc_viterbi( int *labels);
+
+    floatval_t crf1dc_marginal_point(int l, int t);
+    floatval_t crf1dc_marginal_path(const int *path, int begin, int end);
+};
 
 #define    MATRIX(p, xl, x, y)        ((p)[(xl) * (y) + (x)])
 
@@ -199,20 +218,6 @@ typedef struct {
 #define    BACKWARD_EDGE_AT(ctx, t) \
     (&MATRIX(ctx->backward_edge, ctx->num_labels, 0, t))
 
-crf1d_context_t* crf1dc_new(int flag, int L, int T);
-int crf1dc_set_num_items(crf1d_context_t* ctx, int T);
-void crf1dc_delete(crf1d_context_t* ctx);
-void crf1dc_reset(crf1d_context_t* ctx, int flag);
-void crf1dc_exp_state(crf1d_context_t* ctx);
-void crf1dc_exp_transition(crf1d_context_t* ctx);
-void crf1dc_alpha_score(crf1d_context_t* ctx);
-void crf1dc_beta_score(crf1d_context_t* ctx);
-void crf1dc_marginals(crf1d_context_t* ctx);
-floatval_t crf1dc_marginal_point(crf1d_context_t *ctx, int l, int t);
-floatval_t crf1dc_marginal_path(crf1d_context_t *ctx, const int *path, int begin, int end);
-floatval_t crf1dc_score(crf1d_context_t* ctx, const int *labels);
-floatval_t crf1dc_lognorm(crf1d_context_t* ctx);
-floatval_t crf1dc_viterbi(crf1d_context_t* ctx, int *labels);
 void crf1dc_debug_context(FILE *fp);
 
 /** @} */

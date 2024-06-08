@@ -101,7 +101,7 @@ static void crf1de_finish(crf1de_t *crf1de)
     int i;
 
     if (crf1de->ctx != NULL) {
-        crf1dc_delete(crf1de->ctx);
+        delete crf1de->ctx;
         crf1de->ctx = NULL;
     }
     if (crf1de->features != NULL) {
@@ -438,7 +438,7 @@ crf1de_set_data(
     }
 
     /* Construct a CRF context. */
-    crf1de->ctx = crf1dc_new(CTXF_MARGINALS | CTXF_VITERBI, L, T);
+    crf1de->ctx = new crf1d_context_t(CTXF_MARGINALS | CTXF_VITERBI, L, T);
     if (crf1de->ctx == NULL) {
         ret = CRFSUITEERR_OUTOFMEMORY;
         goto error_exit;
@@ -744,28 +744,28 @@ static void set_level(encoder_t *self, int level)
 
     /* LEVEL_WEIGHT: set transition scores. */
     if (LEVEL_WEIGHT <= level && prev < LEVEL_WEIGHT) {
-        crf1dc_reset(crf1de->ctx, RF_TRANS);
+        crf1de->ctx->crf1dc_reset(RF_TRANS);
         crf1de_transition_score_scaled(crf1de, self->w, self->scale);
     }
 
     /* LEVEL_INSTANCE: set state scores. */
     if (LEVEL_INSTANCE <= level && prev < LEVEL_INSTANCE) {
-        crf1dc_set_num_items(crf1de->ctx, self->inst->num_items);
-        crf1dc_reset(crf1de->ctx, RF_STATE);
+        crf1de->ctx->crf1dc_set_num_items(self->inst->num_items);
+        crf1de->ctx->crf1dc_reset(RF_STATE);
         crf1de_state_score_scaled(crf1de, self->inst, self->w, self->scale);
     }
 
     /* LEVEL_ALPHABETA: perform the forward-backward algorithm. */
     if (LEVEL_ALPHABETA <= level && prev < LEVEL_ALPHABETA) {
-        crf1dc_exp_transition(crf1de->ctx);
-        crf1dc_exp_state(crf1de->ctx);
-        crf1dc_alpha_score(crf1de->ctx);
-        crf1dc_beta_score(crf1de->ctx);
+        crf1de->ctx->crf1dc_exp_transition();
+        crf1de->ctx->crf1dc_exp_state();
+        crf1de->ctx->crf1dc_alpha_score();
+        crf1de->ctx->crf1dc_beta_score();
     }
 
     /* LEVEL_MARGINAL: compute the marginal probability. */
     if (LEVEL_MARGINAL <= level && prev < LEVEL_MARGINAL) {
-        crf1dc_marginals(crf1de->ctx);
+        crf1de->ctx->crf1dc_marginals();
     }
 
     self->level = level;
@@ -815,9 +815,9 @@ static int encoder_objective_and_gradients_batch(encoder_t *self, dataset_t *ds,
         Set the scores (weights) of transition features here because
         these are independent of input label sequences.
      */
-    crf1dc_reset(crf1de->ctx, RF_TRANS);
+    crf1de->ctx->crf1dc_reset(RF_TRANS);
     crf1de_transition_score(crf1de, w);
-    crf1dc_exp_transition(crf1de->ctx);
+    crf1de->ctx->crf1dc_exp_transition();
 
     /*
         Compute model expectations.
@@ -826,18 +826,18 @@ static int encoder_objective_and_gradients_batch(encoder_t *self, dataset_t *ds,
         const crfsuite_instance_t *seq = dataset_get(ds, i);
 
         /* Set label sequences and state scores. */
-        crf1dc_set_num_items(crf1de->ctx, seq->num_items);
-        crf1dc_reset(crf1de->ctx, RF_STATE);
+        crf1de->ctx->crf1dc_set_num_items(seq->num_items);
+        crf1de->ctx->crf1dc_reset(RF_STATE);
         crf1de_state_score(crf1de, seq, w);
-        crf1dc_exp_state(crf1de->ctx);
+        crf1de->ctx->crf1dc_exp_state();
 
         /* Compute forward/backward scores. */
-        crf1dc_alpha_score(crf1de->ctx);
-        crf1dc_beta_score(crf1de->ctx);
-        crf1dc_marginals(crf1de->ctx);
+        crf1de->ctx->crf1dc_alpha_score();
+        crf1de->ctx->crf1dc_beta_score();
+        crf1de->ctx->crf1dc_marginals();
 
         /* Compute the probability of the input sequence on the model. */
-        logp = crf1dc_score(crf1de->ctx, seq->labels) - crf1dc_lognorm(crf1de->ctx);
+        logp = crf1de->ctx->crf1dc_score(seq->labels) - crf1de->ctx->crf1dc_lognorm();
         /* Update the log-likelihood. */
         logl += logp * seq->weight;
 
@@ -887,7 +887,7 @@ static int encoder_set_instance(encoder_t *self, const crfsuite_instance_t *inst
 static int encoder_score(encoder_t *self, const int *path, floatval_t *ptr_score)
 {
     crf1de_t *crf1de = (crf1de_t*)self->internal;
-    *ptr_score = crf1dc_score(crf1de->ctx, path);
+    *ptr_score = crf1de->ctx->crf1dc_score(path);
     return 0;
 }
 
@@ -897,7 +897,7 @@ static int encoder_viterbi(encoder_t *self, int *path, floatval_t *ptr_score)
     int i;
     floatval_t score;
     crf1de_t *crf1de = (crf1de_t*)self->internal;
-    score = crf1dc_viterbi(crf1de->ctx, path);
+    score = crf1de->ctx->crf1dc_viterbi(path);
     if (ptr_score != NULL) {
         *ptr_score = score;
     }
@@ -909,7 +909,7 @@ static int encoder_partition_factor(encoder_t *self, floatval_t *ptr_pf)
 {
     crf1de_t *crf1de = (crf1de_t*)self->internal;
     set_level(self, LEVEL_ALPHABETA);
-    *ptr_pf = crf1dc_lognorm(crf1de->ctx);
+    *ptr_pf = crf1de->ctx->crf1dc_lognorm();
     return 0;
 }
 
@@ -921,7 +921,7 @@ static int encoder_objective_and_gradients(encoder_t *self, floatval_t *f, float
     gain *= weight;
     crf1de_observation_expectation(crf1de, self->inst, self->inst->labels, g, gain);
     crf1de_model_expectation(crf1de, self->inst, g, -gain);
-    *f = (-crf1dc_score(crf1de->ctx,  self->inst->labels) + crf1dc_lognorm(crf1de->ctx)) * weight;
+    *f = (-crf1de->ctx->crf1dc_score(self->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
     return 0;
 }
 
