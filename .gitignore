@@ -29,3 +29,6 @@ __pycache__/
 *.a
 *.la
 *.lo
+
+build
+CMakeFiles
