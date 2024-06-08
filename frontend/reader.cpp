@@ -136,7 +136,7 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
         case IWA_NONE:
         case IWA_EOF:
             /* Put the training instance. */
-            crfsuite_data_append(data, &inst);
+            data->append(inst);
             inst.clear();
             inst.group = group;
             inst.weight = 1.;

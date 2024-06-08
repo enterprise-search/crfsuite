@@ -241,7 +241,6 @@ int main_learn(int argc, char *argv[], const char *argv0)
 
     /* Initializations. */
     learn_option_init(&opt);
-    crfsuite_data_init(&data);
 
     /* Parse the command-line option. */
     arg_used = option_parse(++argv, --argc, parse_learn_options, &opt);
@@ -384,13 +383,13 @@ int main_learn(int argc, char *argv[], const char *argv0)
     /* Split into data sets if necessary. */
     if (0 < opt.split) {
         /* Shuffle the instances. */
-        for (i = 0;i < data.num_instances;++i) {
-            int j = rand() % data.num_instances;
+        for (i = 0;i < data.num_instances();++i) {
+            int j = rand() % data.num_instances();
             std::swap(data.instances[i], data.instances[j]);
         }
 
         /* Assign group numbers. */
-        for (i = 0;i < data.num_instances;++i) {
+        for (i = 0;i < data.num_instances();++i) {
             data.instances[i].group = i % opt.split;
         }
         groups = opt.split;
@@ -399,8 +398,8 @@ int main_learn(int argc, char *argv[], const char *argv0)
     /* Report the statistics of the training data. */
     fprintf(fpo, "Statistics the data set(s)\n");
     fprintf(fpo, "Number of data sets (groups): %d\n", groups);
-    fprintf(fpo, "Number of instances: %d\n", data.num_instances);
-    fprintf(fpo, "Number of items: %d\n", crfsuite_data_totalitems(&data));
+    fprintf(fpo, "Number of instances: %d\n", data.num_instances());
+    fprintf(fpo, "Number of items: %d\n", data.totalitems());
     fprintf(fpo, "Number of attributes: %d\n", data.attrs->num(data.attrs));
     fprintf(fpo, "Number of labels: %d\n", data.labels->num(data.labels));
     fprintf(fpo, "\n");
@@ -437,7 +436,6 @@ force_exit:
     SAFE_RELEASE(data.labels);
     SAFE_RELEASE(data.attrs);
 
-    crfsuite_data_finish(&data);
     learn_option_finish(&opt);
     if (fpo != NULL) {
         fclose(fpo);

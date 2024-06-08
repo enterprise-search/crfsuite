@@ -190,16 +190,44 @@ public:
  */
 struct crfsuite_data_t{
     /** Number of instances. */
-    int                 num_instances;
+    size_t                 num_instances() const { return this->instances.size(); }
     /** Maximum number of instances (internal use). */
-    int                 cap_instances;
+    size_t                 cap_instances() const { return this->instances.capacity(); }
     /** Array of instances. */
-    crfsuite_instance_t*     instances;
+    std::vector<crfsuite_instance_t>     instances;
 
     /** Dictionary object for attributes. */
     crfsuite_dictionary_t    *attrs;
     /** Dictionary object for labels. */
     crfsuite_dictionary_t    *labels;
+public:
+
+    void append(const crfsuite_instance_t& inst)
+    {
+        if (0 < inst.num_items()) {
+            this->instances.push_back(inst);
+        }
+    }
+
+    size_t maxlength() const
+    {
+        int i, T = 0;
+        for (i = 0;i < this->num_instances();++i) {
+            if (T < this->instances[i].num_items()) {
+                T = this->instances[i].num_items();
+            }
+        }
+        return T;
+    }
+
+    size_t totalitems() const
+    {
+        int i, n = 0;
+        for (i = 0;i < this->num_instances();++i) {
+            n += this->instances[i].num_items();
+        }
+        return n;
+    }
 } ;
 
 /**@}*/
@@ -852,55 +880,6 @@ void crfsuite_item_swap(crfsuite_item_t* x, crfsuite_item_t* y);
  */
 int  crfsuite_item_empty(crfsuite_item_t* item);
 
-
-/**
- * Initialize a dataset structure.
- *  @param  data        The pointer to crfsuite_data_t.
- */
-void crfsuite_data_init(crfsuite_data_t* data);
-
-/**
- * Initialize a dataset structure with the number of instances.
- *  @param  data        The pointer to crfsuite_data_t.
- *  @param  n           The number of instances.
- */
-void crfsuite_data_init_n(crfsuite_data_t* data, int n);
-
-/**
- * Uninitialize a dataset structure.
- *  @param  data        The pointer to crfsuite_data_t.
- */
-void crfsuite_data_finish(crfsuite_data_t* data);
-
-/**
- * Copy the content of a dataset structure.
- *  @param  dst         The pointer to the destination.
- *  @param  src         The pointer to the source.
- */
-void crfsuite_data_copy(crfsuite_data_t* dst, const crfsuite_data_t* src);
-
-/**
- * Append an instance to the dataset structure.
- *  @param  data        The pointer to crfsuite_data_t.
- *  @param  inst        The instance to be added to the dataset.
- *  @return int         \c 0 if successful, \c -1 otherwise.
- */
-int  crfsuite_data_append(crfsuite_data_t* data, const crfsuite_instance_t* inst);
-
-/**
- * Obtain the maximum length of the instances in the dataset.
- *  @param  data        The pointer to crfsuite_data_t.
- *  @return int         The maximum number of items of the instances in the
- *                      dataset.
- */
-int  crfsuite_data_maxlength(crfsuite_data_t* data);
-
-/**
- * Obtain the total number of items in the dataset.
- *  @param  data        The pointer to crfsuite_data_t.
- *  @return int         The total number of items in the dataset.
- */
-int  crfsuite_data_totalitems(crfsuite_data_t* data);
 
 /**@}*/
 
