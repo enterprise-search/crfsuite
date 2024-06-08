@@ -51,16 +51,9 @@ enum {
     LEVEL_ALPHABETA,
 };
 
-typedef struct {
-    crf1dm_t *model;        /**< CRF model. */
-    crf1d_context_t *ctx;   /**< CRF context. */
-    int num_labels;         /**< Number of distinct output labels (L). */
-    int num_attributes;     /**< Number of distinct attributes (A). */
-    int level;
-} crf1dt_t;
-
-static void crf1dt_state_score(crf1dt_t *crf1dt, const crfsuite_instance_t *inst)
+void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
 {
+    crf1dt_t *crf1dt = this;
     int a, i, l, t, r, fid;
     crf1dm_feature_t f;
     feature_refs_t attr;
@@ -80,7 +73,7 @@ static void crf1dt_state_score(crf1dt_t *crf1dt, const crfsuite_instance_t *inst
         for (i = 0;i < item->num_contents;++i) {
             /* Access the list of state features associated with the attribute. */
             a = item->contents[i].aid;
-            crf1dm_get_attrref(model, a, &attr);
+            model->crf1dm_get_attrref(a, &attr);
             /* A scale usually represents the atrribute frequency in the item. */
             value = item->contents[i].value;
 
@@ -89,7 +82,7 @@ static void crf1dt_state_score(crf1dt_t *crf1dt, const crfsuite_instance_t *inst
                 /* The state feature #(attr->fids[r]), which is represented by
                    the attribute #a, outputs the label #(f->dst). */
                 fid = crf1dm_get_featureid(&attr, r);
-                crf1dm_get_feature(model, fid, &f);
+                model->crf1dm_get_feature(fid, &f);
                 l = f.dst;
                 state[l] += f.weight * value;
             }
@@ -97,8 +90,9 @@ static void crf1dt_state_score(crf1dt_t *crf1dt, const crfsuite_instance_t *inst
     }
 }
 
-static void crf1dt_transition_score(crf1dt_t* crf1dt)
+void crf1dt_t::crf1dt_transition_score()
 {
+    crf1dt_t* crf1dt = this;
     int i, r, fid;
     crf1dm_feature_t f;
     feature_refs_t edge;
@@ -110,18 +104,19 @@ static void crf1dt_transition_score(crf1dt_t* crf1dt)
     /* Compute transition scores between two labels. */
     for (i = 0;i < L;++i) {
         trans = TRANS_SCORE(ctx, i);
-        crf1dm_get_labelref(model, i, &edge);
+        model->crf1dm_get_labelref(i, &edge);
         for (r = 0;r < edge.num_features;++r) {
             /* Transition feature from #i to #(f->dst). */
             fid = crf1dm_get_featureid(&edge, r);
-            crf1dm_get_feature(model, fid, &f);
+            model->crf1dm_get_feature(fid, &f);
             trans[f.dst] = f.weight;
         }        
     }
 }
 
-static void crf1dt_set_level(crf1dt_t *crf1dt, int level)
+void crf1dt_t::crf1dt_set_level(int level)
 {
+    crf1dt_t *crf1dt = this;
     int prev = crf1dt->level;
     crf1d_context_t* ctx = crf1dt->ctx;
 
@@ -134,8 +129,9 @@ static void crf1dt_set_level(crf1dt_t *crf1dt, int level)
     crf1dt->level = level;
 }
 
-static void crf1dt_delete(crf1dt_t* crf1dt)
+void crf1dt_t::crf1dt_delete()
 {
+    crf1dt_t* crf1dt = this;
     /* Note: we don't own the model object (crf1t->model). */
     if (crf1dt->ctx != NULL) {
         crf1dc_delete(crf1dt->ctx);
@@ -144,32 +140,18 @@ static void crf1dt_delete(crf1dt_t* crf1dt)
     free(crf1dt);
 }
 
-static crf1dt_t *crf1dt_new(crf1dm_t* crf1dm)
+crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
 {
-    crf1dt_t* crf1dt = NULL;
-
-    crf1dt = (crf1dt_t*)calloc(1, sizeof(crf1dt_t));
-    if (crf1dt != NULL) {
-        crf1dt->num_labels = crf1dm_get_num_labels(crf1dm);
-        crf1dt->num_attributes = crf1dm_get_num_attrs(crf1dm);
-        crf1dt->model = crf1dm;
-        crf1dt->ctx = crf1dc_new(CTXF_VITERBI | CTXF_MARGINALS, crf1dt->num_labels, 0);
-        if (crf1dt->ctx != NULL) {
-            crf1dc_reset(crf1dt->ctx, RF_TRANS);
-            crf1dt_transition_score(crf1dt);
-            crf1dc_exp_transition(crf1dt->ctx);
-        } else {
-            crf1dt_delete(crf1dt);
-            crf1dt = NULL;
-            return crf1dt;
-        }
-        crf1dt->level = LEVEL_NONE;
-    }
-
-    return crf1dt;
+    this->num_labels = crf1dm->crf1dm_get_num_labels();
+    this->num_attributes = crf1dm->crf1dm_get_num_attrs();
+    this->model = crf1dm;
+    this->ctx = crf1dc_new(CTXF_VITERBI | CTXF_MARGINALS, this->num_labels, 0);
+    // TODO: assert (this->ctx != NULL);
+    crf1dc_reset(this->ctx, RF_TRANS);
+    this->crf1dt_transition_score();
+    crf1dc_exp_transition(this->ctx);
+    this->level = LEVEL_NONE;
 }
-
-
 
 /*
  *    Implementation of crfsuite_tagger_t object.
@@ -186,7 +168,7 @@ static int tagger_release(crfsuite_tagger_t* tagger)
     int count = crfsuite_interlocked_decrement(&tagger->nref);
     if (count == 0) {
         /* This instance is being destroyed. */
-        crf1dt_delete((crf1dt_t*)tagger->internal);
+        delete ((crf1dt_t*)tagger->internal);
         free(tagger);
     }
     return count;
@@ -198,7 +180,7 @@ static int tagger_set(crfsuite_tagger_t* tagger, crfsuite_instance_t *inst)
     crf1d_context_t* ctx = crf1dt->ctx;
     crf1dc_set_num_items(ctx, inst->num_items);
     crf1dc_reset(crf1dt->ctx, RF_STATE);
-    crf1dt_state_score(crf1dt, inst);
+    crf1dt->crf1dt_state_score(inst);
     crf1dt->level = LEVEL_SET;
     return 0;
 }
@@ -239,7 +221,7 @@ static int tagger_score(crfsuite_tagger_t* tagger, int *path, floatval_t *ptr_sc
 static int tagger_lognorm(crfsuite_tagger_t* tagger, floatval_t *ptr_norm)
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
-    crf1dt_set_level(crf1dt, LEVEL_ALPHABETA);
+    crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
     *ptr_norm = crf1dc_lognorm(crf1dt->ctx);
     return 0;
 }
@@ -247,7 +229,7 @@ static int tagger_lognorm(crfsuite_tagger_t* tagger, floatval_t *ptr_norm)
 static int tagger_marginal_point(crfsuite_tagger_t *tagger, int l, int t, floatval_t *ptr_prob)
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
-    crf1dt_set_level(crf1dt, LEVEL_ALPHABETA);
+    crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
     *ptr_prob = crf1dc_marginal_point(crf1dt->ctx, l, t);
     return 0;
 }
@@ -255,7 +237,7 @@ static int tagger_marginal_point(crfsuite_tagger_t *tagger, int l, int t, floatv
 static int tagger_marginal_path(crfsuite_tagger_t *tagger, const int *path, int begin, int end, floatval_t *ptr_prob)
 {
     crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
-    crf1dt_set_level(crf1dt, LEVEL_ALPHABETA);
+    crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
     *ptr_prob = crf1dc_marginal_path(crf1dt->ctx, path, begin, end);
     return 0;
 }
@@ -288,20 +270,20 @@ static int model_attrs_get(crfsuite_dictionary_t* dic, const char *str)
 static int model_attrs_to_id(crfsuite_dictionary_t* dic, const char *str)
 {
     crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm_to_aid(crf1dm, str);
+    return crf1dm->crf1dm_to_aid(str);
 }
 
 static int model_attrs_to_string(crfsuite_dictionary_t* dic, int id, char const **pstr)
 {
     crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    *pstr = crf1dm_to_attr(crf1dm, id);
+    *pstr = crf1dm->crf1dm_to_attr(id);
     return 0;
 }
 
 static int model_attrs_num(crfsuite_dictionary_t* dic)
 {
     crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm_get_num_attrs(crf1dm);
+    return crf1dm->crf1dm_get_num_attrs();
 }
 
 static void model_attrs_free(crfsuite_dictionary_t* dic, const char *str)
@@ -338,20 +320,20 @@ static int model_labels_get(crfsuite_dictionary_t* dic, const char *str)
 static int model_labels_to_id(crfsuite_dictionary_t* dic, const char *str)
 {
     crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm_to_lid(crf1dm, str);
+    return crf1dm->crf1dm_to_lid(str);
 }
 
 static int model_labels_to_string(crfsuite_dictionary_t* dic, int id, char const **pstr)
 {
     crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    *pstr = crf1dm_to_label(crf1dm, id);
+    *pstr = crf1dm->crf1dm_to_label(id);
     return 0;
 }
 
 static int model_labels_num(crfsuite_dictionary_t* dic)
 {
     crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm_get_num_labels(crf1dm);
+    return crf1dm->crf1dm_get_num_labels();
 }
 
 static void model_labels_free(crfsuite_dictionary_t* dic, const char *str)
@@ -386,7 +368,7 @@ static int model_release(crfsuite_model_t* model)
         model_internal_t* internal = (model_internal_t*)model->internal;
         free(internal->labels);
         free(internal->attrs);
-        crf1dm_close(internal->crf1dm);
+        delete internal->crf1dm;
         free(internal);
         free(model);
     }
@@ -401,7 +383,7 @@ static int model_get_tagger(crfsuite_model_t* model, crfsuite_tagger_t** ptr_tag
     model_internal_t* internal = (model_internal_t*)model->internal;
 
     /* Construct a tagger based on the model. */
-    crf1dt = crf1dt_new(internal->crf1dm);
+    crf1dt = new crf1dt_t(internal->crf1dm);
     if (crf1dt == NULL) {
         ret = CRFSUITEERR_OUTOFMEMORY;
         goto error_exit;
@@ -431,7 +413,7 @@ static int model_get_tagger(crfsuite_model_t* model, crfsuite_tagger_t** ptr_tag
 error_exit:
     free(tagger);
     if (crf1dt != NULL) {
-        crf1dt_delete(crf1dt);
+        delete crf1dt;
     }
     return ret;
 }
@@ -455,7 +437,7 @@ static int model_get_attrs(crfsuite_model_t* model, crfsuite_dictionary_t** ptr_
 static int model_dump(crfsuite_model_t* model, FILE *fpo)
 {
     model_internal_t* internal = (model_internal_t*)model->internal;
-    crf1dm_dump(internal->crf1dm, fpo);
+    internal->crf1dm->crf1dm_dump(fpo);
     return 0;
 }
 
@@ -539,7 +521,7 @@ error_exit:
     free(labels);
     free(attrs);
     if (crf1dm != NULL) {
-        crf1dm_close(crf1dm);
+        delete crf1dm;
     }
     free(internal);
     free(model);
@@ -548,10 +530,10 @@ error_exit:
 
 int crf1m_create_instance_from_file(const char *filename, void **ptr)
 {
-    return crf1m_model_create(crf1dm_new(filename), ptr);
+    return crf1m_model_create(new tag_crf1dm(filename), ptr);
 }
 
 int crf1m_create_instance_from_memory(const void *data, size_t size, void **ptr)
 {
-    return crf1m_model_create(crf1dm_new_from_memory(data, size), ptr);
+    return crf1m_model_create(new tag_crf1dm(data, size), ptr);
 }

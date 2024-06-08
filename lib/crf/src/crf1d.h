@@ -34,6 +34,7 @@
 #define    __CRF1D_H__
 
 #include <crfsuite.h>
+#include <cqdb.h>
 #include "crfsuite_internal.h"
 
 
@@ -310,9 +311,6 @@ int crf1df_init_references(
 struct tag_crf1dm;
 typedef struct tag_crf1dm crf1dm_t;
 
-struct tag_crf1dmw;
-typedef struct tag_crf1dmw crf1dmw_t;
-
 typedef struct {
     int        type;
     int        src;
@@ -320,40 +318,105 @@ typedef struct {
     floatval_t weight;
 } crf1dm_feature_t;
 
-crf1dmw_t* crf1mmw(const char *filename);
-int crf1dmw_close(crf1dmw_t* writer);
-int crf1dmw_open_labels(crf1dmw_t* writer, int num_labels);
-int crf1dmw_close_labels(crf1dmw_t* writer);
-int crf1dmw_put_label(crf1dmw_t* writer, int lid, const char *value);
-int crf1dmw_open_attrs(crf1dmw_t* writer, int num_attributes);
-int crf1dmw_close_attrs(crf1dmw_t* writer);
-int crf1dmw_put_attr(crf1dmw_t* writer, int aid, const char *value);
-int crf1dmw_open_labelrefs(crf1dmw_t* writer, int num_labels);
-int crf1dmw_close_labelrefs(crf1dmw_t* writer);
-int crf1dmw_put_labelref(crf1dmw_t* writer, int lid, const feature_refs_t* ref, int *map);
-int crf1dmw_open_attrrefs(crf1dmw_t* writer, int num_attrs);
-int crf1dmw_close_attrrefs(crf1dmw_t* writer);
-int crf1dmw_put_attrref(crf1dmw_t* writer, int aid, const feature_refs_t* ref, int *map);
-int crf1dmw_open_features(crf1dmw_t* writer);
-int crf1dmw_close_features(crf1dmw_t* writer);
-int crf1dmw_put_feature(crf1dmw_t* writer, int fid, const crf1dm_feature_t* f);
+typedef struct {
+    uint8_t     magic[4];       /* File magic. */
+    uint32_t    size;           /* File size. */
+    uint8_t     type[4];        /* Model type */
+    uint32_t    version;        /* Version number. */
+    uint32_t    num_features;   /* Number of features. */
+    uint32_t    num_labels;     /* Number of labels. */
+    uint32_t    num_attrs;      /* Number of attributes. */
+    uint32_t    off_features;   /* Offset to features. */
+    uint32_t    off_labels;     /* Offset to label CQDB. */
+    uint32_t    off_attrs;      /* Offset to attribute CQDB. */
+    uint32_t    off_labelrefs;  /* Offset to label feature references. */
+    uint32_t    off_attrrefs;   /* Offset to attribute feature references. */
+} header_t;
 
-crf1dm_t* crf1dm_new(const char *filename);
-crf1dm_t* crf1dm_new_from_memory(const void *data, size_t size);
-void crf1dm_close(crf1dm_t* model);
-int crf1dm_get_num_attrs(crf1dm_t* model);
-int crf1dm_get_num_labels(crf1dm_t* model);
-const char *crf1dm_to_label(crf1dm_t* model, int lid);
-int crf1dm_to_lid(crf1dm_t* model, const char *value);
-int crf1dm_to_aid(crf1dm_t* model, const char *value);
-const char *crf1dm_to_attr(crf1dm_t* model, int aid);
-int crf1dm_get_labelref(crf1dm_t* model, int lid, feature_refs_t* ref);
-int crf1dm_get_attrref(crf1dm_t* model, int aid, feature_refs_t* ref);
+typedef struct {
+    uint8_t     chunk[4];       /* Chunk id */
+    uint32_t    size;           /* Chunk size. */
+    uint32_t    num;            /* Number of items. */
+    uint32_t    offsets[1];     /* Offsets. */
+} featureref_header_t;
+
+typedef struct {
+    uint8_t     chunk[4];       /* Chunk id */
+    uint32_t    size;           /* Chunk size. */
+    uint32_t    num;            /* Number of items. */
+} feature_header_t;
+
+struct tag_crf1dm {
+    uint8_t*       buffer_orig;
+    const uint8_t* buffer;
+    uint32_t       size;
+    header_t*      header;
+    cqdb_t*        labels;
+    cqdb_t*        attrs;
+
+    tag_crf1dm(const char *filename);
+    tag_crf1dm(const void *data, size_t size) : tag_crf1dm(NULL, (const uint8_t*)data, size)
+    {}
+    tag_crf1dm(uint8_t* buffer_orig, const uint8_t* buffer, uint32_t size);
+    ~tag_crf1dm();
+
+    int crf1dm_get_num_attrs();
+    int crf1dm_get_num_labels();
+    const char *crf1dm_to_label(int lid);
+    int crf1dm_to_lid(const char *value);
+    int crf1dm_to_aid(const char *value);
+    const char *crf1dm_to_attr(int aid);
+    int crf1dm_get_labelref(int lid, feature_refs_t* ref);
+    int crf1dm_get_attrref(int aid, feature_refs_t* ref);
+    int crf1dm_get_feature(int fid, crf1dm_feature_t* f);
+    void crf1dm_dump(FILE *fp);
+};
+
 int crf1dm_get_featureid(feature_refs_t* ref, int i);
-int crf1dm_get_feature(crf1dm_t* model, int fid, crf1dm_feature_t* f);
-void crf1dm_dump(crf1dm_t* model, FILE *fp);
+
+
+struct tag_crf1dmw {
+    FILE *fp;
+    int state;
+    header_t header;
+    cqdb_writer_t* dbw;
+    featureref_header_t* href;
+    feature_header_t* hfeat;
+
+    tag_crf1dmw(const char *filename);
+    ~tag_crf1dmw();
+    int crf1dmw_open_labels(int num_labels);
+    int crf1dmw_close_labels();
+    int crf1dmw_put_label(int lid, const char *value);
+    int crf1dmw_open_attrs(int num_attributes);
+    int crf1dmw_close_attrs();
+    int crf1dmw_put_attr(int aid, const char *value);
+    int crf1dmw_open_labelrefs(int num_labels);
+    int crf1dmw_close_labelrefs();
+    int crf1dmw_put_labelref(int lid, const feature_refs_t* ref, int *map);
+    int crf1dmw_open_attrrefs(int num_attrs);
+    int crf1dmw_close_attrrefs();
+    int crf1dmw_put_attrref(int aid, const feature_refs_t* ref, int *map);
+    int crf1dmw_open_features();
+    int crf1dmw_close_features();
+    int crf1dmw_put_feature(int fid, const crf1dm_feature_t* f);
+};
+
+
 
 /** @} */
+struct crf1dt_t {
+    crf1dm_t *model;        /**< CRF model. */
+    crf1d_context_t *ctx;   /**< CRF context. */
+    int num_labels;         /**< Number of distinct output labels (L). */
+    int num_attributes;     /**< Number of distinct attributes (A). */
+    int level;
 
+    crf1dt_t(crf1dm_t* crf1dm);
+    void crf1dt_state_score(const crfsuite_instance_t *inst);
+    void crf1dt_transition_score();
+    void crf1dt_set_level(int level);
+    void crf1dt_delete();
+};
 
 #endif/*__CRF1D_H__*/

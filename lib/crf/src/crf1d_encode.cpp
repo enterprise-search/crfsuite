@@ -503,7 +503,7 @@ crf1de_save_model(
     int a, k, l, ret;
     clock_t begin;
     int *fmap = NULL, *amap = NULL;
-    crf1dmw_t* writer = NULL;
+    tag_crf1dmw* writer = NULL;
     const feature_refs_t *edge = NULL, *attr = NULL;
     const floatval_t threshold = 0.01;
     const int L = crf1de->num_labels;
@@ -542,13 +542,13 @@ crf1de_save_model(
     /*
      *  Open a model writer.
      */
-    writer = crf1mmw(filename);
+    writer = new tag_crf1dmw(filename);
     if (writer == NULL) {
         goto error_exit;
     }
 
     /* Open a feature chunk in the model file. */
-    if (ret = crf1dmw_open_features(writer)) {
+    if (ret = writer->crf1dmw_open_features()) {
         goto error_exit;
     }
 
@@ -582,14 +582,14 @@ crf1de_save_model(
             feat.weight = w[k];
 
             /* Write the feature. */
-            if (ret = crf1dmw_put_feature(writer, fmap[k], &feat)) {
+            if (ret = writer->crf1dmw_put_feature(fmap[k], &feat)) {
                 goto error_exit;
             }
         }
     }
 
     /* Close the feature chunk. */
-    if (ret = crf1dmw_close_features(writer)) {
+    if (ret = writer->crf1dmw_close_features()) {
         goto error_exit;
     }
 
@@ -599,26 +599,26 @@ crf1de_save_model(
 
     /* Write labels. */
     logging(lg, "Writing labels\n", L);
-    if (ret = crf1dmw_open_labels(writer, L)) {
+    if (ret = writer->crf1dmw_open_labels(L)) {
         goto error_exit;
     }
     for (l = 0;l < L;++l) {
         const char *str = NULL;
         labels->to_string(labels, l, &str);
         if (str != NULL) {
-            if (ret = crf1dmw_put_label(writer, l, str)) {
+            if (ret = writer->crf1dmw_put_label(l, str)) {
                 goto error_exit;
             }
             labels->free(labels, str);
         }
     }
-    if (ret = crf1dmw_close_labels(writer)) {
+    if (ret = writer->crf1dmw_close_labels()) {
         goto error_exit;
     }
 
     /* Write attributes. */
     logging(lg, "Writing attributes\n");
-    if (ret = crf1dmw_open_attrs(writer, B)) {
+    if (ret = writer->crf1dmw_open_attrs(B)) {
         goto error_exit;
     }
     for (a = 0;a < A;++a) {
@@ -626,51 +626,51 @@ crf1de_save_model(
             const char *str = NULL;
             attrs->to_string(attrs, a, &str);
             if (str != NULL) {
-                if (ret = crf1dmw_put_attr(writer, amap[a], str)) {
+                if (ret = writer->crf1dmw_put_attr(amap[a], str)) {
                     goto error_exit;
                 }
                 attrs->free(attrs, str);
             }
         }
     }
-    if (ret = crf1dmw_close_attrs(writer)) {
+    if (ret = writer->crf1dmw_close_attrs()) {
         goto error_exit;
     }
 
     /* Write label feature references. */
     logging(lg, "Writing feature references for transitions\n");
-    if (ret = crf1dmw_open_labelrefs(writer, L+2)) {
+    if (ret = writer->crf1dmw_open_labelrefs(L+2)) {
         goto error_exit;
     }
     for (l = 0;l < L;++l) {
         edge = TRANSITION(crf1de, l);
-        if (ret = crf1dmw_put_labelref(writer, l, edge, fmap)) {
+        if (ret = writer->crf1dmw_put_labelref(l, edge, fmap)) {
             goto error_exit;
         }
     }
-    if (ret = crf1dmw_close_labelrefs(writer)) {
+    if (ret = writer->crf1dmw_close_labelrefs()) {
         goto error_exit;
     }
 
     /* Write attribute feature references. */
     logging(lg, "Writing feature references for attributes\n");
-    if (ret = crf1dmw_open_attrrefs(writer, B)) {
+    if (ret = writer->crf1dmw_open_attrrefs(B)) {
         goto error_exit;
     }
     for (a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             attr = ATTRIBUTE(crf1de, a);
-            if (ret = crf1dmw_put_attrref(writer, amap[a], attr, fmap)) {
+            if (ret = writer->crf1dmw_put_attrref(amap[a], attr, fmap)) {
                 goto error_exit;
             }
         }
     }
-    if (ret = crf1dmw_close_attrrefs(writer)) {
+    if (ret = writer->crf1dmw_close_attrrefs()) {
         goto error_exit;
     }
 
     /* Close the writer. */
-    crf1dmw_close(writer);
+    delete writer;
     logging(lg, "Seconds required: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
     logging(lg, "\n");
 
@@ -680,7 +680,7 @@ crf1de_save_model(
 
 error_exit:
     if (writer != NULL) {
-        crf1dmw_close(writer);
+        delete writer;
     }
     if (amap != NULL) {
         free(amap);
