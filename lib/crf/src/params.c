@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include <crfsuite.h>
-#include "quark.h"
 
 enum {
     PT_NONE = 0,

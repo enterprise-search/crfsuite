@@ -38,6 +38,7 @@
 #include <string.h>
 
 #include <crfsuite.h>
+#include "crfsuite_internal.h"
 #include "logging.h"
 
 int crf1de_create_instance(const char *iid, void **ptr);

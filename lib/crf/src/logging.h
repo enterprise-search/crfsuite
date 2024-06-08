@@ -32,7 +32,9 @@
 
 #ifndef    __LOGGING_H__
 #define    __LOGGING_H__
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 typedef struct {
     void *instance;
     crfsuite_logging_callback func;
@@ -44,5 +46,7 @@ void logging_timestamp(logging_t* lg, const char *format);
 void logging_progress_start(logging_t* lg);
 void logging_progress(logging_t* lg, int percent);
 void logging_progress_end(logging_t* lg);
-
+#ifdef __cplusplus
+}
+#endif
 #endif/*__LOGGING_H__*/

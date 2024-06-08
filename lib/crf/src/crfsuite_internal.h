@@ -35,7 +35,9 @@
 
 #include <crfsuite.h>
 #include "logging.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 enum {
     FTYPE_NONE = 0,             /**< Unselected. */
     FTYPE_CRF1D,                /**< 1st-order tyad features. */
@@ -67,6 +69,7 @@ void dataset_init_trainset(dataset_t *ds, crfsuite_data_t *data, int holdout);
 void dataset_init_testset(dataset_t *ds, crfsuite_data_t *data, int holdout);
 void dataset_finish(dataset_t *ds);
 void dataset_shuffle(dataset_t *ds);
+
 crfsuite_instance_t *dataset_get(dataset_t *ds, int i);
 
 typedef void (*crfsuite_encoder_features_on_path_callback)(void *instance, int fid, floatval_t value);
@@ -233,5 +236,12 @@ int crfsuite_train_arow(
     floatval_t **ptr_w
     );
 
+int crf1de_create_instance(const char *iid, void **ptr);
+int crf1m_create_instance_from_file(const char *filename, void **ptr);
+int crf1m_create_instance_from_memory(const void *data, size_t size, void **ptr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif/*__CRFSUITE_INTERNAL_H__*/

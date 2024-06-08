@@ -40,75 +40,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unordered_set>
 
 #include <crfsuite.h>
 
 #include "logging.h"
 #include "crf1d.h"
-#include "rumavl.h"    /* AVL tree library necessary for feature generation. */
+// #include "rumavl.h"    /* AVL tree library necessary for feature generation. */
 
 /**
  * Feature set.
  */
-typedef struct {
-    RUMAVL* avl;    /**< Root node of the AVL tree. */
-    int num;        /**< Number of features in the AVL tree. */
-} featureset_t;
 
-
-#define    COMP(a, b)    ((a)>(b))-((a)<(b))
-
-static int featureset_comp(const void *x, const void *y, size_t n, void *udata)
-{
-    int ret = 0;
-    const crf1df_feature_t* f1 = (const crf1df_feature_t*)x;
-    const crf1df_feature_t* f2 = (const crf1df_feature_t*)y;
-
-    ret = COMP(f1->type, f2->type);
-    if (ret == 0) {
-        ret = COMP(f1->src, f2->src);
-        if (ret == 0) {
-            ret = COMP(f1->dst, f2->dst);
-        }
+struct FeatureEqual {
+    bool operator()(const crf1df_feature_t& lhs, const crf1df_feature_t& rhs) const {
+        return lhs.type == rhs.type && lhs.src == rhs.src && lhs.dst == rhs.dst;
     }
-    return ret;
-}
+};
+
+struct FeatureHash {
+    int operator()(const crf1df_feature_t& f) {
+        return f.type + f.src + f.dst;
+    }
+};
+
+typedef std::unordered_set<crf1df_feature_t, FeatureHash, FeatureEqual> featureset_t;
+
 
 static featureset_t* featureset_new()
 {
-    featureset_t* set = NULL;
-    set = (featureset_t*)calloc(1, sizeof(featureset_t));
-    if (set != NULL) {
-        set->num = 0;
-        set->avl = rumavl_new(
-            sizeof(crf1df_feature_t), featureset_comp, NULL, NULL);
-        if (set->avl == NULL) {
-            free(set);
-            set = NULL;
-        }
-    }
-    return set;
+    featureset_t* p = new featureset_t();
+    return p;
 }
 
 static void featureset_delete(featureset_t* set)
 {
-    if (set != NULL) {
-        rumavl_destroy(set->avl);
-        free(set);
-    }
+    delete set;
 }
 
 static int featureset_add(featureset_t* set, const crf1df_feature_t* f)
 {
-    /* Check whether if the feature already exists. */
-    crf1df_feature_t *p = (crf1df_feature_t*)rumavl_find(set->avl, f);
-    if (p == NULL) {
-        /* Insert the feature to the feature set. */
-        rumavl_insert(set->avl, f);
-        ++set->num;
+    auto p = set->find(*f);
+    if (p != set->end()) {
+        crf1df_feature_t o = *p;
+        o.freq += f->freq;
+        set->erase(p);
+        set->insert(o);
     } else {
-        /* An existing feature: add the observation expectation. */
-        p->freq += f->freq;
+        set->insert(*f);
     }
     return 0;
 }
@@ -121,24 +100,20 @@ featureset_generate(
     )
 {
     int n = 0, k = 0;
-    RUMAVL_NODE *node = NULL;
-    crf1df_feature_t *f = NULL;
     crf1df_feature_t *features = NULL;
 
     /* The first pass: count the number of valid features. */
-    while ((node = rumavl_node_next(set->avl, node, 1, (void**)&f)) != NULL) {
-        if (minfreq <= f->freq) {
+    for (auto it = set->begin(); it != set->end(); ++it) {
+        if (it->freq >= minfreq)
             ++n;
-        }
     }
 
     /* The second path: copy the valid features to the feature array. */
     features = (crf1df_feature_t*)calloc(n, sizeof(crf1df_feature_t));
     if (features != NULL) {
-        node = NULL;
-        while ((node = rumavl_node_next(set->avl, node, 1, (void**)&f)) != NULL) {
-            if (minfreq <= f->freq) {
-                memcpy(&features[k], f, sizeof(crf1df_feature_t));
+        for (auto it = set->begin(); it != set->end(); ++it) {
+            if (it->freq >= minfreq) {
+                memcpy(&features[k], &(*it), sizeof(crf1df_feature_t));
                 ++k;
             }
         }

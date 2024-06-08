@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(
     crfsuite
-  VERSION 1.0
-  LANGUAGES C)
+  VERSION 1.0.1
+  LANGUAGES C CXX)
 
 if(CMAKE_COMPILER_IS_GNUCC)
     # Note: gcc does not implicitly set _POSIX_C_SOURCE or _XOPEN_SOURCE
@@ -20,8 +20,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/lib/cqdb
 set(LBFGS_USE_SSE ON)
 set(LBFGS_lib_TARGET_NAME liblbfgs)
 add_subdirectory(${PROJECT_SOURCE_DIR}/lib/liblbfgs/)
-
-
 # find_package(LBFGS REQUIRED ${PROJECT_SOURCE_DIR}/lib/liblbfgs)
 # include_directories(${liblbfgs_INCLUDE_DIR})
 
@@ -31,7 +29,27 @@ include_directories(${cqdb_INCLUDE_DIR})
 
 FILE (GLOB
       SOURCES
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/*.c)
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_context.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_encode.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_feature.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_model.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_tag.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite_train.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/dataset.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/dictionary.cpp
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/holdout.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/logging.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/params.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_arow.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_averaged_perceptron.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_l2sgd.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_lbfgs.c
+      ${PROJECT_SOURCE_DIR}/lib/crf/src/train_passive_aggressive.c
+)
+
+# set_source_files_properties(${PROJECT_SOURCE_DIR}/lib/crf/src/quark.cpp PROPERTIES LANGUAGE CXX)
+
 
 add_library(crfsuite STATIC ${SOURCES})
 set_target_properties(crfsuite PROPERTIES PUBLIC_HEADER "crfsuite/include/crfsuite.h;crfsuite/include/crfsuite.hpp;crfsuite/include/crfsuite_api.hpp")

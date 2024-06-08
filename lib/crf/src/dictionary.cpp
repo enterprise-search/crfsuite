@@ -34,46 +34,69 @@
 
 #include <stdlib.h>
 #include <string.h>
-
 #include <crfsuite.h>
-#include "quark.h"
+#include <map>
+#include <vector>
+#include <string>
+
+class T {
+    public:
+    std::map<std::string, int> m;
+    std::vector<std::string> v;
+};
 
 static int dictionary_addref(crfsuite_dictionary_t* dic)
 {
-    return crfsuite_interlocked_increment(&dic->nref);
+    // return crfsuite_interlocked_increment(&dic->nref);
+    return 0;
 }
 
 static int dictionary_release(crfsuite_dictionary_t* dic)
 {
-    int count = crfsuite_interlocked_decrement(&dic->nref);
-    if (count == 0) {
-        quark_t *qrk = (quark_t*)dic->internal;
-        quark_delete(qrk);
-        free(dic);
-    }
-    return count;
+    return 0;
+    // int count = crfsuite_interlocked_decrement(&dic->nref);
+    // if (count == 0) {
+    //     quark_t *qrk = (quark_t*)dic->internal;
+    //     quark_delete(qrk);
+    //     free(dic);
+    // }
+    // return count;
 }
 
 static int dictionary_get(crfsuite_dictionary_t* dic, const char *str)
 {
-    quark_t *qrk = (quark_t*)dic->internal;
-    return quark_get(qrk, str);
+    T *t = (T*)dic->internal;
+    auto s = std::string(str);
+    auto it = t->m.find(s);
+    if (it != t->m.end()) {
+        return it->second;
+    } else {
+        t->m[s] = t->v.size();
+        t->v.push_back(s);
+        return t->v.size()-1;
+    }
+    return 0;
 }
 
 static int dictionary_to_id(crfsuite_dictionary_t* dic, const char *str)
 {
-    quark_t *qrk = (quark_t*)dic->internal;
-    return quark_to_id(qrk, str);    
+    T *t = (T*)dic->internal;
+    auto s = std::string(str);
+    auto it = t->m.find(s);
+    if (it != t->m.end()) {
+        return it->second;
+    }
+    return -1;
 }
 
 static int dictionary_to_string(crfsuite_dictionary_t* dic, int id, char const **pstr)
 {
-    quark_t *qrk = (quark_t*)dic->internal;
-    const char *str = quark_to_string(qrk, id);
-    if (str != NULL) {
-        char *dst = (char*)malloc(strlen(str)+1);
+    T *t = (T*)dic->internal;
+    if (id < t->v.size()) {
+        auto s = t->v[id];
+        char *dst = (char*)malloc(s.length()+1);
         if (dst) {
-            strcpy(dst, str);
+            strcpy(dst, s.c_str());
             *pstr = dst;
             return 0;
         }
@@ -83,22 +106,21 @@ static int dictionary_to_string(crfsuite_dictionary_t* dic, int id, char const *
 
 static int dictionary_num(crfsuite_dictionary_t* dic)
 {
-    quark_t *qrk = (quark_t*)dic->internal;
-    return quark_num(qrk);
+    T* t = (T*)dic->internal;
+    return t->v.size();
 }
 
 static void dictionary_free(crfsuite_dictionary_t* dic, const char *str)
 {
-    free((char*)str);
+    // free((char*)str);
 }
 
 int crfsuite_dictionary_create_instance(const char *interface, void **ptr)
 {
     if (strcmp(interface, "dictionary") == 0) {
         crfsuite_dictionary_t* dic = (crfsuite_dictionary_t*)calloc(1, sizeof(crfsuite_dictionary_t));
-
         if (dic != NULL) {
-            dic->internal = quark_new();
+            dic->internal = new T();
             dic->nref = 1;
             dic->addref = dictionary_addref;
             dic->release = dictionary_release;
