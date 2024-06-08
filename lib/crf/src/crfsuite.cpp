@@ -81,26 +81,6 @@ void crfsuite_attribute_set(crfsuite_attribute_t* cont, int aid, floatval_t valu
     cont->value = value;
 }
 
-void crfsuite_attribute_copy(crfsuite_attribute_t* dst, const crfsuite_attribute_t* src)
-{
-    dst->aid = src->aid;
-    dst->value = src->value;
-}
-
-void crfsuite_attribute_swap(crfsuite_attribute_t* x, crfsuite_attribute_t* y)
-{
-    crfsuite_attribute_t tmp = *x;
-    x->aid = y->aid;
-    x->value = y->value;
-    y->aid = tmp.aid;
-    y->value = tmp.value;
-}
-
-void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src)
-{
-    *dst = *src;
-}
-
 static char *safe_strncpy(char *dst, const char *src, size_t n)
 {
     strncpy(dst, src, n-1);
