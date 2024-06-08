@@ -165,11 +165,11 @@ int crfsuite_train_averaged_perceptron(
             const crfsuite_instance_t *inst = dataset_get(trainset, n);
 
             /* Set the feature weights to the encoder. */
-            gm->set_weights(gm, w, 1.);
-            gm->set_instance(gm, inst);
+            gm->set_weights(w, 1.);
+            gm->set_instance(inst);
 
             /* Tag the sequence with the current model. */
-            gm->viterbi(gm, viterbi, &score);
+            gm->viterbi(viterbi, &score);
 
             /* Compute the number of different labels. */
             d = diff(inst->labels, viterbi, inst->num_items);
@@ -180,7 +180,7 @@ int crfsuite_train_averaged_perceptron(
                  */
                 ud.c = inst->weight;
                 ud.cs = c * inst->weight;
-                gm->features_on_path(gm, inst, inst->labels, update_weights, &ud);
+                gm->features_on_path(inst, inst->labels, update_weights, &ud);
 
                 /*
                     For every feature k on the Viterbi path:
@@ -188,7 +188,7 @@ int crfsuite_train_averaged_perceptron(
                  */
                 ud.c = -inst->weight;
                 ud.cs = -c * inst->weight;
-                gm->features_on_path(gm, inst, viterbi, update_weights, &ud);
+                gm->features_on_path(inst, viterbi, update_weights, &ud);
 
                 /* We define the loss as the ratio of wrongly predicted labels. */
                 loss += d / (floatval_t)inst->num_items * inst->weight;
@@ -209,7 +209,7 @@ int crfsuite_train_averaged_perceptron(
 
         /* Holdout evaluation if necessary. */
         if (testset != NULL) {
-            holdout_evaluation(gm, testset, wa, lg);
+            gm->holdout_evaluation(testset, wa, lg);
         }
 
         logging(lg, "\n");

@@ -54,8 +54,8 @@ static crfsuite_train_internal_t* crfsuite_train_new(int ftype, int algorithm)
         tr->feature_type = ftype;
         tr->algorithm = algorithm;
 
-        tr->gm = crf1d_create_encoder();
-        tr->gm->exchange_options(tr->gm, tr->params, 0);
+        tr->gm = new tag_encoder();
+        tr->gm->exchange_options(tr->params, 0);
 
         /* Initialize parameters for the training algorithm. */
         switch (algorithm) {
@@ -85,7 +85,7 @@ static void crfsuite_train_delete(crfsuite_trainer_t* self)
     crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)self->internal;
     if (tr != NULL) {
         if (tr->gm != NULL) {
-            tr->gm->release(tr->gm);
+            delete tr->gm;
         }
         if (tr->params != NULL) {
             tr->params->release(tr->params);
@@ -149,8 +149,8 @@ static int crfsuite_train_train(
     }
 
     /* Set the training set to the CRF, and generate features. */
-    gm->exchange_options(gm, tr->params, -1);
-    gm->initialize(gm, &trainset, lg);
+    gm->exchange_options(tr->params, -1);
+    gm->initialize(&trainset, lg);
 
     /* Call the training algorithm. */
     switch (tr->algorithm) {
@@ -208,7 +208,7 @@ static int crfsuite_train_train(
 
     /* Store the model file. */
     if (filename != NULL && *filename != '\0') {
-        gm->save_model(gm, filename, w, lg);
+        gm->save_model(filename, w, lg);
     }
 
     if (0 <= holdout) {

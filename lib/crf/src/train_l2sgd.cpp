@@ -185,9 +185,9 @@ static int l2sgd(
             gain = eta / decay;
 
             /* Compute the loss and gradients for the instance. */
-            gm->set_weights(gm, w, decay);
-            gm->set_instance(gm, inst);
-            gm->objective_and_gradients(gm, &loss, w, gain, inst->weight);
+            gm->set_weights(w, decay);
+            gm->set_instance(inst);
+            gm->objective_and_gradients(&loss, w, gain, inst->weight);
 
             sum_loss += loss;
             ++t;
@@ -240,7 +240,7 @@ static int l2sgd(
 
             /* Holdout evaluation if necessary. */
             if (testset != NULL) {
-                holdout_evaluation(gm, testset, w, lg);
+                gm->holdout_evaluation(testset, w, lg);
             }
             logging(lg, "\n");
 
@@ -319,15 +319,15 @@ l2sgd_calibration(
     vecset(w, 0, K);
 
     /* Compute the initial loss. */
-    gm->set_weights(gm, w, 1.);
+    gm->set_weights(w, 1.);
     init_loss = 0;
     for (i = 0;i < S;++i) {
         floatval_t score;
         const crfsuite_instance_t *inst = dataset_get(ds, i);
-        gm->set_instance(gm, inst);
-        gm->score(gm, inst->labels, &score);
+        gm->set_instance(inst);
+        gm->score(inst->labels, &score);
         init_loss -= score;
-        gm->partition_factor(gm, &score);
+        gm->partition_factor(&score);
         init_loss += score;
     }
     init_loss += 0.5 * lambda * vecdot(w, w, K) * N;

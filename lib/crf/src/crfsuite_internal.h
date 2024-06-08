@@ -109,7 +109,7 @@ struct tag_encoder
      *  @param  mode        The direction of parameter exchange.
      *  @return             A status code.
      */
-    int (*exchange_options)(encoder_t *self, crfsuite_params_t* params, int mode);
+    int exchange_options(crfsuite_params_t* params, int mode);
 
     /**
      * Initializes the encoder with a training data set.
@@ -118,7 +118,7 @@ struct tag_encoder
      *  @param  lg          The logging interface.
      *  @return             A status code.
      */
-    int (*initialize)(encoder_t *self, dataset_t *ds, logging_t *lg);
+    int initialize(dataset_t *ds, logging_t *lg);
 
     /**
      * Compute the objective value and gradients for the whole data set.
@@ -130,10 +130,32 @@ struct tag_encoder
      *  @param  g           The pointer to the array that receives gradients.
      *  @return             A status code.
      */
-    int (*objective_and_gradients_batch)(encoder_t *self, dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g);
+    int objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g);
 
-    int (*features_on_path)(encoder_t *self, const crfsuite_instance_t *inst, const int *path, crfsuite_encoder_features_on_path_callback func, void *instance);
+    int features_on_path(const crfsuite_instance_t *inst, const int *path, crfsuite_encoder_features_on_path_callback func, void *instance);
 
+
+
+    /* Instance-wise operations. */
+    int set_instance(const crfsuite_instance_t *inst);
+
+    /* Level 0. */
+
+    /* Level 1 (feature weights). */
+    int score(const int *path, floatval_t *ptr_score);
+    int viterbi(int *path, floatval_t *ptr_score);
+
+    /* Level 2 (forward-backward). */
+    int partition_factor(floatval_t *ptr_pf);
+
+    /* Level 3 (marginals). */
+    int objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight);
+
+public:
+    tag_encoder();
+    ~tag_encoder();
+
+    int save_model(const char *filename, const floatval_t *w, logging_t *lg);
     /**
      * Sets the feature weights (and their scale factor).
      *  @param  self        The encoder instance.
@@ -142,26 +164,9 @@ struct tag_encoder
      *                      feature weights.
      *  @return             A status code.
      */
-    int (*set_weights)(encoder_t *self, const floatval_t *w, floatval_t scale);
-
-    /* Instance-wise operations. */
-    int (*set_instance)(encoder_t *self, const crfsuite_instance_t *inst);
-
-    /* Level 0. */
-
-    /* Level 1 (feature weights). */
-    int (*score)(encoder_t *self, const int *path, floatval_t *ptr_score);
-    int (*viterbi)(encoder_t *self, int *path, floatval_t *ptr_score);
-
-    /* Level 2 (forward-backward). */
-    int (*partition_factor)(encoder_t *self, floatval_t *ptr_pf);
-
-    /* Level 3 (marginals). */
-    int (*objective_and_gradients)(encoder_t *self, floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight);
-
-    int (*save_model)(encoder_t *self, const char *filename, const floatval_t *w, logging_t *lg);
-
-    void (*release)(encoder_t *self);
+    int set_weights(const floatval_t *w, floatval_t scale);
+    void set_level(int level);
+    void holdout_evaluation(dataset_t *ds, const floatval_t *w, logging_t *lg);
 };
 
 /**

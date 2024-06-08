@@ -41,8 +41,7 @@
 #include "crfsuite_internal.h"
 #include "logging.h"
 
-void holdout_evaluation(
-    encoder_t *gm,
+void tag_encoder::holdout_evaluation(
     dataset_t *ds,
     const floatval_t *w,
     logging_t *lg
@@ -57,7 +56,7 @@ void holdout_evaluation(
     /* Initialize the evaluation table. */
     crfsuite_evaluation_init(&eval, ds->data->labels->num(ds->data->labels));
 
-    gm->set_weights(gm, w, 1.);
+    this->set_weights(w, 1.);
 
     for (i = 0;i < N;++i) {
         floatval_t score;
@@ -68,8 +67,8 @@ void holdout_evaluation(
             viterbi = (int*)malloc(sizeof(int) * inst->num_items);
         }
 
-        gm->set_instance(gm, inst);
-        gm->viterbi(gm, viterbi, &score);
+        this->set_instance(inst);
+        this->viterbi(viterbi, &score);
 
         crfsuite_evaluation_accmulate(&eval, inst->labels, viterbi, inst->num_items);
     }

@@ -298,11 +298,11 @@ int crfsuite_train_arow(
             const crfsuite_instance_t *inst = dataset_get(trainset, n);
 
             /* Set the feature weights to the encoder. */
-            gm->set_weights(gm, mean, 1.);
-            gm->set_instance(gm, inst);
+            gm->set_weights(mean, 1.);
+            gm->set_instance(inst);
 
             /* Tag the sequence with the current model. */
-            gm->viterbi(gm, viterbi, &sv);
+            gm->viterbi(viterbi, &sv);
 
             /* Compute the number of different labels. */
             d = diff(inst->labels, viterbi, inst->num_items);
@@ -314,7 +314,7 @@ int crfsuite_train_arow(
                 /*
                     Compute the cost of this instance.
                  */
-                gm->score(gm, inst->labels, &sc);
+                gm->score(inst->labels, &sc);
                 cost = sv - sc + (double)d;
 
                 /* Initialize delta[k] = 0. */
@@ -325,14 +325,14 @@ int crfsuite_train_arow(
                         delta[k] += 1;
                  */
                 dc.c = inst->weight;
-                gm->features_on_path(gm, inst, inst->labels, delta_collect, &dc);
+                gm->features_on_path(inst, inst->labels, delta_collect, &dc);
 
                 /*
                     For every feature k on the Viterbi path:
                         delta[k] -= 1;
                  */
                 dc.c = -inst->weight;
-                gm->features_on_path(gm, inst, viterbi, delta_collect, &dc);
+                gm->features_on_path(inst, viterbi, delta_collect, &dc);
 
                 delta_finalize(&dc);
 
@@ -373,7 +373,7 @@ int crfsuite_train_arow(
 
         /* Holdout evaluation if necessary. */
         if (testset != NULL) {
-            holdout_evaluation(gm, testset, mean, lg);
+            gm->holdout_evaluation(testset, mean, lg);
         }
 
         logging(lg, "\n");

@@ -93,7 +93,7 @@ static lbfgsfloatval_t lbfgs_evaluate(
     dataset_t *trainset = lbfgsi->trainset;
 
     /* Compute the objective value and gradients. */
-    gm->objective_and_gradients_batch(gm, trainset, x, &f, g);
+    gm->objective_and_gradients_batch(trainset, x, &f, g);
     
     /* L2 regularization. */
     if (0 < lbfgsi->c2) {
@@ -149,7 +149,7 @@ static int lbfgs_progress(
 
     /* Send the tagger with the current parameters. */
     if (testset != NULL) {
-        holdout_evaluation(gm, testset, x, lg);
+        gm->holdout_evaluation(testset, x, lg);
     }
 
     logging(lg, "\n");

@@ -730,10 +730,10 @@ enum {
     LEVEL_MARGINAL,
 };
 
-static void set_level(encoder_t *self, int level)
+void tag_encoder::set_level(int level)
 {
-    int prev = self->level;
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    int prev = this->level;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
 
     /*
         Each training algorithm has a different requirement for processing a
@@ -745,14 +745,14 @@ static void set_level(encoder_t *self, int level)
     /* LEVEL_WEIGHT: set transition scores. */
     if (LEVEL_WEIGHT <= level && prev < LEVEL_WEIGHT) {
         crf1de->ctx->crf1dc_reset(RF_TRANS);
-        crf1de_transition_score_scaled(crf1de, self->w, self->scale);
+        crf1de_transition_score_scaled(crf1de, this->w, this->scale);
     }
 
     /* LEVEL_INSTANCE: set state scores. */
     if (LEVEL_INSTANCE <= level && prev < LEVEL_INSTANCE) {
-        crf1de->ctx->crf1dc_set_num_items(self->inst->num_items);
+        crf1de->ctx->crf1dc_set_num_items(this->inst->num_items);
         crf1de->ctx->crf1dc_reset(RF_STATE);
-        crf1de_state_score_scaled(crf1de, self->inst, self->w, self->scale);
+        crf1de_state_score_scaled(crf1de, this->inst, this->w, this->scale);
     }
 
     /* LEVEL_ALPHABETA: perform the forward-backward algorithm. */
@@ -768,19 +768,19 @@ static void set_level(encoder_t *self, int level)
         crf1de->ctx->crf1dc_marginals();
     }
 
-    self->level = level;
+    this->level = level;
 }
 
-static int encoder_exchange_options(encoder_t *self, crfsuite_params_t* params, int mode)
+int tag_encoder::exchange_options(crfsuite_params_t* params, int mode)
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
     return crf1de_exchange_options(params, &crf1de->opt, mode);
 }
 
-static int encoder_initialize(encoder_t *self, dataset_t *ds, logging_t *lg)
+int tag_encoder::initialize(dataset_t *ds, logging_t *lg)
 {
     int ret;
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
 
     ret = crf1de_set_data(
         crf1de,
@@ -788,18 +788,18 @@ static int encoder_initialize(encoder_t *self, dataset_t *ds, logging_t *lg)
         ds->data->labels->num(ds->data->labels),
         ds->data->attrs->num(ds->data->attrs),
         lg);
-    self->ds = ds;
-    self->num_features = crf1de->num_features;
-    self->cap_items = crf1de->ctx->cap_items;
+    this->ds = ds;
+    this->num_features = crf1de->num_features;
+    this->cap_items = crf1de->ctx->cap_items;
     return ret;
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-static int encoder_objective_and_gradients_batch(encoder_t *self, dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g)
+int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g)
 {
     int i;
     floatval_t logp = 0, logl = 0;
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
     const int N = ds->num_instances;
     const int K = crf1de->num_features;
 
@@ -850,53 +850,53 @@ static int encoder_objective_and_gradients_batch(encoder_t *self, dataset_t *ds,
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-static int encoder_features_on_path(encoder_t *self, const crfsuite_instance_t *inst, const int *path, crfsuite_encoder_features_on_path_callback func, void *instance)
+int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const int *path, crfsuite_encoder_features_on_path_callback func, void *instance)
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
     crf1de_features_on_path(crf1de, inst, path, func, instance);
     return 0;
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-static int encoder_save_model(encoder_t *self, const char *filename, const floatval_t *w, logging_t *lg)
+int tag_encoder::save_model(const char *filename, const floatval_t *w, logging_t *lg)
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
-    return crf1de_save_model(crf1de, filename, w, self->ds->data->attrs,  self->ds->data->labels, lg);
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
+    return crf1de_save_model(crf1de, filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);
 }
 
 /* LEVEL_NONE -> LEVEL_WEIGHT. */
-static int encoder_set_weights(encoder_t *self, const floatval_t *w, floatval_t scale)
+int tag_encoder::set_weights(const floatval_t *w, floatval_t scale)
 {
-    self->w = w;
-    self->scale = scale;
-    self->level = LEVEL_WEIGHT-1;
-    set_level(self, LEVEL_WEIGHT);
+    this->w = w;
+    this->scale = scale;
+    this->level = LEVEL_WEIGHT-1;
+    this->set_level(LEVEL_WEIGHT);
     return 0;
 }
 
 /* LEVEL_WEIGHT -> LEVEL_INSTANCE. */
-static int encoder_set_instance(encoder_t *self, const crfsuite_instance_t *inst)
+int tag_encoder::set_instance(const crfsuite_instance_t *inst)
 {
-    self->inst = inst;
-    self->level = LEVEL_INSTANCE-1;
-    set_level(self, LEVEL_INSTANCE);
+    this->inst = inst;
+    this->level = LEVEL_INSTANCE-1;
+    this->set_level(LEVEL_INSTANCE);
     return 0;
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
-static int encoder_score(encoder_t *self, const int *path, floatval_t *ptr_score)
+int tag_encoder::score(const int *path, floatval_t *ptr_score)
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
     *ptr_score = crf1de->ctx->crf1dc_score(path);
     return 0;
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
-static int encoder_viterbi(encoder_t *self, int *path, floatval_t *ptr_score)
+int tag_encoder::viterbi(int *path, floatval_t *ptr_score)
 {
     int i;
     floatval_t score;
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
     score = crf1de->ctx->crf1dc_viterbi(path);
     if (ptr_score != NULL) {
         *ptr_score = score;
@@ -905,57 +905,38 @@ static int encoder_viterbi(encoder_t *self, int *path, floatval_t *ptr_score)
 }
 
 /* LEVEL_INSTANCE -> LEVEL_ALPHABETA. */
-static int encoder_partition_factor(encoder_t *self, floatval_t *ptr_pf)
+int tag_encoder::partition_factor(floatval_t *ptr_pf)
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
-    set_level(self, LEVEL_ALPHABETA);
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
+    this->set_level(LEVEL_ALPHABETA);
     *ptr_pf = crf1de->ctx->crf1dc_lognorm();
     return 0;
 }
 
 /* LEVEL_INSTANCE -> LEVEL_MARGINAL. */
-static int encoder_objective_and_gradients(encoder_t *self, floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight)
+int tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight)
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
-    set_level(self, LEVEL_MARGINAL);
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
+    this->set_level(LEVEL_MARGINAL);
     gain *= weight;
-    crf1de_observation_expectation(crf1de, self->inst, self->inst->labels, g, gain);
-    crf1de_model_expectation(crf1de, self->inst, g, -gain);
-    *f = (-crf1de->ctx->crf1dc_score(self->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
+    crf1de_observation_expectation(crf1de, this->inst, this->inst->labels, g, gain);
+    crf1de_model_expectation(crf1de, this->inst, g, -gain);
+    *f = (-crf1de->ctx->crf1dc_score(this->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
     return 0;
 }
 
-static void encoder_release(encoder_t *self)
+tag_encoder::~tag_encoder()
 {
-    crf1de_t *crf1de = (crf1de_t*)self->internal;
+    crf1de_t *crf1de = (crf1de_t*)this->internal;
     crf1de_finish(crf1de);
     free(crf1de);
-    free(self);
 }
 
-encoder_t *crf1d_create_encoder()
+tag_encoder::tag_encoder()
 {
-    encoder_t *self = (encoder_t*)calloc(1, sizeof(encoder_t));
-    if (self != NULL) {
-        crf1de_t *enc = (crf1de_t*)calloc(1, sizeof(crf1de_t));
-        if (enc != NULL) {
-            crf1de_init(enc);
-
-            self->exchange_options = encoder_exchange_options;
-            self->initialize = encoder_initialize;
-            self->objective_and_gradients_batch = encoder_objective_and_gradients_batch;
-            self->save_model = encoder_save_model;
-            self->features_on_path = encoder_features_on_path;
-            self->set_weights =  encoder_set_weights;
-            self->set_instance = encoder_set_instance;
-            self->score = encoder_score;
-            self->viterbi = encoder_viterbi;
-            self->partition_factor = encoder_partition_factor;
-            self->objective_and_gradients = encoder_objective_and_gradients;
-            self->release = encoder_release;
-            self->internal = enc;
-        }
+    crf1de_t *enc = (crf1de_t*)calloc(1, sizeof(crf1de_t));
+    if (enc != NULL) {
+        crf1de_init(enc);
+        this->internal = enc;
     }
-
-    return self;
 }
