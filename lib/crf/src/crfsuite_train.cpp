@@ -45,44 +45,39 @@
 #include "logging.h"
 #include "crf1d.h"
 
-static crfsuite_train_internal_t* crfsuite_train_new(int ftype, int algorithm)
+tag_crfsuite_train_internal::tag_crfsuite_train_internal(int ftype, int algorithm)
 {
-    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)calloc(1, sizeof(crfsuite_train_internal_t));
-    if (tr != NULL) {
-        tr->lg = (logging_t*)calloc(1, sizeof(logging_t));
-        tr->params = params_create_instance();
-        tr->feature_type = ftype;
-        tr->algorithm = algorithm;
+    this->lg = (logging_t*)calloc(1, sizeof(logging_t));
+    this->params = params_create_instance();
+    this->feature_type = ftype;
+    this->algorithm = algorithm;
 
-        tr->gm = new tag_encoder();
-        tr->gm->exchange_options(tr->params, 0);
+    this->gm = new tag_encoder();
+    this->gm->exchange_options(this->params, 0);
 
-        /* Initialize parameters for the training algorithm. */
-        switch (algorithm) {
-        case TRAIN_LBFGS:
-            crfsuite_train_lbfgs_init(tr->params);
-            break;
-        case TRAIN_L2SGD:
-            crfsuite_train_l2sgd_init(tr->params);
-            break;
-        case TRAIN_AVERAGED_PERCEPTRON:
-            crfsuite_train_averaged_perceptron_init(tr->params);
-            break;
-        case TRAIN_PASSIVE_AGGRESSIVE:
-            crfsuite_train_passive_aggressive_init(tr->params);
-            break;
-        case TRAIN_AROW:
-            crfsuite_train_arow_init(tr->params);
-            break;
-        }
+    /* Initialize parameters for the training algorithm. */
+    switch (algorithm) {
+    case TRAIN_LBFGS:
+        crfsuite_train_lbfgs_init(this->params);
+        break;
+    case TRAIN_L2SGD:
+        crfsuite_train_l2sgd_init(this->params);
+        break;
+    case TRAIN_AVERAGED_PERCEPTRON:
+        crfsuite_train_averaged_perceptron_init(this->params);
+        break;
+    case TRAIN_PASSIVE_AGGRESSIVE:
+        crfsuite_train_passive_aggressive_init(this->params);
+        break;
+    case TRAIN_AROW:
+        crfsuite_train_arow_init(this->params);
+        break;
     }
-
-    return tr;
 }
 
-static void crfsuite_train_delete(crfsuite_trainer_t* self)
+tag_crfsuite_trainer::~tag_crfsuite_trainer()
 {
-    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)self->internal;
+    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)this->internal;
     if (tr != NULL) {
         if (tr->gm != NULL) {
             delete tr->gm;
@@ -93,47 +88,31 @@ static void crfsuite_train_delete(crfsuite_trainer_t* self)
         free(tr->lg);
         free(tr);
     }
-    free(self);
 }
 
-static int crfsuite_train_addref(crfsuite_trainer_t* tr)
+void tag_crfsuite_trainer::set_message_callback(void *instance, crfsuite_logging_callback cbm)
 {
-    return crfsuite_interlocked_increment(&tr->nref);
-}
-
-static int crfsuite_train_release(crfsuite_trainer_t* self)
-{
-    int count = crfsuite_interlocked_decrement(&self->nref);
-    if (count == 0) {
-        crfsuite_train_delete(self);
-    }
-    return count;
-}
-
-static void crfsuite_train_set_message_callback(crfsuite_trainer_t* self, void *instance, crfsuite_logging_callback cbm)
-{
-    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)self->internal;
+    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)this->internal;
     tr->lg->func = cbm;
     tr->lg->instance = instance;
 }
 
-static crfsuite_params_t* crfsuite_train_params(crfsuite_trainer_t* self)
+crfsuite_params_t* tag_crfsuite_trainer::params()
 {
-    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)self->internal;
+    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)this->internal;
     crfsuite_params_t* params = tr->params;
     params->addref(params);
     return params;
 }
 
-static int crfsuite_train_train(
-    crfsuite_trainer_t* self,
+int tag_crfsuite_trainer::train(
     const crfsuite_data_t *data,
     const char *filename,
     int holdout
     )
 {
     char *algorithm = NULL;
-    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)self->internal;
+    crfsuite_train_internal_t *tr = (crfsuite_train_internal_t*)this->internal;
     logging_t *lg = tr->lg;
     encoder_t *gm = tr->gm;
     floatval_t *w = NULL;
@@ -220,6 +199,10 @@ static int crfsuite_train_train(
     return 0;
 }
 
+tag_crfsuite_trainer::tag_crfsuite_trainer(void *ptr) : internal(ptr) {}
+
+tag_crfsuite_trainer::tag_crfsuite_trainer(int ftype, int algorithm) : internal(new tag_crfsuite_train_internal(ftype, algorithm)) {}
+
 int crf1de_create_instance(const char *interface, void **ptr)
 {
     int ftype = FTYPE_NONE;
@@ -253,28 +236,9 @@ int crf1de_create_instance(const char *interface, void **ptr)
     } else {
         return 1;
     }
-
-    /* Create an instance. */
     if (ftype != FTYPE_NONE && algorithm != TRAIN_NONE) {
-        crfsuite_trainer_t* trainer = (crfsuite_trainer_t*)calloc(1, sizeof(crfsuite_trainer_t));
-        if (trainer != NULL) {
-            trainer->internal = crfsuite_train_new(ftype, algorithm);
-            if (trainer->internal != NULL) {
-                trainer->nref = 1;
-                trainer->addref = crfsuite_train_addref;
-                trainer->release = crfsuite_train_release;
-                trainer->params = crfsuite_train_params;
-                trainer->set_message_callback = crfsuite_train_set_message_callback;
-                trainer->train = crfsuite_train_train;
-
-                *ptr = trainer;
-                return 0;
-            } else {
-                free(trainer);
-                trainer = NULL;
-            }
-        }
+        *ptr = new tag_crfsuite_trainer(new tag_crfsuite_train_internal(ftype, algorithm));
+        return 0;
     }
-
     return 1;
 }

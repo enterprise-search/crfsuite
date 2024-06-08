@@ -33,10 +33,6 @@
 #ifndef    __CRFSUITE_H__
 #define    __CRFSUITE_H__
 
-#ifdef    __cplusplus
-extern "C" {
-#endif/*__cplusplus*/
-
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -330,7 +326,7 @@ struct tag_crfsuite_model {
     int (*dump)(crfsuite_model_t* model, FILE *fpo);
 };
 
-
+int crfsuite_dictionary_create_instance(const char *interface, void **ptr);
 
 /**
  * CRFSuite trainer interface.
@@ -340,32 +336,14 @@ struct tag_crfsuite_trainer {
      * Pointer to the internal data (internal use only).
      */
     void *internal;
-    
-    /**
-     * Reference counter (internal use only).
-     */
-    int nref;
 
-    /**
-     * Increment the reference counter.
-     *  @param  trainer     The pointer to this trainer instance.
-     *  @return int         The reference count after this increment.
-     */
-    int (*addref)(crfsuite_trainer_t* trainer);
-
-    /**
-     * Decrement the reference counter.
-     *  @param  trainer     The pointer to this trainer instance.
-     *  @return int         The reference count after this operation.
-     */
-    int (*release)(crfsuite_trainer_t* trainer);
-
+public:
     /**
      * Obtain the pointer to crfsuite_params_t interface.
      *  @param  trainer     The pointer to this trainer instance.
      *  @return crfsuite_params_t*  The pointer to crfsuite_params_t.
      */
-    crfsuite_params_t* (*params)(crfsuite_trainer_t* trainer);
+    tag_crfsuite_params* params();
 
     /**
      * Set the callback function and user-defined data.
@@ -373,7 +351,7 @@ struct tag_crfsuite_trainer {
      *  @param  user        The pointer to the user-defined data.
      *  @param  cbm         The pointer to the callback function.
      */
-    void (*set_message_callback)(crfsuite_trainer_t* trainer, void *user, crfsuite_logging_callback cbm);
+    void set_message_callback(void *user, crfsuite_logging_callback cbm);
 
     /**
      * Start a training process.
@@ -385,7 +363,11 @@ struct tag_crfsuite_trainer {
      *  @param  holdout     The holdout group.
      *  @return int         The status code.
      */
-    int (*train)(crfsuite_trainer_t* trainer, const crfsuite_data_t *data, const char *filename, int holdout);
+    int train(const crfsuite_data_t *data, const char *filename, int holdout);
+
+    tag_crfsuite_trainer(void *p);
+    tag_crfsuite_trainer(int ftype, int algorithm);
+    ~tag_crfsuite_trainer();
 };
 
 /**
@@ -1069,10 +1051,5 @@ programs. CRFsuite provides two APIs:
   which is a wrapper for the C API.
 
 */
-
-
-#ifdef    __cplusplus
-}
-#endif/*__cplusplus*/
 
 #endif/*__CRFSUITE_H__*/

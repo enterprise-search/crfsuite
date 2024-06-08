@@ -60,13 +60,13 @@ install(TARGETS crfsuite ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION inclu
 export(PACKAGE crfsuite)
 
 
-add_executable(main ${PROJECT_SOURCE_DIR}/frontend/dump.c
-${PROJECT_SOURCE_DIR}/frontend/iwa.c
-${PROJECT_SOURCE_DIR}/frontend/learn.c
-${PROJECT_SOURCE_DIR}/frontend/main.c
-${PROJECT_SOURCE_DIR}/frontend/option.c
-${PROJECT_SOURCE_DIR}/frontend/reader.c
-${PROJECT_SOURCE_DIR}/frontend/tag.c
+add_executable(main ${PROJECT_SOURCE_DIR}/frontend/dump.cpp
+${PROJECT_SOURCE_DIR}/frontend/iwa.cpp
+${PROJECT_SOURCE_DIR}/frontend/learn.cpp
+${PROJECT_SOURCE_DIR}/frontend/main.cpp
+${PROJECT_SOURCE_DIR}/frontend/option.cpp
+${PROJECT_SOURCE_DIR}/frontend/reader.cpp
+${PROJECT_SOURCE_DIR}/frontend/tag.cpp
 )
 
 target_link_libraries(main crfsuite cqdb liblbfgs)

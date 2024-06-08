@@ -277,14 +277,14 @@ int main_learn(int argc, char *argv[], const char *argv0)
     }
 
     /* Create dictionaries for attributes and labels. */
-    ret = crfsuite_create_instance("dictionary", (void**)&data.attrs);
-    if (!ret) {
+    ret = crfsuite_dictionary_create_instance("dictionary", (void**)&data.attrs);
+    if (ret) {
         fprintf(fpe, "ERROR: Failed to create a dictionary instance.\n");
         ret = 1;
         goto force_exit;
     }
-    ret = crfsuite_create_instance("dictionary", (void**)&data.labels);
-    if (!ret) {
+    ret = crfsuite_dictionary_create_instance("dictionary", (void**)&data.labels);
+    if (ret) {
         fprintf(fpe, "ERROR: Failed to create a dictionary instance.\n");
         ret = 1;
         goto force_exit;
@@ -301,7 +301,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
 
     /* Show the help message for the training algorithm if specified. */
     if (opt.help_params) {
-        crfsuite_params_t* params = trainer->params(trainer);
+        crfsuite_params_t* params = trainer->params();
 
         fprintf(fpo, "PARAMETERS for %s (%s):\n", opt.algorithm, opt.type);
         fprintf(fpo, "\n");
@@ -334,7 +334,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
     for (i = 0;i < opt.num_params;++i) {
         char *value = NULL;
         char *name = opt.params[i];
-        crfsuite_params_t* params = trainer->params(trainer);
+        crfsuite_params_t* params = trainer->params();
         
         /* Split the parameter argument by the first '=' character. */
         value = strchr(name, '=');
@@ -407,20 +407,20 @@ int main_learn(int argc, char *argv[], const char *argv0)
     fflush(fpo);
 
     /* Set callback procedures that receive messages and taggers. */
-    trainer->set_message_callback(trainer, NULL, message_callback);
+    trainer->set_message_callback(NULL, message_callback);
 
     /* Start training. */
     if (opt.cross_validation) {
         for (i = 0;i < groups;++i) {
             fprintf(fpo, "===== Cross validation (%d/%d) =====\n", i+1, groups);
-            if (ret = trainer->train(trainer, &data, "", i)) {
+            if (ret = trainer->train(&data, "", i)) {
                 goto force_exit;
             }
             fprintf(fpo, "\n");
         }
 
     } else {
-        if (ret = trainer->train(trainer, &data, opt.model, opt.holdout)) {
+        if (ret = trainer->train(&data, opt.model, opt.holdout)) {
             goto force_exit;
         }
 
@@ -433,7 +433,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
     fprintf(fpo, "\n");
 
 force_exit:
-    SAFE_RELEASE(trainer);
+    delete trainer;
     SAFE_RELEASE(data.labels);
     SAFE_RELEASE(data.attrs);
 

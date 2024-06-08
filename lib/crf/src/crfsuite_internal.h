@@ -35,9 +35,7 @@
 
 #include <crfsuite.h>
 #include "logging.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 enum {
     FTYPE_NONE = 0,             /**< Unselected. */
     FTYPE_CRF1D,                /**< 1st-order tyad features. */
@@ -83,6 +81,8 @@ struct tag_crfsuite_train_internal {
     logging_t* lg;              /**< Logging interface. */
     int feature_type;           /**< Feature type. */
     int algorithm;              /**< Training algorithm. */
+
+    tag_crfsuite_train_internal(int ftype, int algorithm);
 };
 
 /**
@@ -245,8 +245,5 @@ int crf1de_create_instance(const char *iid, void **ptr);
 int crf1m_create_instance_from_file(const char *filename, void **ptr);
 int crf1m_create_instance_from_memory(const void *data, size_t size, void **ptr);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif/*__CRFSUITE_INTERNAL_H__*/

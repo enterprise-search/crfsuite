@@ -277,9 +277,7 @@ typedef struct {
     int        num_features;    /**< Number of features referred */
     int*    fids;            /**< Array of feature ids */
 } feature_refs_t;
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 crf1df_feature_t* crf1df_generate(
     int *ptr_num_features,
     dataset_t *ds,
@@ -301,9 +299,7 @@ int crf1df_init_references(
     const int A,
     const int L
     );
-#ifdef __cplusplus
-}
-#endif
+
 /** @} */
 
 
