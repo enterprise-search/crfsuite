@@ -36,6 +36,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <vector>
 
 /** 
  * \addtogroup crfsuite_api CRFSuite C API
@@ -161,6 +162,10 @@ struct crfsuite_instance_t {
     floatval_t  weight;
     /** Group ID of the instance. */
 	int         group;
+public:
+    crfsuite_instance_t() : weight(1.0)
+    {
+    }
 };
 
 /**
