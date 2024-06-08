@@ -96,14 +96,14 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
         case IWA_BOI:
             /* Initialize an item. */
             lid = -1;
-            crfsuite_item_init(&item);
+            item.contents.clear();
             break;
         case IWA_EOI:
             /* Append the item to the instance. */
             if (0 <= lid) {
                 crfsuite_instance_append(&inst, &item, lid);
             }
-            crfsuite_item_finish(&item);
+            item.contents.clear();
             break;
         case IWA_ITEM:
             if (lid == -1) {

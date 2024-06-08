@@ -296,14 +296,14 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
         case IWA_BOI:
             /* Initialize an item. */
             lid = -1;
-            crfsuite_item_init(&item);
+            item.contents.clear();
             free(comment);
             comment = NULL;
             break;
         case IWA_EOI:
             /* Append the item to the instance. */
             crfsuite_instance_append(&inst, &item, lid);
-            crfsuite_item_finish(&item);
+            item.contents.clear();
             break;
         case IWA_ITEM:
             if (lid == -1) {

@@ -96,19 +96,6 @@ void crfsuite_attribute_swap(crfsuite_attribute_t* x, crfsuite_attribute_t* y)
     y->value = tmp.value;
 }
 
-
-
-void crfsuite_item_init(crfsuite_item_t* item)
-{
-    memset(item, 0, sizeof(*item));
-}
-
-void crfsuite_item_finish(crfsuite_item_t* item)
-{
-    item->contents.clear();
-    crfsuite_item_init(item);
-}
-
 void crfsuite_item_copy(crfsuite_item_t* dst, const crfsuite_item_t* src)
 {
     *dst = *src;
@@ -144,7 +131,7 @@ void crfsuite_instance_finish(crfsuite_instance_t* inst)
     int i;
 
     for (i = 0;i < inst->num_items();++i) {
-        crfsuite_item_finish(&inst->items[i]);
+        inst->items[i].contents.clear();
     }
     inst->labels.clear();
     inst->items.clear();

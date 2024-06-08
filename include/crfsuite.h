@@ -806,23 +806,13 @@ void crfsuite_attribute_copy(crfsuite_attribute_t* dst, const crfsuite_attribute
 void crfsuite_attribute_swap(crfsuite_attribute_t* x, crfsuite_attribute_t* y);
 
 /**
- * Initialize an item structure.
- *  @param  item        The pointer to crfsuite_item_t.
- */
-void crfsuite_item_init(crfsuite_item_t* item);
-
-/**
  * Initialize an item structure with the number of attributes.
  *  @param  item        The pointer to crfsuite_item_t.
  *  @param  num_attributes  The number of attributes.
  */
 void crfsuite_item_init_n(crfsuite_item_t* item, int num_attributes);
 
-/**
- * Uninitialize an item structure.
- *  @param  item        The pointer to crfsuite_item_t.
- */
-void crfsuite_item_finish(crfsuite_item_t* item);
+
 
 /**
  * Copy the content of an item structure.
