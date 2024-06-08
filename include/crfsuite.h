@@ -148,7 +148,7 @@ struct crfsuite_item_t {
  * An instance (sequence of items and labels).
  *  An instance consists of a sequence of items and labels.
  */
-typedef struct {
+struct crfsuite_instance_t {
     /** Number of items/labels in the sequence. */
     int         num_items;
     /** Maximum number of items/labels (internal use). */
@@ -161,14 +161,14 @@ typedef struct {
     floatval_t  weight;
     /** Group ID of the instance. */
 	int         group;
-} crfsuite_instance_t;
+};
 
 /**
  * A data set.
  *  A data set consists of an array of instances and dictionary objects
  *  for attributes and labels.
  */
-typedef struct {
+struct crfsuite_data_t{
     /** Number of instances. */
     int                 num_instances;
     /** Maximum number of instances (internal use). */
@@ -180,7 +180,7 @@ typedef struct {
     crfsuite_dictionary_t    *attrs;
     /** Dictionary object for labels. */
     crfsuite_dictionary_t    *labels;
-} crfsuite_data_t;
+} ;
 
 /**@}*/
 
@@ -194,7 +194,7 @@ typedef struct {
 /**
  * Label-wise performance values.
  */
-typedef struct {
+ struct crfsuite_label_evaluation_t {
     /** Number of correct predictions. */
     int         num_correct;
     /** Number of occurrences of the label in the gold-standard data. */
@@ -207,12 +207,12 @@ typedef struct {
     floatval_t  recall;
     /** F1 score. */
     floatval_t  fmeasure;
-} crfsuite_label_evaluation_t;
+} ;
 
 /**
  * An overall performance values.
  */
-typedef struct {
+ struct crfsuite_evaluation_t{
     /** Number of labels. */
     int         num_labels;
     /** Array of label-wise evaluations. */
@@ -242,7 +242,7 @@ typedef struct {
     floatval_t  macro_recall;
     /** Macro-averaged F1 score. */
     floatval_t  macro_fmeasure;
-} crfsuite_evaluation_t;
+} ;
 
 /**@}*/
 
