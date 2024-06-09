@@ -182,7 +182,10 @@ public:
 
     void crf1dc_set_num_items( int T);
     void crf1dc_reset( int flag);
-    void crf1dc_exp_state();
+    inline void crf1dc_exp_state()
+    {
+        std::transform(this->state.begin(), this->state.end(), this->exp_state.begin(), [](auto& x){return exp(x);});
+    }
     void crf1dc_exp_transition();
     void crf1dc_alpha_score();
     void crf1dc_beta_score();

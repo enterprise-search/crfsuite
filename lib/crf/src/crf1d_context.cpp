@@ -115,16 +115,6 @@ void crf1d_context_t::crf1dc_reset(int flag)
     }
 }
 
-void crf1d_context_t::crf1dc_exp_state()
-{
-    const int T = this->num_items;
-    const int L = this->num_labels;
-
-    for (auto i = 0; i < T*L; ++i) {
-        this->exp_state[i] = exp(this->state[i]);
-    }
-}
-
 void crf1d_context_t::crf1dc_exp_transition()
 {
     const int L = this->num_labels;
