@@ -158,25 +158,24 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
  *    This object is instantiated only by a crfsuite_model_t object.
  */
 
-static int tagger_addref(crfsuite_tagger_t* tagger)
+int tag_crfsuite_tagger::addref()
 {
-    return crfsuite_interlocked_increment(&tagger->nref);
+    return crfsuite_interlocked_increment(&this->nref);
 }
 
-static int tagger_release(crfsuite_tagger_t* tagger)
+ int tag_crfsuite_tagger::release()
 {
-    int count = crfsuite_interlocked_decrement(&tagger->nref);
+    int count = crfsuite_interlocked_decrement(&this->nref);
     if (count == 0) {
         /* This instance is being destroyed. */
-        delete ((crf1dt_t*)tagger->internal);
-        free(tagger);
+        delete ((crf1dt_t*)this->internal);
     }
     return count;
 }
 
-static int tagger_set(crfsuite_tagger_t* tagger, crfsuite_instance_t *inst)
+ int tag_crfsuite_tagger::set(crfsuite_instance_t *inst)
 {
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
     ctx->crf1dc_set_num_items(inst->num_items());
     crf1dt->ctx->crf1dc_reset(RF_STATE);
@@ -185,17 +184,17 @@ static int tagger_set(crfsuite_tagger_t* tagger, crfsuite_instance_t *inst)
     return 0;
 }
 
-static int tagger_length(crfsuite_tagger_t* tagger)
+ int tag_crfsuite_tagger::length()
 {
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
     return ctx->num_items;
 }
 
-static int tagger_viterbi(crfsuite_tagger_t* tagger, std::vector<int>& labels, floatval_t *ptr_score)
+ int tag_crfsuite_tagger::viterbi(std::vector<int>& labels, floatval_t *ptr_score)
 {
     floatval_t score;
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
 
     score = ctx->crf1dc_viterbi(labels);
@@ -206,10 +205,10 @@ static int tagger_viterbi(crfsuite_tagger_t* tagger, std::vector<int>& labels, f
     return 0;
 }
 
-static int tagger_score(crfsuite_tagger_t* tagger, std::vector<int>& path, floatval_t *ptr_score)
+int tag_crfsuite_tagger::score(std::vector<int>& path, floatval_t *ptr_score)
 {
     floatval_t score;
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1d_context_t* ctx = crf1dt->ctx;
     score = ctx->crf1dc_score(path);
     if (ptr_score != NULL) {
@@ -218,25 +217,25 @@ static int tagger_score(crfsuite_tagger_t* tagger, std::vector<int>& path, float
     return 0;
 }
 
-static int tagger_lognorm(crfsuite_tagger_t* tagger, floatval_t *ptr_norm)
+ int tag_crfsuite_tagger::lognorm( floatval_t *ptr_norm)
 {
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
     *ptr_norm = crf1dt->ctx->crf1dc_lognorm();
     return 0;
 }
 
-static int tagger_marginal_point(crfsuite_tagger_t *tagger, int l, int t, floatval_t *ptr_prob)
+ int tag_crfsuite_tagger::marginal_point( int l, int t, floatval_t *ptr_prob)
 {
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
     *ptr_prob = crf1dt->ctx->crf1dc_marginal_point(l, t);
     return 0;
 }
 
-static int tagger_marginal_path(crfsuite_tagger_t *tagger, const int *path, int begin, int end, floatval_t *ptr_prob)
+ int tag_crfsuite_tagger::marginal_path( const int *path, int begin, int end, floatval_t *ptr_prob)
 {
-    crf1dt_t* crf1dt = (crf1dt_t*)tagger->internal;
+    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
     crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
     *ptr_prob = crf1dt->ctx->crf1dc_marginal_path(path, begin, end);
     return 0;
@@ -397,16 +396,6 @@ static int model_get_tagger(crfsuite_model_t* model, crfsuite_tagger_t** ptr_tag
     }
     tagger->internal = crf1dt;
     tagger->nref = 1;
-    tagger->addref = tagger_addref;
-    tagger->release = tagger_release;
-    tagger->set = tagger_set;
-    tagger->length = tagger_length;
-    tagger->viterbi = tagger_viterbi;
-    tagger->score = tagger_score;
-    tagger->lognorm = tagger_lognorm;
-    tagger->marginal_point = tagger_marginal_point;
-    tagger->marginal_path = tagger_marginal_path;
-
     *ptr_tagger = tagger;
     return 0;
 

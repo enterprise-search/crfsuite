@@ -42,7 +42,7 @@
 #include "option.h"
 #include "iwa.h"
 
-#define    SAFE_RELEASE(obj)    if ((obj) != NULL) { (obj)->release(obj); (obj) = NULL; }
+#define    SAFE_RELEASE(obj)    if ((obj) != NULL) { (obj)->release(); (obj) = NULL; }
 
 void show_copyright(FILE *fp);
 
@@ -166,7 +166,7 @@ output_result(
 
     if (opt->probability) {
         floatval_t lognorm;
-        tagger->lognorm(tagger, &lognorm);
+        tagger->lognorm( &lognorm);
 	fprintf(fpo, "@score\t%f\t%f\n", score, lognorm);
         fprintf(fpo, "@probability\t%f\n", exp(score - lognorm));
     }
@@ -183,13 +183,13 @@ output_result(
         labels->free(labels, label);
 
         if (opt->marginal) {
-            tagger->marginal_point(tagger, output[i], i, &prob);
+            tagger->marginal_point( output[i], i, &prob);
             fprintf(fpo, ":%f", prob);
         }
 
         if (opt->marginal_all) {
             for (l = 0;l < labels->num(labels);++l) {
-                tagger->marginal_point(tagger, l, i, &prob);
+                tagger->marginal_point( l, i, &prob);
                 labels->to_string(labels, l, &label);
                 fprintf(fpo, "\t%s:%f", label, prob);
                 labels->free(labels, label);
@@ -334,12 +334,12 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
                 std::vector<int> output(inst.num_items());
 
                 /* Set the instance to the tagger. */
-                if ((ret = tagger->set(tagger, &inst))) {
+                if ((ret = tagger->set( &inst))) {
                     goto force_exit;
                 }
 
                 /* Obtain the viterbi label sequence. */
-                if ((ret = tagger->viterbi(tagger, output, &score))) {
+                if ((ret = tagger->viterbi(output, &score))) {
                     goto force_exit;
                 }
 
@@ -384,9 +384,9 @@ force_exit:
     inst.clear();
     crfsuite_evaluation_finish(&eval);
 
-    SAFE_RELEASE(tagger);
-    SAFE_RELEASE(attrs);
-    SAFE_RELEASE(labels);
+    // SAFE_RELEASE(tagger);
+    // SAFE_RELEASE(attrs);
+    // SAFE_RELEASE(labels);
 
     return ret;
 }
@@ -436,7 +436,7 @@ int main_tag(int argc, char *argv[], const char *argv0)
 
 force_exit:
     perror("error");
-    SAFE_RELEASE(model);
+    // SAFE_RELEASE(model);
     tagger_option_finish(&opt);
     return ret;
 }

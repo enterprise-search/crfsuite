@@ -441,14 +441,14 @@ struct tag_crfsuite_tagger {
      *  @param  tagger      The pointer to this tagger instance.
      *  @return int         The reference count after this increment.
      */
-    int (*addref)(crfsuite_tagger_t* tagger);
+    int addref();
 
     /**
      * Decrement the reference counter.
      *  @param  tagger      The pointer to this tagger instance.
      *  @return int         The reference count after this operation.
      */
-    int (*release)(crfsuite_tagger_t* tagger);
+    int release();
 
     /**
      * Set an instance to the tagger.
@@ -456,7 +456,7 @@ struct tag_crfsuite_tagger {
      *  @param  inst        The item sequence to be tagged.
      *  @return int         The status code.
      */
-    int (*set)(crfsuite_tagger_t* tagger, crfsuite_instance_t *inst);
+    int set(crfsuite_instance_t *inst);
 
     /**
      * Obtain the number of items in the current instance.
@@ -465,7 +465,7 @@ struct tag_crfsuite_tagger {
      *                      set() function.
      *  @return int         The status code.
      */
-    int (*length)(crfsuite_tagger_t* tagger);
+    int length();
 
     /**
      * Find the Viterbi label sequence.
@@ -477,17 +477,10 @@ struct tag_crfsuite_tagger {
      *                      score of the Viterbi label sequence.
      *  @return int         The status code.
      */
-    int (*viterbi)(crfsuite_tagger_t* tagger, std::vector<int>& labels, floatval_t *ptr_score);
+    int viterbi(std::vector<int>& labels, floatval_t *ptr_score);
 
-    /**
-     * Compute the score of a label sequence.
-     *  @param  tagger      The pointer to this tagger instance.
-     *  @param  path        The label sequence.
-     *  @param  ptr_score   The pointer to a float variable that receives the
-     *                      score of the label sequence.
-     *  @return int         The status code.
-     */
-    int (*score)(crfsuite_tagger_t* tagger, std::vector<int>& path, floatval_t *ptr_score);
+    
+
 
     /**
      * Compute the log of the partition factor (normalization constant).
@@ -496,7 +489,7 @@ struct tag_crfsuite_tagger {
      *                      logarithm of the partition factor.
      *  @return int         The status code.
      */
-    int (*lognorm)(crfsuite_tagger_t* tagger, floatval_t *ptr_norm);
+    int lognorm(floatval_t *ptr_norm);
 
     /**
      * Compute the marginal probability of a label at a position.
@@ -509,7 +502,7 @@ struct tag_crfsuite_tagger {
      *                      marginal probability.
      *  @return int         The status code.
      */
-    int (*marginal_point)(crfsuite_tagger_t *tagger, int l, int t, floatval_t *ptr_prob);
+    int marginal_point(int l, int t, floatval_t *ptr_prob);
 
     /**
      * Compute the marginal probability of a partial label sequence.
@@ -521,7 +514,16 @@ struct tag_crfsuite_tagger {
      *                      marginal probability.
      *  @return int         The status code.
      */
-    int (*marginal_path)(crfsuite_tagger_t *tagger, const int *path, int begin, int end, floatval_t *ptr_prob);
+    int marginal_path(const int *path, int begin, int end, floatval_t *ptr_prob);
+    /**
+     * Compute the score of a label sequence.
+     *  @param  tagger      The pointer to this tagger instance.
+     *  @param  path        The label sequence.
+     *  @param  ptr_score   The pointer to a float variable that receives the
+     *                      score of the label sequence.
+     *  @return int         The status code.
+     */
+    int score(std::vector<int>& path, floatval_t *ptr_score);
 };
 
 /**
