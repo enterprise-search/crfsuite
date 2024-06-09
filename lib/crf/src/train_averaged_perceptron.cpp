@@ -197,7 +197,7 @@ int crfsuite_train_averaged_perceptron(
         }
 
         /* Perform averaging to wa. */
-        veccopy(wa, w, K);
+        std::copy_n(w, K, wa);
         vecasub(wa, 1./c, ws, K);
 
         /* Output the progress. */

@@ -135,7 +135,7 @@ struct crf1d_context_t {
      * Row vector (work space).
      *  This is a [T] vector used internally for a work space.
      */
-    floatval_t *row;
+    std::vector<floatval_t> row;
 
     /**
      * Backward edges.

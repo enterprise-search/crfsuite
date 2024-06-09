@@ -384,11 +384,11 @@ int crfsuite_train_passive_aggressive(
 
         if (opt.averaging) {
             /* Perform averaging to wa. */
-            veccopy(wa, w, K);
+            std::copy_n(w, K, wa);
             vecasub(wa, 1./u, ws, K);
         } else {
             /* Simply copy the weights to wa. */
-            veccopy(wa, w, K);
+            std::copy_n(w, K, wa);
         }
 
         /* Output the progress. */

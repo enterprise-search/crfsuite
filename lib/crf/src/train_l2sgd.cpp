@@ -216,7 +216,7 @@ static int l2sgd(
             if (sum_loss < best_sum_loss) {
                 /* Store the feature weights to best_w. */
                 best_sum_loss = sum_loss;
-                veccopy(best_w, w, K);
+                std::copy_n(w, K, best_w);
             }
 
             /* We don't test the stopping criterion while period < epoch. */
@@ -268,7 +268,7 @@ static int l2sgd(
     /* Restore the best weights. */
     if (best_w != NULL) {
         sum_loss = best_sum_loss;
-        veccopy(w, best_w, K);
+        std::copy_n(best_w, K, w);
     }
 
 error_exit:

@@ -82,7 +82,6 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
         free(this->backward_edge);
         free(this->mexp_state);
         free(this->scale_factor);
-        free(this->row);
         free(this->beta_score);
         free(this->alpha_score);
 
@@ -92,8 +91,7 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
         if (this->beta_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
         this->scale_factor = (floatval_t*)calloc(T, sizeof(floatval_t));
         if (this->scale_factor == NULL) return CRFSUITEERR_OUTOFMEMORY;
-        this->row = (floatval_t*)calloc(L, sizeof(floatval_t));
-        if (this->row == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->row = std::vector<floatval_t>(L);
 
         if (this->flag & CTXF_VITERBI) {
             this->backward_edge = (int*)calloc(T * L, sizeof(int));
@@ -119,7 +117,6 @@ crf1d_context_t::~crf1d_context_t()
     free(this->backward_edge);
     free(this->mexp_state);
     free(this->scale_factor);
-    free(this->row);
     free(this->beta_score);
     free(this->alpha_score);
     free(this->mexp_trans);
@@ -161,7 +158,7 @@ void crf1d_context_t::crf1dc_exp_transition()
 {
     const int L = this->num_labels;
 
-    veccopy(this->exp_trans, this->trans, L * L);
+    std::copy_n(this->trans, L*L, this->exp_trans);
     vecexp(this->exp_trans, L * L);
 }
 
@@ -179,7 +176,7 @@ void crf1d_context_t::crf1dc_alpha_score()
      */
     cur = ALPHA_SCORE(this, 0);
     state = EXP_STATE_SCORE(this, 0);
-    veccopy(cur, state, L);
+    std::copy_n(state, L, cur);
     sum = vecsum(cur, L);
     *scale = (sum != 0.) ? 1. / sum : 1.;
     vecscale(cur, *scale, L);
@@ -216,7 +213,6 @@ void crf1d_context_t::crf1dc_beta_score()
 {
     int i, t;
     floatval_t *cur = NULL;
-    floatval_t *row = this->row;
     const floatval_t *next = NULL, *state = NULL, *trans = NULL;
     const int T = this->num_items;
     const int L = this->num_labels;
@@ -233,13 +229,13 @@ void crf1d_context_t::crf1dc_beta_score()
         next = BETA_SCORE(this, t+1);
         state = EXP_STATE_SCORE(this, t+1);
 
-        veccopy(row, next, L);
-        vecmul(row, state, L);
+        std::copy_n(next, L, this->row.begin());
+        vecmul(this->row.begin(), state, L);
 
         /* Compute the beta score at (t, i). */
         for (i = 0;i < L;++i) {
             trans = EXP_TRANS_SCORE(this, i);
-            cur[i] = vecdot(trans, row, L);
+            cur[i] = vecdot(trans, this->row.begin(), L);
         }
         vecscale(cur, *scale, L);
         --scale;
@@ -261,7 +257,7 @@ void crf1d_context_t::crf1dc_marginals()
         floatval_t *fwd = ALPHA_SCORE(this, t);
         floatval_t *bwd = BETA_SCORE(this, t);
         floatval_t *prob = STATE_MEXP(this, t);
-        veccopy(prob, fwd, L);
+        std::copy_n(fwd, L, prob);
         vecmul(prob, bwd, L);
         vecscale(prob, 1. / this->scale_factor[t], L);
     }
@@ -279,11 +275,10 @@ void crf1d_context_t::crf1dc_marginals()
         floatval_t *fwd = ALPHA_SCORE(this, t);
         floatval_t *state = EXP_STATE_SCORE(this, t+1);
         floatval_t *bwd = BETA_SCORE(this, t+1);
-        floatval_t *row = this->row;
 
         /* row[j] = state[t+1][j] * bwd'[t+1][j] */
-        veccopy(row, bwd, L);
-        vecmul(row, state, L);
+        std::copy_n(bwd, L, this->row.begin());
+        vecmul(this->row.begin(), state, L);
 
         for (i = 0;i < L;++i) {
             floatval_t *edge = EXP_TRANS_SCORE(this, i);

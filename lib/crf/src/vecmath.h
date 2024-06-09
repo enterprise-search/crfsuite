@@ -88,13 +88,6 @@ inline static void vecset(floatval_t *x, const floatval_t a, const int n)
     }
 }
 
-inline static void veccopy(floatval_t *y, const floatval_t *x, const int n)
-{
-    if (n) {
-        memcpy(y, x, sizeof(floatval_t) * n);
-    }
-}
-
 inline static void vecadd(floatval_t *y, const floatval_t *x, const int n)
 {
     int i;
@@ -127,11 +120,12 @@ inline static void vecasub(floatval_t *y, const floatval_t a, const floatval_t *
     }
 }
 
-inline static void vecmul(floatval_t *y, const floatval_t *x, const int n)
+template<typename Iter>
+inline static void vecmul(Iter y, const floatval_t *x, const int n)
 {
     int i;
     for (i = 0;i < n;++i) {
-        y[i] *= x[i];
+        *y++ *= x[i];
     }
 }
 
@@ -151,33 +145,35 @@ inline static void vecscale(floatval_t *y, const floatval_t a, const int n)
     }
 }
 
-inline static floatval_t vecdot(const floatval_t *x, const floatval_t *y, const int n)
+template<typename InputIter1, typename InputIter2>
+inline static floatval_t vecdot( InputIter1 x,  InputIter2 y, const int n)
 {
-    int i;
     floatval_t s = 0;
-    for (i = 0;i < n;++i) {
-        s += x[i] * y[i];
+    for (int i = 0;i < n;++i) {
+        s += (*x) * (*y);
+        ++x;
+        ++y;
     }
     return s;
 }
 
-inline static floatval_t vecsum(floatval_t* x, const int n)
+template<typename InputIter>
+inline static floatval_t vecsum(InputIter it, const int n)
 {
-    int i;
     floatval_t s = 0.;
 
-    for (i = 0;i < n;++i) {
-        s += x[i];
+    for (int i = 0;i < n;++i) {
+        s += *it++;
     }
     return s;
 }
 
-inline static floatval_t vecsumlog(floatval_t* x, const int n)
+template<typename InputIter>
+inline static floatval_t vecsumlog(InputIter it, const int n)
 {
-    int i;
     floatval_t s = 0.;
-    for (i = 0;i < n;++i) {
-        s += log(x[i]);
+    for (int i = 0;i < n;++i) {
+        s += log(*it++);
     }
     return s;
 }
