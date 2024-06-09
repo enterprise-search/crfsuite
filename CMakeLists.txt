@@ -51,7 +51,7 @@ FILE (GLOB
 
 
 add_library(crfsuite STATIC ${SOURCES})
-set_property(TARGET crfsuite PROPERTY CXX_STANDARD 11)
+set_property(TARGET crfsuite PROPERTY CXX_STANDARD 20)
 
 set_target_properties(crfsuite PROPERTIES PUBLIC_HEADER "crfsuite/include/crfsuite.h;crfsuite/include/crfsuite.hpp;crfsuite/include/crfsuite_api.hpp")
 target_link_libraries(crfsuite ${cqdb_LIBRARIES} ${liblbfgs_LIBRARIES} m)
@@ -70,4 +70,4 @@ ${PROJECT_SOURCE_DIR}/frontend/tag.cpp
 
 target_link_libraries(main crfsuite cqdb liblbfgs)
 
-set_property(TARGET main PROPERTY CXX_STANDARD 11)
+set_property(TARGET main PROPERTY CXX_STANDARD 20)
