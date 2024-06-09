@@ -447,15 +447,13 @@ static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
     /* Create an instance of internal data attached to the model. */
     internal = (model_internal_t*)calloc(1, sizeof(model_internal_t));
     if (internal == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        throw std::runtime_error("OOM");
     }
 
     /* Create an instance of dictionary object for attributes. */
     attrs = (crfsuite_dictionary_t*)calloc(1, sizeof(crfsuite_dictionary_t));
     if (attrs == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        throw std::runtime_error("OOM");
     }
     attrs->internal = crf1dm;
     attrs->nref = 1;
@@ -470,8 +468,7 @@ static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
     /* Create an instance of dictionary object for labels. */
     labels = (crfsuite_dictionary_t*)calloc(1, sizeof(crfsuite_dictionary_t));
     if (labels == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        throw std::runtime_error("OOM");
     }
     labels->internal = crf1dm;
     labels->nref = 1;
@@ -491,8 +488,7 @@ static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
     /* Create an instance of model object. */
     model = (crfsuite_model_t*)calloc(1, sizeof(crfsuite_model_t));
     if (model == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        throw std::runtime_error("OOM");
     }
     model->internal = internal;
     model->nref = 1;
