@@ -784,7 +784,7 @@ int tag_crf1dm::crf1dm_get_labelref(int lid, feature_refs_t* ref)
     p = this->buffer + offset;
     p += read_uint32(p, &num_features);
     ref->num_features = num_features;
-    ref->fids = (int*)p;
+    std::copy_n(p, num_features, ref->fids.begin());
     return 0;
 }
 
@@ -802,17 +802,13 @@ int tag_crf1dm::crf1dm_get_attrref(int aid, feature_refs_t* ref)
     p = this->buffer + offset;
     p += read_uint32(p, &num_features);
     ref->num_features = num_features;
-    ref->fids = (int*)p;
+    std::copy_n(p, num_features, ref->fids.begin());
     return 0;
 }
 
 int crf1dm_get_featureid(feature_refs_t* ref, int i)
 {
-    uint32_t fid;
-    uint8_t* p = (uint8_t*)ref->fids;
-    p += sizeof(uint32_t) * i;
-    read_uint32(p, &fid);
-    return (int)fid;
+    return ref->fids[i];
 }
 
 int tag_crf1dm::crf1dm_get_feature(int fid, crf1dm_feature_t* f)

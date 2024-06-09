@@ -276,10 +276,10 @@ typedef struct {
  * Feature references.
  *    This is a collection of feature ids used for faster accesses.
  */
-typedef struct {
+ struct feature_refs_t {
     int        num_features;    /**< Number of features referred */
-    int*    fids;            /**< Array of feature ids */
-} feature_refs_t;
+     std::vector<int>    fids;            /**< Array of feature ids */
+};
 
 crf1df_feature_t* crf1df_generate(
     int *ptr_num_features,

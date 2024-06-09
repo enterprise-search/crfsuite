@@ -98,15 +98,7 @@ public:
         if (this->features != NULL) {
             free(this->features);
             this->features = NULL;
-        }
-        for (i = 0; i < this->num_attributes; ++i) {
-            free(this->attributes[i].fids);
-        }
-        
-        for (i = 0; i < this->num_labels; ++i) {
-            free(this->forward_trans[i].fids);
-        }
-            
+        }           
     }
      void state_score(
     const crfsuite_instance_t* inst,

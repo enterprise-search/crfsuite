@@ -256,14 +256,12 @@ int crf1df_init_references(
      */
     for (i = 0;i < A;++i) {
         fl = &attributes[i];
-        fl->fids = (int*)calloc(fl->num_features, sizeof(int));
-        if (fl->fids == NULL) throw std::runtime_error("OOM");
+        fl->fids = std::vector<int>(fl->num_features);
         fl->num_features = 0;
     }
     for (i = 0;i < L;++i) {
         fl = &trans[i];
-        fl->fids = (int*)calloc(fl->num_features, sizeof(int));
-        if (fl->fids == NULL) throw std::runtime_error("OOM");
+        fl->fids = std::vector<int>(fl->num_features);
         fl->num_features = 0;
     }
 
