@@ -680,7 +680,7 @@ tag_crf1dm::tag_crf1dm(const char *filename)
 
     fp = fopen(filename, "rb");
     if (fp == NULL) {
-        printf("fopen\n");
+        throw std::runtime_error("fopen");
     }
 
     fseek(fp, 0, SEEK_END);
@@ -689,7 +689,7 @@ tag_crf1dm::tag_crf1dm(const char *filename)
 
     buffer = buffer_orig = (uint8_t*)malloc(size + 16);
     if (buffer_orig == NULL) {
-        printf("buf orig\n");
+        throw std::runtime_error("malloc");
     }
 
     /* Align the buffer to 16 bytes. */
@@ -698,7 +698,7 @@ tag_crf1dm::tag_crf1dm(const char *filename)
     }
 
     if (fread(buffer, 1, size, fp) != size) {
-        printf("fread buf\n");
+        throw std::runtime_error("fread");
     }
     fclose(fp);
 
