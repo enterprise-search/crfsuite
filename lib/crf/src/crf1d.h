@@ -179,7 +179,7 @@ struct crf1d_context_t {
         
 public:
     crf1d_context_t(int flag, int L, int T);
-
+    floatval_t crf1dc_lognorm() const { return this->log_norm; }
     void crf1dc_set_num_items( int T);
     void crf1dc_reset( int flag);
     inline void crf1dc_exp_state()
@@ -193,7 +193,6 @@ public:
     floatval_t crf1dc_marginal_point(crf1d_context_t *ctx, int l, int t);
     floatval_t crf1dc_marginal_path(crf1d_context_t *ctx, const int *path, int begin, int end);
     floatval_t crf1dc_score( const std::vector<int>& labels);
-    floatval_t crf1dc_lognorm();
     floatval_t crf1dc_viterbi( std::vector<int>& labels);
 
     floatval_t crf1dc_marginal_point(int l, int t) const

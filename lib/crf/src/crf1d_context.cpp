@@ -46,8 +46,6 @@
 #include "crf1d.h"
 #include "vecmath.h"
 
-
-
 crf1d_context_t::crf1d_context_t(int flag, int L, int T)
 {
     int ret = 0;
@@ -119,8 +117,8 @@ void crf1d_context_t::crf1dc_exp_transition()
 {
     const int L = this->num_labels;
 
-    std::copy_n(this->trans.begin(), L*L, this->exp_trans.begin());
-    vecexp(this->exp_trans.begin(), L * L);
+    for (auto i = 0; i < L*L; ++i)
+        exp_trans[i] = exp(trans[i]);
 }
 
 void crf1d_context_t::crf1dc_alpha_score()
@@ -389,10 +387,7 @@ floatval_t crf1d_context_t::crf1dc_score(const std::vector<int>& labels)
     return ret;
 }
 
-floatval_t crf1d_context_t::crf1dc_lognorm()
-{
-    return this->log_norm;
-}
+
 
 floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 {
