@@ -120,9 +120,9 @@ int tag_crfsuite_trainer::train(
     dataset_t testset;
 
     /* Prepare the data set(s) for training (and holdout evaluation). */
-    dataset_init_trainset(&trainset, (crfsuite_data_t*)data, holdout);
+    trainset.init_trainset((crfsuite_data_t*)data, holdout);
     if (0 <= holdout) {
-        dataset_init_testset(&testset, (crfsuite_data_t*)data, holdout);
+        testset.init_testset((crfsuite_data_t*)data, holdout);
         logging(lg, "Holdout group: %d\n", holdout+1);
         logging(lg, "\n");
     }

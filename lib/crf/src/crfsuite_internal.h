@@ -59,19 +59,67 @@ typedef struct tag_encoder encoder_t;
 
  struct dataset_t {
     crfsuite_data_t *data;
-    int *perm;
+    std::vector<int> perm;
     int num_instances;
 public:
-    void shuffle();
+    void shuffle() {
+            int i;
+        for (i = 0;i < this->num_instances;++i) {
+            int j = rand() % this->num_instances;
+            int tmp = this->perm[j];
+            this->perm[j] = this->perm[i];
+            this->perm[i] = tmp;
+        }
+    }
     crfsuite_instance_t *get(int i)
     {
         return &this->data->instances[this->perm[i]];
     }
+
+    void init_trainset(crfsuite_data_t *data, int holdout)
+    {
+        int i, n = 0;
+
+        for (i = 0;i < data->num_instances();++i) {
+            if (data->instances[i].group != holdout) {
+                ++n;
+            }
+        }
+
+        this->data = data;
+        this->num_instances = n;
+        this->perm = std::vector<int>(n);
+
+        n = 0;
+        for (i = 0;i < data->num_instances();++i) {
+            if (data->instances[i].group != holdout) {
+                this->perm[n++] = i;
+            }
+        }    
+    }
+
+    void init_testset(crfsuite_data_t *data, int holdout)
+    {
+        int i, n = 0;
+
+        for (i = 0;i < data->num_instances();++i) {
+            if (data->instances[i].group == holdout) {
+                ++n;
+            }
+        }
+
+        this->data = data;
+        this->num_instances = n;
+        this->perm = std::vector<int>(n);
+
+        n = 0;
+        for (i = 0;i < data->num_instances();++i) {
+            if (data->instances[i].group == holdout) {
+                this->perm[n++] = i;
+            }
+        }
+    }
 } ;
-
-void dataset_init_trainset(dataset_t *ds, crfsuite_data_t *data, int holdout);
-void dataset_init_testset(dataset_t *ds, crfsuite_data_t *data, int holdout);
-
 
 
 typedef void (*crfsuite_encoder_features_on_path_callback)(void *instance, int fid, floatval_t value);
