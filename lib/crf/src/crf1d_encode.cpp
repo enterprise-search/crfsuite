@@ -50,16 +50,21 @@
 /**
  * Parameters for feature generation.
  */
-typedef struct {
+ struct crf1de_option_t{
     floatval_t  feature_minfreq;                /** The threshold for occurrences of features. */
     int         feature_possible_states;        /** Dense state features. */
     int         feature_possible_transitions;   /** Dense transition features. */
-} crf1de_option_t;
-
+} ;
+#define    FEATURE(crf1de, k) \
+    (&(crf1de)->features[(k)])
+#define    ATTRIBUTE(crf1de, a) \
+    (&(crf1de)->attributes[(a)])
+#define    TRANSITION(crf1de, i) \
+    (&(crf1de)->forward_trans[(i)])
 /**
  * CRF1d internal data.
  */
-typedef struct {
+ struct crf1de_t{
     int num_labels;                 /**< Number of distinct output labels (L). */
     int num_attributes;             /**< Number of distinct attributes (A). */
 
@@ -72,443 +77,410 @@ typedef struct {
 
     crf1d_context_t *ctx;           /**< CRF1d context. */
     crf1de_option_t opt;            /**< CRF1d options. */
-} crf1de_t;
-
-#define    FEATURE(crf1de, k) \
-    (&(crf1de)->features[(k)])
-#define    ATTRIBUTE(crf1de, a) \
-    (&(crf1de)->attributes[(a)])
-#define    TRANSITION(crf1de, i) \
-    (&(crf1de)->forward_trans[(i)])
-
-
-
-static void crf1de_init(crf1de_t *crf1de)
-{
-    crf1de->num_labels = 0;
-    crf1de->num_attributes = 0;
-    crf1de->cap_items = 0;
-    crf1de->num_features = 0;
-    crf1de->features = NULL;
-    crf1de->attributes = NULL;
-    crf1de->forward_trans = NULL;
-    crf1de->ctx = NULL;
-    /* Initialize except for opt. */
-}
-
-static void crf1de_finish(crf1de_t *crf1de)
-{
-    int i;
-
-    if (crf1de->ctx != NULL) {
-        delete crf1de->ctx;
-        crf1de->ctx = NULL;
+public:
+     crf1de_t()
+    {
+        this->num_labels = 0;
+        this->num_attributes = 0;
+        this->cap_items = 0;
+        this->num_features = 0;
+        this->features = NULL;
+        this->attributes = NULL;
+        this->forward_trans = NULL;
+        this->ctx = NULL;
+        /* Initialize except for opt. */
     }
-    if (crf1de->features != NULL) {
-        free(crf1de->features);
-        crf1de->features = NULL;
-    }
-    if (crf1de->attributes != NULL) {
-        for (i = 0; i < crf1de->num_attributes; ++i) {
-            free(crf1de->attributes[i].fids);
+    ~crf1de_t()
+    {
+        int i;
+        if (this->ctx != NULL) {
+            delete this->ctx;
+            this->ctx = NULL;
         }
-        free(crf1de->attributes);
-        crf1de->attributes = NULL;
-    }
-    if (crf1de->forward_trans != NULL) {
-        for (i = 0; i < crf1de->num_labels; ++i) {
-            free(crf1de->forward_trans[i].fids);
+        if (this->features != NULL) {
+            free(this->features);
+            this->features = NULL;
         }
-        free(crf1de->forward_trans);
-        crf1de->forward_trans = NULL;
+        if (this->attributes != NULL) {
+            for (i = 0; i < this->num_attributes; ++i) {
+                free(this->attributes[i].fids);
+            }
+            free(this->attributes);
+            this->attributes = NULL;
+        }
+        if (this->forward_trans != NULL) {
+            for (i = 0; i < this->num_labels; ++i) {
+                free(this->forward_trans[i].fids);
+            }
+            free(this->forward_trans);
+            this->forward_trans = NULL;
+        }
     }
-}
-
-static void crf1de_state_score(
-    crf1de_t *crf1de,
+     void state_score(
     const crfsuite_instance_t* inst,
     const floatval_t* w
     )
-{
-    int i, t, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items();
-    const int L = crf1de->num_labels;
+    {
+        int i, t, r;
+        crf1d_context_t* ctx = this->ctx;
+        const int T = inst->num_items();
+        const int L = this->num_labels;
 
-    /* Loop over the items in the sequence. */
-    for (t = 0;t < T;++t) {
-        const crfsuite_item_t *item = &inst->items[t];
-        floatval_t *state = STATE_SCORE(ctx, t);
+        /* Loop over the items in the sequence. */
+        for (t = 0;t < T;++t) {
+            const crfsuite_item_t *item = &inst->items[t];
+            floatval_t *state = STATE_SCORE(ctx, t);
 
-        /* Loop over the contents (attributes) attached to the item. */
-        for (i = 0;i < item->num_contents();++i) {
-            /* Access the list of state features associated with the attribute. */
-            int a = item->contents[i].aid;
-            const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
-            floatval_t value = item->contents[i].value;
+            /* Loop over the contents (attributes) attached to the item. */
+            for (i = 0;i < item->num_contents();++i) {
+                /* Access the list of state features associated with the attribute. */
+                int a = item->contents[i].aid;
+                const feature_refs_t *attr = ATTRIBUTE(this, a);
+                floatval_t value = item->contents[i].value;
 
-            /* Loop over the state features associated with the attribute. */
-            for (r = 0;r < attr->num_features;++r) {
-                /* State feature associates the attribute #a with the label #(f->dst). */
-                int fid = attr->fids[r];
-                const crf1df_feature_t *f = FEATURE(crf1de, fid);
-                state[f->dst] += w[fid] * value;
-            }
-        }
-    }
-}
-
-static void
-crf1de_state_score_scaled(
-    crf1de_t* crf1de,
-    const crfsuite_instance_t* inst,
-    const floatval_t* w,
-    const floatval_t scale
-    )
-{
-    int i, t, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items();
-    const int L = crf1de->num_labels;
-
-    /* Forward to the non-scaling version for fast computation when scale == 1. */
-    if (scale == 1.) {
-        crf1de_state_score(crf1de, inst, w);
-        return;
-    }
-
-    /* Loop over the items in the sequence. */
-    for (t = 0;t < T;++t) {
-        const crfsuite_item_t *item = &inst->items[t];
-        floatval_t *state = STATE_SCORE(ctx, t);
-
-        /* Loop over the contents (attributes) attached to the item. */
-        for (i = 0;i < item->num_contents();++i) {
-            /* Access the list of state features associated with the attribute. */
-            int a = item->contents[i].aid;
-            const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
-            floatval_t value = item->contents[i].value * scale;
-
-            /* Loop over the state features associated with the attribute. */
-            for (r = 0;r < attr->num_features;++r) {
-                /* State feature associates the attribute #a with the label #(f->dst). */
-                int fid = attr->fids[r];
-                const crf1df_feature_t *f = FEATURE(crf1de, fid);
-                state[f->dst] += w[fid] * value;
-            }
-        }
-    }
-}
-
-static void
-crf1de_transition_score(
-    crf1de_t* crf1de,
-    const floatval_t* w
-    )
-{
-    int i, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const int L = crf1de->num_labels;
-
-    /* Compute transition scores between two labels. */
-    for (i = 0;i < L;++i) {
-        floatval_t *trans = TRANS_SCORE(ctx, i);
-        const feature_refs_t *edge = TRANSITION(crf1de, i);
-        for (r = 0;r < edge->num_features;++r) {
-            /* Transition feature from #i to #(f->dst). */
-            int fid = edge->fids[r];
-            const crf1df_feature_t *f = FEATURE(crf1de, fid);
-            trans[f->dst] = w[fid];
-        }        
-    }
-}
-
-static void
-crf1de_transition_score_scaled(
-    crf1de_t* crf1de,
-    const floatval_t* w,
-    const floatval_t scale
-    )
-{
-    int i, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const int L = crf1de->num_labels;
-
-    /* Forward to the non-scaling version for fast computation when scale == 1. */
-    if (scale == 1.) {
-        crf1de_transition_score(crf1de, w);
-        return;
-    }
-
-    /* Compute transition scores between two labels. */
-    for (i = 0;i < L;++i) {
-        floatval_t *trans = TRANS_SCORE(ctx, i);
-        const feature_refs_t *edge = TRANSITION(crf1de, i);
-        for (r = 0;r < edge->num_features;++r) {
-            /* Transition feature from #i to #(f->dst). */
-            int fid = edge->fids[r];
-            const crf1df_feature_t *f = FEATURE(crf1de, fid);
-            trans[f->dst] = w[fid] * scale;
-        }        
-    }
-}
-
-static void
-crf1de_features_on_path(
-    crf1de_t *crf1de,
-    const crfsuite_instance_t *inst,
-    const std::vector<int>& labels,
-    crfsuite_encoder_features_on_path_callback func,
-    void *instance
-    )
-{
-    int c, i = -1, t, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items();
-    const int L = crf1de->num_labels;
-
-    /* Loop over the items in the sequence. */
-    for (t = 0;t < T;++t) {
-        const crfsuite_item_t *item = &inst->items[t];
-        const int j = labels[t];
-
-        /* Loop over the contents (attributes) attached to the item. */
-        for (c = 0;c < item->num_contents();++c) {
-            /* Access the list of state features associated with the attribute. */
-            int a = item->contents[c].aid;
-            const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
-            floatval_t value = item->contents[c].value;
-
-            /* Loop over the state features associated with the attribute. */
-            for (r = 0;r < attr->num_features;++r) {
-                /* State feature associates the attribute #a with the label #(f->dst). */
-                int fid = attr->fids[r];
-                const crf1df_feature_t *f = FEATURE(crf1de, fid);
-                if (f->dst == j) {
-                    func(instance, fid, value);
+                /* Loop over the state features associated with the attribute. */
+                for (r = 0;r < attr->num_features;++r) {
+                    /* State feature associates the attribute #a with the label #(f->dst). */
+                    int fid = attr->fids[r];
+                    const crf1df_feature_t *f = FEATURE(this, fid);
+                    state[f->dst] += w[fid] * value;
                 }
             }
         }
+    }
+     void
+    state_score_scaled(
+        const crfsuite_instance_t* inst,
+        const floatval_t* w,
+        const floatval_t scale
+        )
+    {
+        int i, t, r;
+        crf1d_context_t* ctx = this->ctx;
+        const int T = inst->num_items();
+        const int L = this->num_labels;
 
-        if (i != -1) {
-            const feature_refs_t *edge = TRANSITION(crf1de, i);
+        /* Forward to the non-scaling version for fast computation when scale == 1. */
+        if (scale == 1.) {
+            this->state_score( inst, w);
+            return;
+        }
+
+        /* Loop over the items in the sequence. */
+        for (t = 0;t < T;++t) {
+            const crfsuite_item_t *item = &inst->items[t];
+            floatval_t *state = STATE_SCORE(ctx, t);
+
+            /* Loop over the contents (attributes) attached to the item. */
+            for (i = 0;i < item->num_contents();++i) {
+                /* Access the list of state features associated with the attribute. */
+                int a = item->contents[i].aid;
+                const feature_refs_t *attr = ATTRIBUTE(this, a);
+                floatval_t value = item->contents[i].value * scale;
+
+                /* Loop over the state features associated with the attribute. */
+                for (r = 0;r < attr->num_features;++r) {
+                    /* State feature associates the attribute #a with the label #(f->dst). */
+                    int fid = attr->fids[r];
+                    const crf1df_feature_t *f = FEATURE(this, fid);
+                    state[f->dst] += w[fid] * value;
+                }
+            }
+        }
+    }
+     void
+    transition_score(
+        const floatval_t* w
+        )
+    {
+        int i, r;
+        crf1d_context_t* ctx = this->ctx;
+        const int L = this->num_labels;
+
+        /* Compute transition scores between two labels. */
+        for (i = 0;i < L;++i) {
+            floatval_t *trans = TRANS_SCORE(ctx, i);
+            const feature_refs_t *edge = TRANSITION(this, i);
             for (r = 0;r < edge->num_features;++r) {
                 /* Transition feature from #i to #(f->dst). */
                 int fid = edge->fids[r];
-                const crf1df_feature_t *f = FEATURE(crf1de, fid);
-                if (f->dst == j) {
-                    func(instance, fid, 1.);
-                }
-            }
+                const crf1df_feature_t *f = FEATURE(this, fid);
+                trans[f->dst] = w[fid];
+            }        
         }
-
-        i = j;
     }
-}
+     void
+    transition_score_scaled(
+        const floatval_t* w,
+        const floatval_t scale
+        )
+    {
+        int i, r;
+        crf1d_context_t* ctx = this->ctx;
+        const int L = this->num_labels;
 
-static void
-crf1de_observation_expectation(
-    crf1de_t* crf1de,
-    const crfsuite_instance_t* inst,
-    const std::vector<int>& labels,
-    floatval_t *w,
-    const floatval_t scale
-    )
-{
-    int c, i = -1, t, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const int T = inst->num_items();
-    const int L = crf1de->num_labels;
-
-    /* Loop over the items in the sequence. */
-    for (t = 0;t < T;++t) {
-        const crfsuite_item_t *item = &inst->items[t];
-        const int j = labels[t];
-
-        /* Loop over the contents (attributes) attached to the item. */
-        for (c = 0;c < item->num_contents();++c) {
-            /* Access the list of state features associated with the attribute. */
-            int a = item->contents[c].aid;
-            const feature_refs_t *attr = ATTRIBUTE(crf1de, a);
-            floatval_t value = item->contents[c].value;
-
-            /* Loop over the state features associated with the attribute. */
-            for (r = 0;r < attr->num_features;++r) {
-                /* State feature associates the attribute #a with the label #(f->dst). */
-                int fid = attr->fids[r];
-                const crf1df_feature_t *f = FEATURE(crf1de, fid);
-                if (f->dst == j) {
-                    w[fid] += value * scale;
-                }
-            }
+        /* Forward to the non-scaling version for fast computation when scale == 1. */
+        if (scale == 1.) {
+            this->transition_score( w);
+            return;
         }
 
-        if (i != -1) {
-            const feature_refs_t *edge = TRANSITION(crf1de, i);
+        /* Compute transition scores between two labels. */
+        for (i = 0;i < L;++i) {
+            floatval_t *trans = TRANS_SCORE(ctx, i);
+            const feature_refs_t *edge = TRANSITION(this, i);
             for (r = 0;r < edge->num_features;++r) {
                 /* Transition feature from #i to #(f->dst). */
                 int fid = edge->fids[r];
-                const crf1df_feature_t *f = FEATURE(crf1de, fid);
-                if (f->dst == j) {
-                    w[fid] += scale;
+                const crf1df_feature_t *f = FEATURE(this, fid);
+                trans[f->dst] = w[fid] * scale;
+            }        
+        }
+    }
+
+
+    void
+    features_on_path(
+        const crfsuite_instance_t *inst,
+        const std::vector<int>& labels,
+        crfsuite_encoder_features_on_path_callback func,
+        void *instance
+        )
+    {
+        int c, i = -1, t, r;
+        crf1d_context_t* ctx = this->ctx;
+        const int T = inst->num_items();
+        const int L = this->num_labels;
+
+        /* Loop over the items in the sequence. */
+        for (t = 0;t < T;++t) {
+            const crfsuite_item_t *item = &inst->items[t];
+            const int j = labels[t];
+
+            /* Loop over the contents (attributes) attached to the item. */
+            for (c = 0;c < item->num_contents();++c) {
+                /* Access the list of state features associated with the attribute. */
+                int a = item->contents[c].aid;
+                const feature_refs_t *attr = ATTRIBUTE(this, a);
+                floatval_t value = item->contents[c].value;
+
+                /* Loop over the state features associated with the attribute. */
+                for (r = 0;r < attr->num_features;++r) {
+                    /* State feature associates the attribute #a with the label #(f->dst). */
+                    int fid = attr->fids[r];
+                    const crf1df_feature_t *f = FEATURE(this, fid);
+                    if (f->dst == j) {
+                        func(instance, fid, value);
+                    }
+                }
+            }
+
+            if (i != -1) {
+                const feature_refs_t *edge = TRANSITION(this, i);
+                for (r = 0;r < edge->num_features;++r) {
+                    /* Transition feature from #i to #(f->dst). */
+                    int fid = edge->fids[r];
+                    const crf1df_feature_t *f = FEATURE(this, fid);
+                    if (f->dst == j) {
+                        func(instance, fid, 1.);
+                    }
+                }
+            }
+
+            i = j;
+        }
+    }
+
+    void
+    observation_expectation(
+        const crfsuite_instance_t* inst,
+        const std::vector<int>& labels,
+        floatval_t *w,
+        const floatval_t scale
+        )
+    {
+        int c, i = -1, t, r;
+        crf1d_context_t* ctx = this->ctx;
+        const int T = inst->num_items();
+        const int L = this->num_labels;
+
+        /* Loop over the items in the sequence. */
+        for (t = 0;t < T;++t) {
+            const crfsuite_item_t *item = &inst->items[t];
+            const int j = labels[t];
+
+            /* Loop over the contents (attributes) attached to the item. */
+            for (c = 0;c < item->num_contents();++c) {
+                /* Access the list of state features associated with the attribute. */
+                int a = item->contents[c].aid;
+                const feature_refs_t *attr = ATTRIBUTE(this, a);
+                floatval_t value = item->contents[c].value;
+
+                /* Loop over the state features associated with the attribute. */
+                for (r = 0;r < attr->num_features;++r) {
+                    /* State feature associates the attribute #a with the label #(f->dst). */
+                    int fid = attr->fids[r];
+                    const crf1df_feature_t *f = FEATURE(this, fid);
+                    if (f->dst == j) {
+                        w[fid] += value * scale;
+                    }
+                }
+            }
+
+            if (i != -1) {
+                const feature_refs_t *edge = TRANSITION(this, i);
+                for (r = 0;r < edge->num_features;++r) {
+                    /* Transition feature from #i to #(f->dst). */
+                    int fid = edge->fids[r];
+                    const crf1df_feature_t *f = FEATURE(this, fid);
+                    if (f->dst == j) {
+                        w[fid] += scale;
+                    }
+                }
+            }
+
+            i = j;
+        }
+    }
+    void
+    model_expectation(
+        const crfsuite_instance_t *inst,
+        floatval_t *w,
+        const floatval_t scale
+        )
+    {
+        int a, c, i, t, r;
+        crf1d_context_t* ctx = this->ctx;
+        const feature_refs_t *attr = NULL, *trans = NULL;
+        const crfsuite_item_t* item = NULL;
+        const int T = inst->num_items();
+        const int L = this->num_labels;
+
+        for (t = 0;t < T;++t) {
+            floatval_t *prob = STATE_MEXP(ctx, t);
+
+            /* Compute expectations for state features at position #t. */
+            item = &inst->items[t];
+            for (c = 0;c < item->num_contents();++c) {
+                /* Access the attribute. */
+                floatval_t value = item->contents[c].value;
+                a = item->contents[c].aid;
+                attr = ATTRIBUTE(this, a);
+
+                /* Loop over state features for the attribute. */
+                for (r = 0;r < attr->num_features;++r) {
+                    int fid = attr->fids[r];
+                    crf1df_feature_t *f = FEATURE(this, fid);
+                    w[fid] += prob[f->dst] * value * scale;
                 }
             }
         }
 
-        i = j;
-    }
-}
-
-static void
-crf1de_model_expectation(
-    crf1de_t *crf1de,
-    const crfsuite_instance_t *inst,
-    floatval_t *w,
-    const floatval_t scale
-    )
-{
-    int a, c, i, t, r;
-    crf1d_context_t* ctx = crf1de->ctx;
-    const feature_refs_t *attr = NULL, *trans = NULL;
-    const crfsuite_item_t* item = NULL;
-    const int T = inst->num_items();
-    const int L = crf1de->num_labels;
-
-    for (t = 0;t < T;++t) {
-        floatval_t *prob = STATE_MEXP(ctx, t);
-
-        /* Compute expectations for state features at position #t. */
-        item = &inst->items[t];
-        for (c = 0;c < item->num_contents();++c) {
-            /* Access the attribute. */
-            floatval_t value = item->contents[c].value;
-            a = item->contents[c].aid;
-            attr = ATTRIBUTE(crf1de, a);
-
-            /* Loop over state features for the attribute. */
-            for (r = 0;r < attr->num_features;++r) {
-                int fid = attr->fids[r];
-                crf1df_feature_t *f = FEATURE(crf1de, fid);
-                w[fid] += prob[f->dst] * value * scale;
+        /* Loop over the labels (t, i) */
+        for (i = 0;i < L;++i) {
+            const floatval_t *prob = TRANS_MEXP(ctx, i);
+            const feature_refs_t *edge = TRANSITION(this, i);
+            for (r = 0;r < edge->num_features;++r) {
+                /* Transition feature from #i to #(f->dst). */
+                int fid = edge->fids[r];
+                crf1df_feature_t *f = FEATURE(this, fid);
+                w[fid] += prob[f->dst] * scale;
             }
         }
     }
 
-    /* Loop over the labels (t, i) */
-    for (i = 0;i < L;++i) {
-        const floatval_t *prob = TRANS_MEXP(ctx, i);
-        const feature_refs_t *edge = TRANSITION(crf1de, i);
-        for (r = 0;r < edge->num_features;++r) {
-            /* Transition feature from #i to #(f->dst). */
-            int fid = edge->fids[r];
-            crf1df_feature_t *f = FEATURE(crf1de, fid);
-            w[fid] += prob[f->dst] * scale;
+    int
+    set_data(
+        dataset_t *ds,
+        int num_labels,
+        int num_attributes,
+        logging_t *lg
+        )
+    {
+        int i, ret = 0;
+        clock_t begin = 0;
+        int T = 0;
+        const int L = num_labels;
+        const int A = num_attributes;
+        const int N = ds->num_instances;
+        crf1de_option_t *opt = &this->opt;
+
+        /* Initialize the member variables. */
+        this->num_attributes = A;
+        this->num_labels = L;
+
+        /* Find the maximum length of items in the data set. */
+        for (i = 0;i < N;++i) {
+            const crfsuite_instance_t *inst = ds->get( i);
+            if (T < inst->num_items()) {
+                T = inst->num_items();
+            }
         }
-    }
-}
 
-static int
-crf1de_set_data(
-    crf1de_t *crf1de,
-    dataset_t *ds,
-    int num_labels,
-    int num_attributes,
-    logging_t *lg
-    )
-{
-    int i, ret = 0;
-    clock_t begin = 0;
-    int T = 0;
-    const int L = num_labels;
-    const int A = num_attributes;
-    const int N = ds->num_instances;
-    crf1de_option_t *opt = &crf1de->opt;
-
-    /* Initialize the member variables. */
-    crf1de_init(crf1de);
-    crf1de->num_attributes = A;
-    crf1de->num_labels = L;
-
-    /* Find the maximum length of items in the data set. */
-    for (i = 0;i < N;++i) {
-        const crfsuite_instance_t *inst = ds->get( i);
-        if (T < inst->num_items()) {
-            T = inst->num_items();
+        /* Construct a CRF context. */
+        this->ctx = new crf1d_context_t(CTXF_MARGINALS | CTXF_VITERBI, L, T);
+        if (this->ctx == NULL) {
+            throw std::runtime_error("OOM");
         }
+
+        /* Feature generation. */
+        logging(lg, "Feature generation\n");
+        logging(lg, "type: CRF1d\n");
+        logging(lg, "feature.minfreq: %f\n", opt->feature_minfreq);
+        logging(lg, "feature.possible_states: %d\n", opt->feature_possible_states);
+        logging(lg, "feature.possible_transitions: %d\n", opt->feature_possible_transitions);
+        begin = clock();
+        this->features = crf1df_generate(
+            &this->num_features,
+            ds,
+            L,
+            A,
+            opt->feature_possible_states ? 1 : 0,
+            opt->feature_possible_transitions ? 1 : 0,
+            opt->feature_minfreq,
+            lg->func,
+            lg->instance
+            );
+        if (this->features == NULL) {
+            throw std::runtime_error("OOM");
+        }
+        logging(lg, "Number of features: %d\n", this->num_features);
+        logging(lg, "Seconds required: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
+        logging(lg, "\n");
+
+        /* Initialize the feature references. */
+        crf1df_init_references(
+            &this->attributes,
+            &this->forward_trans,
+            this->features,
+            this->num_features,
+            A,
+            L);
+        if (this->attributes == NULL || this->forward_trans == NULL) {
+            throw std::runtime_error("OOM");
+        }
+
+        return ret;
     }
 
-    /* Construct a CRF context. */
-    crf1de->ctx = new crf1d_context_t(CTXF_MARGINALS | CTXF_VITERBI, L, T);
-    if (crf1de->ctx == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
-    }
 
-    /* Feature generation. */
-    logging(lg, "Feature generation\n");
-    logging(lg, "type: CRF1d\n");
-    logging(lg, "feature.minfreq: %f\n", opt->feature_minfreq);
-    logging(lg, "feature.possible_states: %d\n", opt->feature_possible_states);
-    logging(lg, "feature.possible_transitions: %d\n", opt->feature_possible_transitions);
-    begin = clock();
-    crf1de->features = crf1df_generate(
-        &crf1de->num_features,
-        ds,
-        L,
-        A,
-        opt->feature_possible_states ? 1 : 0,
-        opt->feature_possible_transitions ? 1 : 0,
-        opt->feature_minfreq,
-        lg->func,
-        lg->instance
-        );
-    if (crf1de->features == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
-    }
-    logging(lg, "Number of features: %d\n", crf1de->num_features);
-    logging(lg, "Seconds required: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
-    logging(lg, "\n");
-
-    /* Initialize the feature references. */
-    crf1df_init_references(
-        &crf1de->attributes,
-        &crf1de->forward_trans,
-        crf1de->features,
-        crf1de->num_features,
-        A,
-        L);
-    if (crf1de->attributes == NULL || crf1de->forward_trans == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
-    }
-
-    return ret;
-
-error_exit:
-    crf1de_finish(crf1de);
-    return ret;
-}
-
-static int
-crf1de_save_model(
-    crf1de_t *crf1de,
-    const char *filename,
-    const floatval_t *w,
-    crfsuite_dictionary_t *attrs,
-    crfsuite_dictionary_t *labels,
-    logging_t *lg
-    )
-{
+    int save_model(
+        const char *filename,
+        const floatval_t *w,
+        crfsuite_dictionary_t *attrs,
+        crfsuite_dictionary_t *labels,
+        logging_t *lg
+        )
+    {
     int a, k, l, ret;
     clock_t begin;
     int *fmap = NULL, *amap = NULL;
     tag_crf1dmw* writer = NULL;
     const feature_refs_t *edge = NULL, *attr = NULL;
     const floatval_t threshold = 0.01;
-    const int L = crf1de->num_labels;
-    const int A = crf1de->num_attributes;
-    const int K = crf1de->num_features;
+    const int L = this->num_labels;
+    const int A = this->num_attributes;
+    const int K = this->num_features;
     int J = 0, B = 0;
 
     /* Start storing the model. */
@@ -557,7 +529,7 @@ crf1de_save_model(
      *     (with determining active features and attributes).
      */
     for (k = 0;k < K;++k) {
-        crf1df_feature_t* f = &crf1de->features[k];
+        crf1df_feature_t* f = &this->features[k];
         if (w[k] != 0) {
             int src;
             crf1dm_feature_t feat;
@@ -643,7 +615,7 @@ crf1de_save_model(
         goto error_exit;
     }
     for (l = 0;l < L;++l) {
-        edge = TRANSITION(crf1de, l);
+        edge = TRANSITION(this, l);
         if (ret = writer->crf1dmw_put_labelref(l, edge, fmap)) {
             goto error_exit;
         }
@@ -659,7 +631,7 @@ crf1de_save_model(
     }
     for (a = 0;a < A;++a) {
         if (0 <= amap[a]) {
-            attr = ATTRIBUTE(crf1de, a);
+            attr = ATTRIBUTE(this, a);
             if (ret = writer->crf1dmw_put_attrref(amap[a], attr, fmap)) {
                 goto error_exit;
             }
@@ -678,18 +650,19 @@ crf1de_save_model(
     free(fmap);
     return 0;
 
-error_exit:
-    if (writer != NULL) {
-        delete writer;
+    error_exit:
+        if (writer != NULL) {
+            delete writer;
+        }
+        if (amap != NULL) {
+            free(amap);
+        }
+        if (fmap != NULL) {
+            free(fmap);
+        }
+        return ret;
     }
-    if (amap != NULL) {
-        free(amap);
-    }
-    if (fmap != NULL) {
-        free(fmap);
-    }
-    return ret;
-}
+} ;
 
 static int crf1de_exchange_options(crfsuite_params_t* params, crf1de_option_t* opt, int mode)
 {
@@ -745,14 +718,14 @@ void tag_encoder::set_level(int level)
     /* LEVEL_WEIGHT: set transition scores. */
     if (LEVEL_WEIGHT <= level && prev < LEVEL_WEIGHT) {
         crf1de->ctx->crf1dc_reset(RF_TRANS);
-        crf1de_transition_score_scaled(crf1de, this->w, this->scale);
+        crf1de->transition_score_scaled(this->w, this->scale);
     }
 
     /* LEVEL_INSTANCE: set state scores. */
     if (LEVEL_INSTANCE <= level && prev < LEVEL_INSTANCE) {
         crf1de->ctx->crf1dc_set_num_items(this->inst->num_items());
         crf1de->ctx->crf1dc_reset(RF_STATE);
-        crf1de_state_score_scaled(crf1de, this->inst, this->w, this->scale);
+        crf1de->state_score_scaled(this->inst, this->w, this->scale);
     }
 
     /* LEVEL_ALPHABETA: perform the forward-backward algorithm. */
@@ -782,8 +755,7 @@ int tag_encoder::initialize(dataset_t *ds, logging_t *lg)
     int ret;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
 
-    ret = crf1de_set_data(
-        crf1de,
+    ret = crf1de->set_data(
         ds,
         ds->data->labels->num(ds->data->labels),
         ds->data->attrs->num(ds->data->attrs),
@@ -816,7 +788,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
         these are independent of input label sequences.
      */
     crf1de->ctx->crf1dc_reset(RF_TRANS);
-    crf1de_transition_score(crf1de, w);
+    crf1de->transition_score( w);
     crf1de->ctx->crf1dc_exp_transition();
 
     /*
@@ -828,7 +800,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
         /* Set label sequences and state scores. */
         crf1de->ctx->crf1dc_set_num_items(seq->num_items());
         crf1de->ctx->crf1dc_reset(RF_STATE);
-        crf1de_state_score(crf1de, seq, w);
+        crf1de->state_score( seq, w);
         crf1de->ctx->crf1dc_exp_state();
 
         /* Compute forward/backward scores. */
@@ -842,7 +814,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
         logl += logp * seq->weight;
 
         /* Update the model expectations of features. */
-        crf1de_model_expectation(crf1de, seq, g, seq->weight);
+        crf1de->model_expectation( seq, g, seq->weight);
     }
 
     *f = -logl;
@@ -853,7 +825,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
 int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::vector<int>& path, crfsuite_encoder_features_on_path_callback func, void *instance)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    crf1de_features_on_path(crf1de, inst, path, func, instance);
+    crf1de->features_on_path( inst, path, func, instance);
     return 0;
 }
 
@@ -861,7 +833,7 @@ int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::ve
 int tag_encoder::save_model(const char *filename, const floatval_t *w, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    return crf1de_save_model(crf1de, filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);
+    return crf1de->save_model( filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);
 }
 
 /* LEVEL_NONE -> LEVEL_WEIGHT. */
@@ -919,8 +891,8 @@ int tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     this->set_level(LEVEL_MARGINAL);
     gain *= weight;
-    crf1de_observation_expectation(crf1de, this->inst, this->inst->labels, g, gain);
-    crf1de_model_expectation(crf1de, this->inst, g, -gain);
+    crf1de->observation_expectation( this->inst, this->inst->labels, g, gain);
+    crf1de->model_expectation( this->inst, g, -gain);
     *f = (-crf1de->ctx->crf1dc_score(this->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
     return 0;
 }
@@ -928,15 +900,10 @@ int tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_
 tag_encoder::~tag_encoder()
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    crf1de_finish(crf1de);
-    free(crf1de);
+    delete (crf1de);
 }
 
 tag_encoder::tag_encoder()
 {
-    crf1de_t *enc = (crf1de_t*)calloc(1, sizeof(crf1de_t));
-    if (enc != NULL) {
-        crf1de_init(enc);
-        this->internal = enc;
-    }
+    this->internal = new crf1de_t();
 }
