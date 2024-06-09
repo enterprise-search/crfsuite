@@ -702,26 +702,26 @@ tag_crf1dm::tag_crf1dm(const char *filename)
     }
     fclose(fp);
 
-    tag_crf1dm(buffer_orig, buffer, size);
+    *this = tag_crf1dm(buffer_orig, buffer, size);
 }
 
 tag_crf1dm::~tag_crf1dm()
 {
-    if (this->labels != NULL) {
-        cqdb_delete(this->labels);
-    }
-    if (this->attrs != NULL) {
-        cqdb_delete(this->attrs);
-    }
-    if (this->header != NULL) {
-        free(this->header);
-        this->header = NULL;
-    }
-    if (this->buffer_orig != NULL) {
-        free(this->buffer_orig);
-        this->buffer_orig = NULL;
-    }
-    this->buffer = NULL;
+    // if (this->labels != NULL) {
+    //     cqdb_delete(this->labels);
+    // }
+    // if (this->attrs != NULL) {
+    //     cqdb_delete(this->attrs);
+    // }
+    // if (this->header != NULL) {
+    //     free(this->header);
+    //     this->header = NULL;
+    // }
+    // if (this->buffer_orig != NULL) {
+    //     free(this->buffer_orig);
+    //     this->buffer_orig = NULL;
+    // }
+    // this->buffer = NULL;
 }
 
 int tag_crf1dm::crf1dm_get_num_attrs()
@@ -784,7 +784,7 @@ int tag_crf1dm::crf1dm_get_labelref(int lid, feature_refs_t* ref)
     p = this->buffer + offset;
     p += read_uint32(p, &num_features);
     ref->num_features = num_features;
-    std::copy_n(p, num_features, ref->fids.begin());
+    std::copy_n(p, num_features, std::back_inserter(ref->fids));
     return 0;
 }
 
@@ -802,7 +802,7 @@ int tag_crf1dm::crf1dm_get_attrref(int aid, feature_refs_t* ref)
     p = this->buffer + offset;
     p += read_uint32(p, &num_features);
     ref->num_features = num_features;
-    std::copy_n(p, num_features, ref->fids.begin());
+    std::copy_n(p, num_features, std::back_inserter(ref->fids));
     return 0;
 }
 

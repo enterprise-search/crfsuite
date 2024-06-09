@@ -407,7 +407,6 @@ public:
 static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
 {
     int ret = 0;
-    crfsuite_model_t *model = NULL;
     crfsuite_dictionary_t *attrs = NULL, *labels = NULL;
 
     *ptr_model = NULL;
@@ -429,7 +428,7 @@ static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
     internal->attrs = attrs;
     internal->labels = labels;
 
-    *ptr_model = model;
+    *ptr_model = internal;
     return 0;
 }
 
