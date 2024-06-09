@@ -160,7 +160,7 @@ crf1df_feature_t* crf1df_generate(
     for (s = 0;s < N;++s) {
         int prev = L, cur = 0;
         const crfsuite_item_t* item = NULL;
-        const crfsuite_instance_t* seq = dataset_get(ds, s);
+        const crfsuite_instance_t* seq = ds->get( s);
         const int T = seq->num_items();
 
         /* Loop over the items in the sequence. */

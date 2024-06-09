@@ -84,11 +84,6 @@ void dataset_init_testset(dataset_t *ds, crfsuite_data_t *data, int holdout)
     }
 }
 
-void dataset_finish(dataset_t *ds)
-{
-    free(ds->perm);
-}
-
 void dataset_t::shuffle()
 {
     int i;
@@ -100,7 +95,4 @@ void dataset_t::shuffle()
     }
 }
 
-crfsuite_instance_t *dataset_get(dataset_t *ds, int i)
-{
-    return &ds->data->instances[ds->perm[i]];
-}
+

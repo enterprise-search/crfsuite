@@ -59,7 +59,7 @@ void tag_encoder::holdout_evaluation(
 
     for (i = 0;i < N;++i) {
         floatval_t score;
-        const crfsuite_instance_t *inst = dataset_get(ds, i);
+        const crfsuite_instance_t *inst = ds->get( i);
 
         std::vector<int> viterbi(inst->num_items());
 

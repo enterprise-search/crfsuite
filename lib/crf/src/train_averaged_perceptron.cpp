@@ -161,7 +161,7 @@ int crfsuite_train_averaged_perceptron(
         for (n = 0;n < N;++n) {
             int d = 0;
             floatval_t score;
-            const crfsuite_instance_t *inst = dataset_get(trainset, n);
+            const crfsuite_instance_t *inst = trainset->get(n);
 
             /* Set the feature weights to the encoder. */
             gm->set_weights(w, 1.);

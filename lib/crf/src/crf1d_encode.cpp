@@ -431,7 +431,7 @@ crf1de_set_data(
 
     /* Find the maximum length of items in the data set. */
     for (i = 0;i < N;++i) {
-        const crfsuite_instance_t *inst = dataset_get(ds, i);
+        const crfsuite_instance_t *inst = ds->get( i);
         if (T < inst->num_items()) {
             T = inst->num_items();
         }
@@ -823,7 +823,7 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
         Compute model expectations.
      */
     for (i = 0;i < N;++i) {
-        const crfsuite_instance_t *seq = dataset_get(ds, i);
+        const crfsuite_instance_t *seq = ds->get( i);
 
         /* Set label sequences and state scores. */
         crf1de->ctx->crf1dc_set_num_items(seq->num_items());

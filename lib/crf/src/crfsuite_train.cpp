@@ -190,10 +190,10 @@ int tag_crfsuite_trainer::train(
         gm->save_model(filename, w, lg);
     }
 
-    if (0 <= holdout) {
-        dataset_finish(&testset);
-    }
-    dataset_finish(&trainset);
+    // if (0 <= holdout) {
+    //     dataset_finish(&testset);
+    // }
+    // dataset_finish(&trainset);
     free(w);
 
     return 0;

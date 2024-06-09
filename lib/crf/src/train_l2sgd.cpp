@@ -177,7 +177,7 @@ static int l2sgd(
         /* Loop for instances. */
         sum_loss = 0.;
         for (i = 0;i < N;++i) {
-            const crfsuite_instance_t *inst = dataset_get(trainset, i);
+            const crfsuite_instance_t *inst = trainset->get( i);
 
             /* Update various factors. */
             eta = 1 / (lambda * (t0 + t));
@@ -323,7 +323,7 @@ l2sgd_calibration(
     init_loss = 0;
     for (i = 0;i < S;++i) {
         floatval_t score;
-        const crfsuite_instance_t *inst = dataset_get(ds, i);
+        const crfsuite_instance_t *inst = ds->get( i);
         gm->set_instance(inst);
         gm->score(inst->labels, &score);
         init_loss -= score;
