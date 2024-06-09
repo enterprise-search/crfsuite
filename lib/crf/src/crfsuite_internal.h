@@ -198,7 +198,7 @@ struct tag_encoder
     int viterbi(std::vector<int>& path, floatval_t *ptr_score);
 
     /* Level 2 (forward-backward). */
-    int partition_factor(floatval_t *ptr_pf);
+    floatval_t partition_factor();
 
     /* Level 3 (marginals). */
     int objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight);

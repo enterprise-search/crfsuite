@@ -327,7 +327,7 @@ l2sgd_calibration(
         gm->set_instance(inst);
         gm->score(inst->labels, &score);
         init_loss -= score;
-        gm->partition_factor(&score);
+        score = gm->partition_factor();
         init_loss += score;
     }
     init_loss += 0.5 * lambda * vecdot(w, w, K) * N;

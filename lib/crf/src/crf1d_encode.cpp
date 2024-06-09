@@ -852,12 +852,11 @@ int tag_encoder::viterbi(std::vector<int>& path, floatval_t *ptr_score)
 }
 
 /* LEVEL_INSTANCE -> LEVEL_ALPHABETA. */
-int tag_encoder::partition_factor(floatval_t *ptr_pf)
+floatval_t tag_encoder::partition_factor()
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     this->set_level(LEVEL_ALPHABETA);
-    *ptr_pf = crf1de->ctx->crf1dc_lognorm();
-    return 0;
+    return crf1de->ctx->crf1dc_lognorm();
 }
 
 /* LEVEL_INSTANCE -> LEVEL_MARGINAL. */
