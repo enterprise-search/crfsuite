@@ -248,269 +248,189 @@ int tag_crfsuite_tagger::score(std::vector<int>& path, floatval_t *ptr_score)
  *    This object is instantiated only by a crfsuite_model_t object.
  */
 
-static int model_attrs_addref(crfsuite_dictionary_t* dic)
-{
-    /* This object is owned only by a crfsuite_model_t object. */
-    return dic->nref;
-}
+struct ModelAttrDict: crfsuite_dictionary_t {
+private:
+    crf1dm_t * crf1dm;
+public:
+    ModelAttrDict(crf1dm_t* crf1dm) : crf1dm(crf1dm) {}
 
-static int model_attrs_release(crfsuite_dictionary_t* dic)
-{
-    /* This object is owned and freed only by a crfsuite_model_t object. */
-    return dic->nref;
-}
+     int get(const char *str)
+    {
+        /* This object is ready only. */
+        throw std::runtime_error("supported");
+    }
 
-static int model_attrs_get(crfsuite_dictionary_t* dic, const char *str)
-{
-    /* This object is ready only. */
-    return CRFSUITEERR_NOTSUPPORTED;
-}
+     int to_id(const char *str) { return crf1dm->crf1dm_to_aid(str); }
 
-static int model_attrs_to_id(crfsuite_dictionary_t* dic, const char *str)
-{
-    crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm->crf1dm_to_aid(str);
-}
+     int to_string(int id, char const **pstr)
+    {
+        *pstr = crf1dm->crf1dm_to_attr(id);
+        return 0;
+    }
 
-static int model_attrs_to_string(crfsuite_dictionary_t* dic, int id, char const **pstr)
-{
-    crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    *pstr = crf1dm->crf1dm_to_attr(id);
-    return 0;
-}
+     int num() { return crf1dm->crf1dm_get_num_attrs(); }
 
-static int model_attrs_num(crfsuite_dictionary_t* dic)
-{
-    crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm->crf1dm_get_num_attrs();
-}
+     void free(const char *str)
+    {
+        /* all strings are freed on the release of the dictionary object. */
+    }
 
-static void model_attrs_free(crfsuite_dictionary_t* dic, const char *str)
-{
-    /* all strings are freed on the release of the dictionary object. */
-}
-
-
+};
 
 
 /*
  *    Implementation of crfsuite_dictionary_t object for labels.
  *    This object is instantiated only by a crfsuite_model_t object.
  */
-
-static int model_labels_addref(crfsuite_dictionary_t* dic)
+struct ModelLabelsDict : crfsuite_dictionary_t
 {
-    /* This object is owned only by a crfsuite_model_t object. */
-    return dic->nref;
-}
+private:
+    crf1dm_t * crf1dm;
+public:
+    ModelLabelsDict(crf1dm_t* crf1dm) : crf1dm(crf1dm) {}
 
-static int model_labels_release(crfsuite_dictionary_t* dic)
-{
-    /* This object is owned and freed only by a crfsuite_model_t object. */
-    return dic->nref;
-}
+     int addref()
+    {
+        /* This object is owned only by a crfsuite_model_t object. */
+        return 1;
+    }
 
-static int model_labels_get(crfsuite_dictionary_t* dic, const char *str)
-{
-    /* This object is ready only. */
-    return CRFSUITEERR_NOTSUPPORTED;
-}
+     int release()
+    {
+        /* This object is owned and freed only by a crfsuite_model_t object. */
+        return 1;
+    }
 
-static int model_labels_to_id(crfsuite_dictionary_t* dic, const char *str)
-{
-    crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm->crf1dm_to_lid(str);
-}
+     int get(const char *str)
+    {
+        /* This object is ready only. */
+        return CRFSUITEERR_NOTSUPPORTED;
+    }
 
-static int model_labels_to_string(crfsuite_dictionary_t* dic, int id, char const **pstr)
-{
-    crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    *pstr = crf1dm->crf1dm_to_label(id);
-    return 0;
-}
+     int to_id(const char *str)
+    {
+        return crf1dm->crf1dm_to_lid(str);
+    }
 
-static int model_labels_num(crfsuite_dictionary_t* dic)
-{
-    crf1dm_t *crf1dm = (crf1dm_t*)dic->internal;
-    return crf1dm->crf1dm_get_num_labels();
-}
+     int to_string(int id, char const **pstr)
+    {
+        *pstr = crf1dm->crf1dm_to_label(id);
+        return 0;
+    }
 
-static void model_labels_free(crfsuite_dictionary_t* dic, const char *str)
-{
-    /* all strings are freed on the release of the dictionary object. */
-}
+     int num()
+    {
+        return crf1dm->crf1dm_get_num_labels();
+    }
 
+     void free( const char *str)
+    {
+        /* all strings are freed on the release of the dictionary object. */
+    }
 
+};
 
 /*
  *    Implementation of crfsuite_model_t object.
  *    This object is instantiated by crf1m_model_create() function.
  */
 
-typedef struct {
+ struct model_internal_t : tag_crfsuite_model{
+ private:
     crf1dm_t*    crf1dm;
 
+public:
     crfsuite_dictionary_t*    attrs;
     crfsuite_dictionary_t*    labels;
-} model_internal_t;
-
-static int model_addref(crfsuite_model_t* model)
-{
-    return crfsuite_interlocked_increment(&model->nref);
-}
-
-static int model_release(crfsuite_model_t* model)
-{
-    int count = crfsuite_interlocked_decrement(&model->nref);
-    if (count == 0) {
-        /* This instance is being destroyed. */
-        model_internal_t* internal = (model_internal_t*)model->internal;
-        free(internal->labels);
-        free(internal->attrs);
-        delete internal->crf1dm;
-        free(internal);
-        free(model);
+    model_internal_t(crf1dm_t*    crf1dm) : crf1dm(crf1dm) {}
+     int addref()
+    {
+         return 1;
     }
-    return count;
-}
+     int release()
+    {
+        return 1;
+    }
+     int get_tagger(crfsuite_tagger_t** ptr_tagger)
+    {
+        int ret = 0;
+        crf1dt_t *crf1dt = NULL;
+        crfsuite_tagger_t *tagger = NULL;
 
-static int model_get_tagger(crfsuite_model_t* model, crfsuite_tagger_t** ptr_tagger)
-{
-    int ret = 0;
-    crf1dt_t *crf1dt = NULL;
-    crfsuite_tagger_t *tagger = NULL;
-    model_internal_t* internal = (model_internal_t*)model->internal;
+        /* Construct a tagger based on the model. */
+        crf1dt = new crf1dt_t(crf1dm);
+        if (crf1dt == NULL) {
+            ret = CRFSUITEERR_OUTOFMEMORY;
+            goto error_exit;
+        }
 
-    /* Construct a tagger based on the model. */
-    crf1dt = new crf1dt_t(internal->crf1dm);
-    if (crf1dt == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+        /* Create an instance of tagger object. */
+        tagger = (crfsuite_tagger_t*)calloc(1, sizeof(crfsuite_tagger_t));
+        if (tagger == NULL) {
+            ret = CRFSUITEERR_OUTOFMEMORY;
+            goto error_exit;
+        }
+        tagger->internal = crf1dt;
+        tagger->nref = 1;
+        *ptr_tagger = tagger;
+        return 0;
+
+    error_exit:
+        free(tagger);
+        if (crf1dt != NULL) {
+            delete crf1dt;
+        }
+        return ret;
+    }
+     int get_labels(crfsuite_dictionary_t** ptr_labels)
+    {
+        /* We don't increment the reference counter. */
+        *ptr_labels = labels;
+        return 0;
     }
 
-    /* Create an instance of tagger object. */
-    tagger = (crfsuite_tagger_t*)calloc(1, sizeof(crfsuite_tagger_t));
-    if (tagger == NULL) {
-        ret = CRFSUITEERR_OUTOFMEMORY;
-        goto error_exit;
+     int get_attrs(crfsuite_dictionary_t** ptr_attrs)
+    {
+        /* We don't increment the reference counter. */
+        *ptr_attrs = attrs;
+        return 0;
     }
-    tagger->internal = crf1dt;
-    tagger->nref = 1;
-    *ptr_tagger = tagger;
-    return 0;
 
-error_exit:
-    free(tagger);
-    if (crf1dt != NULL) {
-        delete crf1dt;
+     int dump(FILE *fpo)
+    {
+        crf1dm->crf1dm_dump(fpo);
+        return 0;
     }
-    return ret;
-}
+} ;
 
-static int model_get_labels(crfsuite_model_t* model, crfsuite_dictionary_t** ptr_labels)
-{
-    model_internal_t* internal = (model_internal_t*)model->internal;
-    /* We don't increment the reference counter. */
-    *ptr_labels = internal->labels;
-    return 0;
-}
-
-static int model_get_attrs(crfsuite_model_t* model, crfsuite_dictionary_t** ptr_attrs)
-{
-    model_internal_t* internal = (model_internal_t*)model->internal;
-    /* We don't increment the reference counter. */
-    *ptr_attrs = internal->attrs;
-    return 0;
-}
-
-static int model_dump(crfsuite_model_t* model, FILE *fpo)
-{
-    model_internal_t* internal = (model_internal_t*)model->internal;
-    internal->crf1dm->crf1dm_dump(fpo);
-    return 0;
-}
 
 static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
 {
     int ret = 0;
     crfsuite_model_t *model = NULL;
-    model_internal_t *internal = NULL;
     crfsuite_dictionary_t *attrs = NULL, *labels = NULL;
 
     *ptr_model = NULL;
 
     if (crf1dm == NULL) {
-        ret = CRFSUITEERR_INCOMPATIBLE;
-        goto error_exit;
+        throw std::runtime_error("unsupported");
     }
 
     /* Create an instance of internal data attached to the model. */
-    internal = (model_internal_t*)calloc(1, sizeof(model_internal_t));
-    if (internal == NULL) {
-        throw std::runtime_error("OOM");
-    }
+    model_internal_t *internal = new model_internal_t(crf1dm);
 
     /* Create an instance of dictionary object for attributes. */
-    attrs = (crfsuite_dictionary_t*)calloc(1, sizeof(crfsuite_dictionary_t));
-    if (attrs == NULL) {
-        throw std::runtime_error("OOM");
-    }
-    attrs->internal = crf1dm;
-    attrs->nref = 1;
-    attrs->addref = model_attrs_addref;
-    attrs->release = model_attrs_release;
-    attrs->get = model_attrs_get;
-    attrs->to_id = model_attrs_to_id;
-    attrs->to_string = model_attrs_to_string;
-    attrs->num = model_attrs_num;
-    attrs->free = model_attrs_free;
+    attrs = new ModelAttrDict(crf1dm);
 
     /* Create an instance of dictionary object for labels. */
-    labels = (crfsuite_dictionary_t*)calloc(1, sizeof(crfsuite_dictionary_t));
-    if (labels == NULL) {
-        throw std::runtime_error("OOM");
-    }
-    labels->internal = crf1dm;
-    labels->nref = 1;
-    labels->addref = model_labels_addref;
-    labels->release = model_labels_release;
-    labels->get = model_labels_get;
-    labels->to_id = model_labels_to_id;
-    labels->to_string = model_labels_to_string;
-    labels->num = model_labels_num;
-    labels->free = model_labels_free;
+    labels = new ModelLabelsDict(crf1dm);
 
     /* Set the internal data for the model object. */
-    internal->crf1dm = crf1dm;
     internal->attrs = attrs;
     internal->labels = labels;
 
-    /* Create an instance of model object. */
-    model = (crfsuite_model_t*)calloc(1, sizeof(crfsuite_model_t));
-    if (model == NULL) {
-        throw std::runtime_error("OOM");
-    }
-    model->internal = internal;
-    model->nref = 1;
-    model->addref = model_addref;
-    model->release = model_release;
-    model->get_attrs = model_get_attrs;
-    model->get_labels = model_get_labels;
-    model->get_tagger = model_get_tagger;
-    model->dump = model_dump;
-
     *ptr_model = model;
     return 0;
-
-error_exit:
-    free(labels);
-    free(attrs);
-    if (crf1dm != NULL) {
-        delete crf1dm;
-    }
-    free(internal);
-    free(model);
-    return ret;
 }
 
 int crf1m_create_instance_from_file(const char *filename, void **ptr)

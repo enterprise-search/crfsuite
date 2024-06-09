@@ -39,101 +39,74 @@
 #include <vector>
 #include <string>
 
-class T {
-    public:
+class T: tag_crfsuite_dictionary {
+public:
+    T() {}
+    virtual int addref()
+    {
+        return 0;
+    }
+    int release()
+    {
+        return 0;
+    }
+    int get(const char *str)
+    {
+        auto s = std::string(str);
+        auto it = this->m.find(s);
+        if (it != this->m.end()) {
+            return it->second;
+        } else {
+            this->m[s] = this->v.size();
+            this->v.push_back(s);
+            return this->v.size()-1;
+        }
+        return 0;
+    }
+     int to_id(const char *str)
+    {
+        auto s = std::string(str);
+        auto it = this->m.find(s);
+        if (it != this->m.end()) {
+            return it->second;
+        }
+        return -1;
+    }
+
+     int to_string(int id, char const **pstr)
+    {
+        if (id < this->v.size()) {
+            auto s = this->v[id];
+            char *dst = (char*)malloc(s.length()+1);
+            if (dst) {
+                strcpy(dst, s.c_str());
+                *pstr = dst;
+                return 0;
+            }
+        }
+        return 1;
+    }
+    int num()
+    {
+        return this->v.size();
+    }
+
+    void free(const char *str)
+    {
+        // free((char*)str);
+    }
+private:
     std::map<std::string, int> m;
     std::vector<std::string> v;
 };
 
-static int dictionary_addref(crfsuite_dictionary_t* dic)
-{
-    // return crfsuite_interlocked_increment(&dic->nref);
-    return 0;
-}
-
-static int dictionary_release(crfsuite_dictionary_t* dic)
-{
-    return 0;
-    // int count = crfsuite_interlocked_decrement(&dic->nref);
-    // if (count == 0) {
-    //     quark_t *qrk = (quark_t*)dic->internal;
-    //     quark_delete(qrk);
-    //     free(dic);
-    // }
-    // return count;
-}
-
-static int dictionary_get(crfsuite_dictionary_t* dic, const char *str)
-{
-    T *t = (T*)dic->internal;
-    auto s = std::string(str);
-    auto it = t->m.find(s);
-    if (it != t->m.end()) {
-        return it->second;
-    } else {
-        t->m[s] = t->v.size();
-        t->v.push_back(s);
-        return t->v.size()-1;
-    }
-    return 0;
-}
-
-static int dictionary_to_id(crfsuite_dictionary_t* dic, const char *str)
-{
-    T *t = (T*)dic->internal;
-    auto s = std::string(str);
-    auto it = t->m.find(s);
-    if (it != t->m.end()) {
-        return it->second;
-    }
-    return -1;
-}
-
-static int dictionary_to_string(crfsuite_dictionary_t* dic, int id, char const **pstr)
-{
-    T *t = (T*)dic->internal;
-    if (id < t->v.size()) {
-        auto s = t->v[id];
-        char *dst = (char*)malloc(s.length()+1);
-        if (dst) {
-            strcpy(dst, s.c_str());
-            *pstr = dst;
-            return 0;
-        }
-    }
-    return 1;
-}
-
-static int dictionary_num(crfsuite_dictionary_t* dic)
-{
-    T* t = (T*)dic->internal;
-    return t->v.size();
-}
-
-static void dictionary_free(crfsuite_dictionary_t* dic, const char *str)
-{
-    // free((char*)str);
-}
-
 int crfsuite_dictionary_create_instance(const char *interface, void **ptr)
 {
+    
     if (strcmp(interface, "dictionary") == 0) {
-        crfsuite_dictionary_t* dic = (crfsuite_dictionary_t*)calloc(1, sizeof(crfsuite_dictionary_t));
-        if (dic != NULL) {
-            dic->internal = new T();
-            dic->nref = 1;
-            dic->addref = dictionary_addref;
-            dic->release = dictionary_release;
-            dic->get = dictionary_get;
-            dic->to_id = dictionary_to_id;
-            dic->to_string = dictionary_to_string;
-            dic->num = dictionary_num;
-            dic->free = dictionary_free;
-            *ptr = dic;
-            return 0;
-        } else {
-            return -1;
-        }
+        auto p = new T();        
+        *ptr = p;
+        return 0;
     } else {
         return 1;
     }

@@ -400,8 +400,8 @@ int main_learn(int argc, char *argv[], const char *argv0)
     fprintf(fpo, "Number of data sets (groups): %d\n", groups);
     fprintf(fpo, "Number of instances: %d\n", data.num_instances());
     fprintf(fpo, "Number of items: %d\n", data.totalitems());
-    fprintf(fpo, "Number of attributes: %d\n", data.attrs->num(data.attrs));
-    fprintf(fpo, "Number of labels: %d\n", data.labels->num(data.labels));
+    fprintf(fpo, "Number of attributes: %d\n", data.attrs->num());
+    fprintf(fpo, "Number of labels: %d\n", data.labels->num());
     fprintf(fpo, "\n");
     fflush(fpo);
 
@@ -433,8 +433,6 @@ int main_learn(int argc, char *argv[], const char *argv0)
 
 force_exit:
     delete trainer;
-    SAFE_RELEASE(data.labels);
-    SAFE_RELEASE(data.attrs);
 
     learn_option_finish(&opt);
     if (fpo != NULL) {

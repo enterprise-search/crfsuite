@@ -53,7 +53,7 @@ void tag_encoder::holdout_evaluation(
     int max_length = 0;
 
     /* Initialize the evaluation table. */
-    crfsuite_evaluation_init(&eval, ds->data->labels->num(ds->data->labels));
+    crfsuite_evaluation_init(&eval, ds->data->labels->num());
 
     this->set_weights(w, 1.);
 

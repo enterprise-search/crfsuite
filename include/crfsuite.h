@@ -169,9 +169,7 @@ struct crfsuite_instance_t {
     /** Group ID of the instance. */
 	int         group;
 public:
-    crfsuite_instance_t() : weight(1.0), group(0)
-    {
-    }
+    crfsuite_instance_t() : weight(1.0), group(0) {}
 
     void append(const crfsuite_item_t& item, int label)
     {
@@ -319,28 +317,18 @@ typedef int (*crfsuite_logging_callback)(void *user, const char *format, va_list
  */
 struct tag_crfsuite_model {
     /**
-     * Pointer to the internal data (internal use only).
-     */
-    void *internal;
-    
-    /**
-     * Reference counter (internal use only).
-     */
-    int nref;
-
-    /**
      * Increment the reference counter.
      *  @param  model       The pointer to this model instance.
      *  @return int         The reference count after this increment.
      */
-    int (*addref)(crfsuite_model_t* model);
+    virtual int addref() = 0;
 
     /**
      * Decrement the reference counter.
      *  @param  model       The pointer to this model instance.
      *  @return int         The reference count after this operation.
      */
-    int (*release)(crfsuite_model_t* model);
+    virtual int release() = 0;
 
     /**
      * Obtain the pointer to crfsuite_tagger_t interface.
@@ -349,7 +337,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    int (*get_tagger)(crfsuite_model_t* model, crfsuite_tagger_t** ptr_tagger);
+    virtual int get_tagger(crfsuite_tagger_t** ptr_tagger) = 0;
 
     /**
      * Obtain the pointer to crfsuite_dictionary_t interface for labels.
@@ -358,7 +346,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    int (*get_labels)(crfsuite_model_t* model, crfsuite_dictionary_t** ptr_labels);
+    virtual int get_labels(crfsuite_dictionary_t** ptr_labels) = 0;
 
     /**
      * Obtain the pointer to crfsuite_dictionary_t interface for attributes.
@@ -367,7 +355,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    int (*get_attrs)(crfsuite_model_t* model, crfsuite_dictionary_t** ptr_attrs);
+    virtual int get_attrs(crfsuite_dictionary_t** ptr_attrs) = 0;
 
     /**
      * Print the model in human-readable format.
@@ -375,7 +363,7 @@ struct tag_crfsuite_model {
      *  @param  fpo         The FILE* pointer.
      *  @return int         The status code.
      */
-    int (*dump)(crfsuite_model_t* model, FILE *fpo);
+    virtual int dump(FILE *fpo) = 0;
 };
 
 int crfsuite_dictionary_create_instance(const char *interface, void **ptr);
@@ -545,14 +533,14 @@ struct tag_crfsuite_dictionary {
      *  @param  dic         The pointer to this dictionary instance.
      *  @return int         The reference count after this increment.
      */
-    int (*addref)(crfsuite_dictionary_t* dic);
+    virtual int addref() { return 1; }
 
     /**
      * Decrement the reference counter.
      *  @param  dic         The pointer to this dictionary instance.
      *  @return int         The reference count after this operation.
      */
-    int (*release)(crfsuite_dictionary_t* dic);
+    virtual int release() { return 1; }
 
     /**
      * Assign and obtain the integer ID for the string.
@@ -561,7 +549,7 @@ struct tag_crfsuite_dictionary {
      *  @return int         The ID associated with the string if any,
      *                      the new ID otherwise.
      */
-    int (*get)(crfsuite_dictionary_t* dic, const char *str);
+    virtual int get(const char *str) = 0;
 
     /**
      * Obtain the integer ID for the string.
@@ -570,7 +558,7 @@ struct tag_crfsuite_dictionary {
      *  @return int         The ID associated with the string if any,
      *                      \c -1 otherwise.
      */
-    int (*to_id)(crfsuite_dictionary_t* dic, const char *str);
+    virtual int to_id(const char *str) = 0;
 
     /**
      * Obtain the string for the ID.
@@ -581,14 +569,14 @@ struct tag_crfsuite_dictionary {
      *  @return int         \c 0 if the string ID is associated with a string,
      *                      \c 1 otherwise.
      */
-    int (*to_string)(crfsuite_dictionary_t* dic, int id, char const **pstr);
+    virtual int to_string(int id, char const **pstr) = 0;
 
     /**
      * Obtain the number of strings in the dictionary.
      *  @param  dic         The pointer to this dictionary instance.
      *  @return int         The number of strings stored in the dictionary.
      */
-    int (*num)(crfsuite_dictionary_t* dic);
+    virtual int num() = 0;
 
     /**
      * Free the memory block allocated by to_string() function.
@@ -596,7 +584,7 @@ struct tag_crfsuite_dictionary {
      *  @param  str         The pointer to the string whose memory block is
      *                      freed.
      */
-    void (*free)(crfsuite_dictionary_t* dic, const char *str);
+    virtual void free(const char *str) = 0;
 };
 
 /**

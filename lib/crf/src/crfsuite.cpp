@@ -213,7 +213,7 @@ void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, crfsuite_dictionary
     for (i = 0;i < eval->num_labels;++i) {
         const crfsuite_label_evaluation_t* lev = &eval->tbl[i];
 
-        labels->to_string(labels, i, &lstr);
+        labels->to_string(i, &lstr);
         if (lstr == NULL) lstr = "[UNKNOWN]";
 
         if (lev->num_observation == 0) {
@@ -226,7 +226,7 @@ void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, crfsuite_dictionary
                 lev->precision, lev->recall, lev->fmeasure
                 );
         }
-        labels->free(labels, lstr);
+        labels->free( lstr);
     }
     logging(&lg, "Macro-average precision, recall, F1: (%f, %f, %f)\n",
         eval->macro_precision, eval->macro_recall, eval->macro_fmeasure

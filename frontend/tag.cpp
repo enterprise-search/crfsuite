@@ -173,14 +173,14 @@ output_result(
 
     for (i = 0;i < inst->num_items();++i) {
         if (opt->reference) {
-            labels->to_string(labels, inst->labels[i], &label);
+            labels->to_string( inst->labels[i], &label);
             fprintf(fpo, "%s\t", label);
-            labels->free(labels, label);
+            labels->free( label);
         }
 
-        labels->to_string(labels, output[i], &label);
+        labels->to_string(output[i], &label);
         fprintf(fpo, "%s", label);
-        labels->free(labels, label);
+        labels->free( label);
 
         if (opt->marginal) {
             tagger->marginal_point( output[i], i, &prob);
@@ -188,11 +188,11 @@ output_result(
         }
 
         if (opt->marginal_all) {
-            for (l = 0;l < labels->num(labels);++l) {
+            for (l = 0;l < labels->num();++l) {
                 tagger->marginal_point( l, i, &prob);
-                labels->to_string(labels, l, &label);
+                labels->to_string( l, &label);
                 fprintf(fpo, "\t%s:%f", label, prob);
-                labels->free(labels, label);
+                labels->free(label);
             }
         }
 
@@ -213,15 +213,15 @@ output_instance(
 
     for (i = 0;i < inst->num_items();++i) {
         const char *label = NULL;
-        labels->to_string(labels, inst->labels[i], &label);
+        labels->to_string(inst->labels[i], &label);
         fprintf(fpo, "%s", label);
-        labels->free(labels, label);
+        labels->free(label);
 
         for (j = 0;j < inst->items[i].num_contents();++j) {
             const char *attr = NULL;
-            attrs->to_string(attrs, inst->items[i].contents[j].aid, &attr);
+            attrs->to_string( inst->items[i].contents[j].aid, &attr);
             fprintf(fpo, "\t%s:%f", attr, inst->items[i].contents[j].value);
-            attrs->free(attrs, attr);
+            attrs->free( attr);
         }
 
         fprintf(fpo, "\n");
@@ -253,22 +253,22 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
     FILE *fp = NULL, *fpi = opt->fpi, *fpo = opt->fpo, *fpe = opt->fpe;
 
     /* Obtain the dictionary interface representing the labels in the model. */
-    if (ret = model->get_labels(model, &labels)) {
+    if (ret = model->get_labels( &labels)) {
         goto force_exit;
     }
 
     /* Obtain the dictionary interface representing the attributes in the model. */
-    if (ret = model->get_attrs(model, &attrs)) {
+    if (ret = model->get_attrs(&attrs)) {
         goto force_exit;
     }
 
     /* Obtain the tagger interface. */
-    if (ret = model->get_tagger(model, &tagger)) {
+    if (ret = model->get_tagger(&tagger)) {
         goto force_exit;
     }
 
     /* Initialize the objects for instance and evaluation. */
-    L = labels->num(labels);
+    L = labels->num();
     crfsuite_evaluation_init(&eval, L);
 
     /* Open the stream for the input data. */
@@ -307,11 +307,11 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
         case IWA_ITEM:
             if (lid == -1) {
                 /* The first field in a line presents a label. */
-                lid = labels->to_id(labels, token->attr);
+                lid = labels->to_id( token->attr);
                 if (lid < 0) lid = L;    /* #L stands for a unknown label. */
             } else {
                 /* Fields after the first field present attributes. */
-                int aid = attrs->to_id(attrs, token->attr);
+                int aid = attrs->to_id(token->attr);
                 /* Ignore attributes 'unknown' to the model. */
                 if (0 <= aid) {
                     /* Associate the attribute with the current item. */

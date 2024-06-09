@@ -227,8 +227,8 @@ int crfsuite_train_lbfgs(
     floatval_t *w = NULL;
     clock_t begin = clock();
     const int N = trainset->num_instances;
-    const int L = trainset->data->labels->num(trainset->data->labels);
-    const int A =  trainset->data->attrs->num(trainset->data->attrs);
+    const int L = trainset->data->labels->num();
+    const int A =  trainset->data->attrs->num();
     const int K = gm->num_features;
     lbfgs_internal_t lbfgsi;
     lbfgs_parameter_t lbfgsparam;

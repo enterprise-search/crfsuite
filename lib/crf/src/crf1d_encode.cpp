@@ -550,12 +550,12 @@ public:
     }
     for (l = 0;l < L;++l) {
         const char *str = NULL;
-        labels->to_string(labels, l, &str);
+        labels->to_string( l, &str);
         if (str != NULL) {
             if ((ret = writer->crf1dmw_put_label(l, str))) {
                 throw std::runtime_error("put_label");
             }
-            labels->free(labels, str);
+            labels->free( str);
         }
     }
     if ((ret = writer->crf1dmw_close_labels())) {
@@ -570,12 +570,12 @@ public:
     for (a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             const char *str = NULL;
-            attrs->to_string(attrs, a, &str);
+            attrs->to_string( a, &str);
             if (str != NULL) {
                 if ((ret = writer->crf1dmw_put_attr(amap[a], str))) {
                     goto error_exit;
                 }
-                attrs->free(attrs, str);
+                attrs->free( str);
             }
         }
     }
@@ -730,8 +730,8 @@ void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
 
     crf1de->set_data(
         ds,
-        ds->data->labels->num(ds->data->labels),
-        ds->data->attrs->num(ds->data->attrs),
+        ds->data->labels->num(),
+        ds->data->attrs->num(),
         lg);
     this->ds = ds;
     this->num_features = crf1de->num_features;
