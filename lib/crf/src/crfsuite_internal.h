@@ -221,14 +221,6 @@ public:
     void holdout_evaluation(dataset_t *ds, const floatval_t *w, logging_t *lg);
 };
 
-/**
- * \defgroup crf1d_encode.c
- */
-/** @{ */
-
-encoder_t *crf1d_create_encoder();
-
-/** @} */
 
 
 void holdout_evaluation(
