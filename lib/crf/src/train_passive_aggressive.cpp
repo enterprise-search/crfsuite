@@ -331,7 +331,7 @@ int crfsuite_train_passive_aggressive(
             gm->set_instance(inst);
 
             /* Tag the sequence with the current model. */
-            gm->viterbi(viterbi, &sv);
+            sv = gm->viterbi(viterbi);
 
             /* Compute the number of different labels. */
             d = diff(inst->labels, viterbi, inst->num_items());

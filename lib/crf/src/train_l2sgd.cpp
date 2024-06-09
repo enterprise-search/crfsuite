@@ -187,7 +187,7 @@ static int l2sgd(
             /* Compute the loss and gradients for the instance. */
             gm->set_weights(w, decay);
             gm->set_instance(inst);
-            gm->objective_and_gradients(&loss, w, gain, inst->weight);
+            loss = gm->objective_and_gradients(w, gain, inst->weight);
 
             sum_loss += loss;
             ++t;

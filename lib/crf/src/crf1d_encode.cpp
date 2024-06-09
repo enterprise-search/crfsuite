@@ -797,11 +797,10 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::vector<int>& path, crfsuite_encoder_features_on_path_callback func, void *instance)
+void tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::vector<int>& path, crfsuite_encoder_features_on_path_callback func, void *instance)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     crf1de->features_on_path( inst, path, func, instance);
-    return 0;
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
@@ -821,12 +820,11 @@ void tag_encoder::set_weights(const floatval_t *w, floatval_t scale)
 }
 
 /* LEVEL_WEIGHT -> LEVEL_INSTANCE. */
-int tag_encoder::set_instance(const crfsuite_instance_t *inst)
+void tag_encoder::set_instance(const crfsuite_instance_t *inst)
 {
     this->inst = inst;
     this->level = LEVEL_INSTANCE-1;
     this->set_level(LEVEL_INSTANCE);
-    return 0;
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
@@ -838,16 +836,10 @@ int tag_encoder::score(const std::vector<int>& path, floatval_t *ptr_score)
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
-int tag_encoder::viterbi(std::vector<int>& path, floatval_t *ptr_score)
+floatval_t tag_encoder::viterbi(std::vector<int>& path)
 {
-    int i;
-    floatval_t score;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    score = crf1de->ctx->crf1dc_viterbi(path);
-    if (ptr_score != NULL) {
-        *ptr_score = score;
-    }
-    return 0;
+    return crf1de->ctx->crf1dc_viterbi(path);
 }
 
 /* LEVEL_INSTANCE -> LEVEL_ALPHABETA. */
@@ -859,14 +851,14 @@ floatval_t tag_encoder::partition_factor()
 }
 
 /* LEVEL_INSTANCE -> LEVEL_MARGINAL. */
-void tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight)
+floatval_t tag_encoder::objective_and_gradients( floatval_t *g, floatval_t gain, floatval_t weight)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     this->set_level(LEVEL_MARGINAL);
     gain *= weight;
     crf1de->observation_expectation( this->inst, this->inst->labels, g, gain);
     crf1de->model_expectation( this->inst, g, -gain);
-    *f = (-crf1de->ctx->crf1dc_score(this->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
+    return (-crf1de->ctx->crf1dc_score(this->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
 }
 
 tag_encoder::~tag_encoder()

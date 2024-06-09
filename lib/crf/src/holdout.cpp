@@ -64,7 +64,7 @@ void tag_encoder::holdout_evaluation(
         std::vector<int> viterbi(inst->num_items());
 
         this->set_instance(inst);
-        this->viterbi(viterbi, &score);
+        score = this->viterbi(viterbi);
 
         crfsuite_evaluation_accmulate(&eval, inst->labels, viterbi, inst->num_items());
     }
