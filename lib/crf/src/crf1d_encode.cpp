@@ -368,7 +368,7 @@ public:
         }
     }
 
-    int
+    void
     set_data(
         dataset_t *ds,
         int num_labels,
@@ -376,7 +376,7 @@ public:
         logging_t *lg
         )
     {
-        int i, ret = 0;
+        int i;
         clock_t begin = 0;
         int T = 0;
         const int L = num_labels;
@@ -435,7 +435,6 @@ public:
             this->num_features,
             A,
             L);
-        return ret;
     }
 
 
@@ -725,12 +724,11 @@ int tag_encoder::exchange_options(crfsuite_params_t* params, int mode)
     return crf1de_exchange_options(params, &crf1de->opt, mode);
 }
 
-int tag_encoder::initialize(dataset_t *ds, logging_t *lg)
+void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
 {
-    int ret;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
 
-    ret = crf1de->set_data(
+    crf1de->set_data(
         ds,
         ds->data->labels->num(ds->data->labels),
         ds->data->attrs->num(ds->data->attrs),
@@ -738,11 +736,10 @@ int tag_encoder::initialize(dataset_t *ds, logging_t *lg)
     this->ds = ds;
     this->num_features = crf1de->num_features;
     this->cap_items = crf1de->ctx->cap_items;
-    return ret;
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g)
+void tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g)
 {
     int i;
     floatval_t logp = 0, logl = 0;
@@ -793,7 +790,6 @@ int tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *
     }
 
     *f = -logl;
-    return 0;
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
