@@ -72,8 +72,8 @@
 
     int num_features;               /**< Number of distinct features (K). */
     crf1df_feature_t *features;     /**< Array of feature descriptors [K]. */
-    feature_refs_t* attributes;     /**< References to attribute features [A]. */
-    feature_refs_t* forward_trans;  /**< References to transition features [L]. */
+    std::vector<feature_refs_t> attributes;     /**< References to attribute features [A]. */
+    std::vector<feature_refs_t> forward_trans;  /**< References to transition features [L]. */
 
     crf1d_context_t *ctx;           /**< CRF1d context. */
     crf1de_option_t opt;            /**< CRF1d options. */
@@ -85,8 +85,6 @@ public:
         this->cap_items = 0;
         this->num_features = 0;
         this->features = NULL;
-        this->attributes = NULL;
-        this->forward_trans = NULL;
         this->ctx = NULL;
         /* Initialize except for opt. */
     }
@@ -101,20 +99,14 @@ public:
             free(this->features);
             this->features = NULL;
         }
-        if (this->attributes != NULL) {
-            for (i = 0; i < this->num_attributes; ++i) {
-                free(this->attributes[i].fids);
-            }
-            free(this->attributes);
-            this->attributes = NULL;
+        for (i = 0; i < this->num_attributes; ++i) {
+            free(this->attributes[i].fids);
         }
-        if (this->forward_trans != NULL) {
-            for (i = 0; i < this->num_labels; ++i) {
-                free(this->forward_trans[i].fids);
-            }
-            free(this->forward_trans);
-            this->forward_trans = NULL;
+        
+        for (i = 0; i < this->num_labels; ++i) {
+            free(this->forward_trans[i].fids);
         }
+            
     }
      void state_score(
     const crfsuite_instance_t* inst,
@@ -449,17 +441,15 @@ public:
         logging(lg, "\n");
 
         /* Initialize the feature references. */
+        this->attributes = std::vector<feature_refs_t>(A);
+        this->forward_trans = std::vector<feature_refs_t>(L);
         crf1df_init_references(
-            &this->attributes,
-            &this->forward_trans,
+            this->attributes,
+            this->forward_trans,
             this->features,
             this->num_features,
             A,
             L);
-        if (this->attributes == NULL || this->forward_trans == NULL) {
-            throw std::runtime_error("OOM");
-        }
-
         return ret;
     }
 

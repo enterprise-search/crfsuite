@@ -217,8 +217,8 @@ crf1df_feature_t* crf1df_generate(
 }
 
 int crf1df_init_references(
-    feature_refs_t **ptr_attributes,
-    feature_refs_t **ptr_trans,
+    std::vector<feature_refs_t>& attributes,
+    std::vector<feature_refs_t>& trans,
     const crf1df_feature_t *features,
     const int K,
     const int A,
@@ -227,21 +227,12 @@ int crf1df_init_references(
 {
     int i, k;
     feature_refs_t *fl = NULL;
-    feature_refs_t *attributes = NULL;
-    feature_refs_t *trans = NULL;
 
     /*
         The purpose of this routine is to collect references (indices) of:
         - state features fired by each attribute (attributes)
         - transition features pointing from each label (trans)
     */
-
-    /* Allocate arrays for feature references. */
-    attributes = (feature_refs_t*)calloc(A, sizeof(feature_refs_t));
-    if (attributes == NULL) goto error_exit;
-    trans = (feature_refs_t*)calloc(L, sizeof(feature_refs_t));
-    if (trans == NULL) goto error_exit;
-
     /*
         Firstly, loop over the features to count the number of references.
         We don't use realloc() to avoid memory fragmentation.
@@ -266,13 +257,13 @@ int crf1df_init_references(
     for (i = 0;i < A;++i) {
         fl = &attributes[i];
         fl->fids = (int*)calloc(fl->num_features, sizeof(int));
-        if (fl->fids == NULL) goto error_exit;
+        if (fl->fids == NULL) throw std::runtime_error("OOM");
         fl->num_features = 0;
     }
     for (i = 0;i < L;++i) {
         fl = &trans[i];
         fl->fids = (int*)calloc(fl->num_features, sizeof(int));
-        if (fl->fids == NULL) goto error_exit;
+        if (fl->fids == NULL) throw std::runtime_error("OOM");
         fl->num_features = 0;
     }
 
@@ -292,21 +283,4 @@ int crf1df_init_references(
             break;
         }
     }
-
-    *ptr_attributes = attributes;
-    *ptr_trans = trans;
-    return 0;
-
-error_exit:
-    if (attributes != NULL) {
-        for (i = 0;i < A;++i) free(attributes[i].fids);
-        free(attributes);
-    }
-    if (trans != NULL) {
-        for (i = 0;i < L;++i) free(trans[i].fids);
-        free(trans);
-    }
-    *ptr_attributes = NULL;
-    *ptr_trans = NULL;
-    return -1;
 }

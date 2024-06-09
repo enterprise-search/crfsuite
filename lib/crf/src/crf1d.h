@@ -292,8 +292,8 @@ crf1df_feature_t* crf1df_generate(
 
 
 int crf1df_init_references(
-    feature_refs_t **ptr_attributes,
-    feature_refs_t **ptr_trans,
+    std::vector<feature_refs_t>& attributes,
+    std::vector<feature_refs_t>& trans,
     const crf1df_feature_t *features,
     const int K,
     const int A,
