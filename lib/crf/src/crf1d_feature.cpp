@@ -227,12 +227,12 @@ int crf1df_init_references(
      */
     for (i = 0;i < A;++i) {
         fl = &attributes[i];
-        fl->fids = std::vector<int>(fl->num_features);
+        fl->fids = (int*)calloc(fl->num_features, sizeof(int));
         fl->num_features = 0;
     }
     for (i = 0;i < L;++i) {
         fl = &trans[i];
-        fl->fids = std::vector<int>(fl->num_features);
+        fl->fids = (int*)calloc(fl->num_features, sizeof(int));
         fl->num_features = 0;
     }
 

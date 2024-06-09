@@ -294,9 +294,7 @@ enum {
  */
  struct feature_refs_t {
     int        num_features;    /**< Number of features referred */
-     std::vector<int>    fids;            /**< Array of feature ids */
-public:
-     int crf1dm_get_featureid(int i) { return this->fids[i]; }
+    int*    fids;            /**< Array of feature ids */
 };
 
 void crf1df_generate(
@@ -389,6 +387,7 @@ struct tag_crf1dm {
     const char *crf1dm_to_attr(int aid);
     int crf1dm_get_labelref(int lid, feature_refs_t* ref);
     int crf1dm_get_attrref(int aid, feature_refs_t* ref);
+    int crf1dm_get_featureid(feature_refs_t* ref, int i);
     int crf1dm_get_feature(int fid, crf1dm_feature_t* f);
     void crf1dm_dump(FILE *fp);
 };

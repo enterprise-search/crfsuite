@@ -81,7 +81,7 @@ void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
             for (r = 0;r < attr.num_features;++r) {
                 /* The state feature #(attr->fids[r]), which is represented by
                    the attribute #a, outputs the label #(f->dst). */
-                fid = attr.crf1dm_get_featureid( r);
+                fid = model->crf1dm_get_featureid(&attr, r);
                 model->crf1dm_get_feature(fid, &f);
                 l = f.dst;
                 state[l] += f.weight * value;
@@ -107,7 +107,7 @@ void crf1dt_t::crf1dt_transition_score()
         model->crf1dm_get_labelref(i, &edge);
         for (r = 0;r < edge.num_features;++r) {
             /* Transition feature from #i to #(f->dst). */
-            fid = edge.crf1dm_get_featureid( r);
+            fid = model->crf1dm_get_featureid(&edge, r);
             model->crf1dm_get_feature(fid, &f);
             trans[f.dst] = f.weight;
         }        
