@@ -57,16 +57,18 @@ typedef struct tag_crfsuite_train_internal crfsuite_train_internal_t;
 struct tag_encoder;
 typedef struct tag_encoder encoder_t;
 
-typedef struct {
+ struct dataset_t {
     crfsuite_data_t *data;
     int *perm;
     int num_instances;
-} dataset_t;
+public:
+    void shuffle();
+} ;
 
 void dataset_init_trainset(dataset_t *ds, crfsuite_data_t *data, int holdout);
 void dataset_init_testset(dataset_t *ds, crfsuite_data_t *data, int holdout);
 void dataset_finish(dataset_t *ds);
-void dataset_shuffle(dataset_t *ds);
+
 
 crfsuite_instance_t *dataset_get(dataset_t *ds, int i);
 

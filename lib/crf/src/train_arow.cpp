@@ -288,7 +288,7 @@ int crfsuite_train_arow(
         clock_t iteration_begin = clock();
 
         /* Shuffle the instances. */
-        dataset_shuffle(trainset);
+        trainset->shuffle();
 
 		/* Loop for each instance. */
         for (n = 0;n < N;++n) {

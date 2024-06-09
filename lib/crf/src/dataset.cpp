@@ -89,14 +89,14 @@ void dataset_finish(dataset_t *ds)
     free(ds->perm);
 }
 
-void dataset_shuffle(dataset_t *ds)
+void dataset_t::shuffle()
 {
     int i;
-    for (i = 0;i < ds->num_instances;++i) {
-        int j = rand() % ds->num_instances;
-        int tmp = ds->perm[j];
-        ds->perm[j] = ds->perm[i];
-        ds->perm[i] = tmp;
+    for (i = 0;i < this->num_instances;++i) {
+        int j = rand() % this->num_instances;
+        int tmp = this->perm[j];
+        this->perm[j] = this->perm[i];
+        this->perm[i] = tmp;
     }
 }
 

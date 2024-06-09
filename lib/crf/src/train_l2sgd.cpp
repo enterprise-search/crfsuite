@@ -171,7 +171,7 @@ static int l2sgd(
         if (!calibration) {
             logging(lg, "***** Epoch #%d *****\n", epoch);
             /* Shuffle the training instances. */
-            dataset_shuffle(trainset);
+            trainset->shuffle();
         }
 
         /* Loop for instances. */
@@ -313,7 +313,7 @@ l2sgd_calibration(
     logging(lg, "calibration.max_trials: %d\n", opt->calibration_max_trials);
 
     /* Initialize a permutation that shuffles the instances. */
-    dataset_shuffle(ds);
+    ds->shuffle();
 
     /* Initialize feature weights as zero. */
     vecset(w, 0, K);
