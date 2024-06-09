@@ -251,13 +251,6 @@ void crf1d_context_t::crf1dc_marginals()
     }
 }
 
-floatval_t crf1d_context_t::crf1dc_marginal_point(int l, int t)
-{
-    floatval_t *fwd = ALPHA_SCORE(this, t);
-    floatval_t *bwd = BETA_SCORE(this, t);
-    return fwd[l] * bwd[l] / this->scale_factor[t];
-}
-
 floatval_t crf1d_context_t::crf1dc_marginal_path(const int *path, int begin, int end)
 {
     int t;

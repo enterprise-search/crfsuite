@@ -196,7 +196,12 @@ public:
     floatval_t crf1dc_lognorm();
     floatval_t crf1dc_viterbi( std::vector<int>& labels);
 
-    floatval_t crf1dc_marginal_point(int l, int t);
+    floatval_t crf1dc_marginal_point(int l, int t) const
+    {
+        floatval_t fwd = this->alpha_score[this->num_labels * t + l];
+        floatval_t bwd = this->beta_score[this->num_labels * t + l];
+        return fwd * bwd / this->scale_factor[t];
+    }
     floatval_t crf1dc_marginal_path(const int *path, int begin, int end);
 };
 
