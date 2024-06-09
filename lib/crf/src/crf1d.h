@@ -284,6 +284,11 @@ typedef struct {
  struct feature_refs_t {
     int        num_features;    /**< Number of features referred */
      std::vector<int>    fids;            /**< Array of feature ids */
+public:
+     int crf1dm_get_featureid(int i)
+     {
+         return this->fids[i];
+     }
 };
 
 void crf1df_generate(
@@ -380,9 +385,6 @@ struct tag_crf1dm {
     int crf1dm_get_feature(int fid, crf1dm_feature_t* f);
     void crf1dm_dump(FILE *fp);
 };
-
-int crf1dm_get_featureid(feature_refs_t* ref, int i);
-
 
 struct tag_crf1dmw {
     FILE *fp;

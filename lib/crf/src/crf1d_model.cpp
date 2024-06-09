@@ -806,10 +806,7 @@ int tag_crf1dm::crf1dm_get_attrref(int aid, feature_refs_t* ref)
     return 0;
 }
 
-int crf1dm_get_featureid(feature_refs_t* ref, int i)
-{
-    return ref->fids[i];
-}
+
 
 int tag_crf1dm::crf1dm_get_feature(int fid, crf1dm_feature_t* f)
 {
@@ -890,7 +887,7 @@ void tag_crf1dm::crf1dm_dump(FILE *fp)
         this->crf1dm_get_labelref(i, &refs);
         for (j = 0;j < refs.num_features;++j) {
             crf1dm_feature_t f;
-            int fid = crf1dm_get_featureid(&refs, j);
+            int fid = refs.crf1dm_get_featureid( j);
             const char *from = NULL, *to = NULL;
 
             this->crf1dm_get_feature(fid, &f);
@@ -908,7 +905,7 @@ void tag_crf1dm::crf1dm_dump(FILE *fp)
         this->crf1dm_get_attrref(i, &refs);
         for (j = 0;j < refs.num_features;++j) {
             crf1dm_feature_t f;
-            int fid = crf1dm_get_featureid(&refs, j);
+            int fid = refs.crf1dm_get_featureid(j);
             const char *attr = NULL, *to = NULL;
 
             this->crf1dm_get_feature(fid, &f);
