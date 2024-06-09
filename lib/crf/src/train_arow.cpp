@@ -313,7 +313,7 @@ int crfsuite_train_arow(
                 /*
                     Compute the cost of this instance.
                  */
-                gm->score(inst->labels, &sc);
+                sc = gm->score(inst->labels);
                 cost = sv - sc + (double)d;
 
                 /* Initialize delta[k] = 0. */

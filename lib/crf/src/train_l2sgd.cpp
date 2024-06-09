@@ -325,7 +325,7 @@ l2sgd_calibration(
         floatval_t score;
         const crfsuite_instance_t *inst = ds->get( i);
         gm->set_instance(inst);
-        gm->score(inst->labels, &score);
+        score = gm->score(inst->labels);
         init_loss -= score;
         score = gm->partition_factor();
         init_loss += score;

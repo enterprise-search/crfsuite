@@ -828,11 +828,10 @@ void tag_encoder::set_instance(const crfsuite_instance_t *inst)
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */
-int tag_encoder::score(const std::vector<int>& path, floatval_t *ptr_score)
+floatval_t tag_encoder::score(const std::vector<int>& path)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    *ptr_score = crf1de->ctx->crf1dc_score(path);
-    return 0;
+    return crf1de->ctx->crf1dc_score(path);
 }
 
 /* LEVEL_INSTANCE -> LEVEL_INSTANCE. */

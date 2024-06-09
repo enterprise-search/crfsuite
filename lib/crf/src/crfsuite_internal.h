@@ -194,7 +194,7 @@ struct tag_encoder
     /* Level 0. */
 
     /* Level 1 (feature weights). */
-    int score(const std::vector<int>& path, floatval_t *ptr_score);
+    floatval_t score(const std::vector<int>& path);
     floatval_t viterbi(std::vector<int>& path);
 
     /* Level 2 (forward-backward). */
