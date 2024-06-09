@@ -111,18 +111,18 @@ public:
             floatval_t *state = STATE_SCORE(ctx, t);
 
             /* Loop over the contents (attributes) attached to the item. */
-            for (i = 0;i < item->num_contents();++i) {
+            for (const auto & content: item->contents) {
                 /* Access the list of state features associated with the attribute. */
-                int a = item->contents[i].aid;
-                const feature_refs_t *attr = ATTRIBUTE(this, a);
-                floatval_t value = item->contents[i].value;
+                int a = content.aid;
+                const feature_refs_t& attr = this->attributes[a];
+                floatval_t value = content.value;
 
                 /* Loop over the state features associated with the attribute. */
-                for (r = 0;r < attr->num_features;++r) {
+                for (r = 0;r < attr.num_features;++r) {
                     /* State feature associates the attribute #a with the label #(f->dst). */
-                    int fid = attr->fids[r];
-                    const crf1df_feature_t *f = FEATURE(this, fid);
-                    state[f->dst] += w[fid] * value;
+                    int fid = attr.fids[r];
+                    const crf1df_feature_t f = this->features[fid];
+                    state[f.dst] += w[fid] * value;
                 }
             }
         }
