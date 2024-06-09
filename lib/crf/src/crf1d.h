@@ -368,8 +368,7 @@ struct tag_crf1dm {
     cqdb_t*        attrs;
 
     tag_crf1dm(const char *filename);
-    tag_crf1dm(const void *data, size_t size) : tag_crf1dm(NULL, (const uint8_t*)data, size)
-    {}
+    tag_crf1dm(const void *data, size_t size) : tag_crf1dm(NULL, (const uint8_t*)data, size) {}
     tag_crf1dm(uint8_t* buffer_orig, const uint8_t* buffer, uint32_t size);
     ~tag_crf1dm();
 
