@@ -71,7 +71,7 @@
     int cap_items;                  /**< Maximum length of sequences in the data set. */
 
     int num_features;               /**< Number of distinct features (K). */
-    crf1df_feature_t *features;     /**< Array of feature descriptors [K]. */
+    std::vector<crf1df_feature_t> features;     /**< Array of feature descriptors [K]. */
     std::vector<feature_refs_t> attributes;     /**< References to attribute features [A]. */
     std::vector<feature_refs_t> forward_trans;  /**< References to transition features [L]. */
 
@@ -84,7 +84,6 @@ public:
         this->num_attributes = 0;
         this->cap_items = 0;
         this->num_features = 0;
-        this->features = NULL;
         this->ctx = NULL;
         /* Initialize except for opt. */
     }
@@ -94,11 +93,7 @@ public:
         if (this->ctx != NULL) {
             delete this->ctx;
             this->ctx = NULL;
-        }
-        if (this->features != NULL) {
-            free(this->features);
-            this->features = NULL;
-        }           
+        }                 
     }
      void state_score(
     const crfsuite_instance_t* inst,
@@ -414,8 +409,8 @@ public:
         logging(lg, "feature.possible_states: %d\n", opt->feature_possible_states);
         logging(lg, "feature.possible_transitions: %d\n", opt->feature_possible_transitions);
         begin = clock();
-        this->features = crf1df_generate(
-            &this->num_features,
+        crf1df_generate(
+            this->features,
             ds,
             L,
             A,
@@ -425,9 +420,7 @@ public:
             lg->func,
             lg->instance
             );
-        if (this->features == NULL) {
-            throw std::runtime_error("OOM");
-        }
+        this->num_features = this->features.size();
         logging(lg, "Number of features: %d\n", this->num_features);
         logging(lg, "Seconds required: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
         logging(lg, "\n");

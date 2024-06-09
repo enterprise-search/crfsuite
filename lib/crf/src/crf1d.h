@@ -286,8 +286,8 @@ typedef struct {
      std::vector<int>    fids;            /**< Array of feature ids */
 };
 
-crf1df_feature_t* crf1df_generate(
-    int *ptr_num_features,
+void crf1df_generate(
+    std::vector<crf1df_feature_t>& features,
     dataset_t *ds,
     int num_labels,
     int num_attributes,
@@ -302,7 +302,7 @@ crf1df_feature_t* crf1df_generate(
 int crf1df_init_references(
     std::vector<feature_refs_t>& attributes,
     std::vector<feature_refs_t>& trans,
-    const crf1df_feature_t *features,
+    const std::vector<crf1df_feature_t>& features,
     const int K,
     const int A,
     const int L

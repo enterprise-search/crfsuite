@@ -80,36 +80,9 @@ public:
             this->m.insert(f);
         }
     }
-    crf1df_feature_t* 
-    featureset_generate(
-    int *ptr_num_features,
-    floatval_t minfreq
-    )
+    void featureset_generate(std::vector<crf1df_feature_t>& features, floatval_t minfreq) const
     {
-        int n = 0, k = 0;
-        crf1df_feature_t *features = NULL;
-
-        /* The first pass: count the number of valid features. */
-        for (auto it = this->m.begin(); it != this->m.end(); ++it) {
-            if (it->freq >= minfreq)
-                ++n;
-        }
-
-        /* The second path: copy the valid features to the feature array. */
-        features = (crf1df_feature_t*)calloc(n, sizeof(crf1df_feature_t));
-        if (features != NULL) {
-            for (auto it = this->m.begin(); it != this->m.end(); ++it) {
-                if (it->freq >= minfreq) {
-                    memcpy(&features[k], &(*it), sizeof(crf1df_feature_t));
-                    ++k;
-                }
-            }
-            *ptr_num_features = n;
-            return features;
-        } else {
-            *ptr_num_features = 0;
-            return NULL;
-        }
+        std::copy_if(this->m.begin(), this->m.end(), std::back_inserter(features), [=](const auto& x){ return x.freq >= minfreq; });
     }
 };
 
@@ -117,8 +90,8 @@ public:
 
 
 
-crf1df_feature_t* crf1df_generate(
-    int *ptr_num_features,
+void crf1df_generate(
+    std::vector<crf1df_feature_t>& features,
     dataset_t *ds,
     int num_labels,
     int num_attributes,
@@ -131,7 +104,6 @@ crf1df_feature_t* crf1df_generate(
 {
     int c, i, j, s, t;
     crf1df_feature_t f;
-    crf1df_feature_t *features = NULL;
     const int N = ds->num_instances;
     const int L = num_labels;
     logging_t lg;
@@ -212,14 +184,13 @@ crf1df_feature_t* crf1df_generate(
     }
 
     /* Convert the feature set to an feature array. */
-    features = set.featureset_generate(ptr_num_features,  minfreq);
-    return features;
+    set.featureset_generate(features,  minfreq);
 }
 
 int crf1df_init_references(
     std::vector<feature_refs_t>& attributes,
     std::vector<feature_refs_t>& trans,
-    const crf1df_feature_t *features,
+    const std::vector<crf1df_feature_t> &features,
     const int K,
     const int A,
     const int L
