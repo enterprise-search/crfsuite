@@ -247,7 +247,7 @@ enum {
 /**
  * A feature (for either state or transition).
  */
-typedef struct {
+ struct crf1df_feature_t {
     /**
      * Feature type.
      *    Possible values are:
@@ -274,7 +274,7 @@ typedef struct {
      * Frequency (observation expectation).
      */
     floatval_t    freq;
-} crf1df_feature_t;
+} ;
 
 /**
  * Feature references.
@@ -284,10 +284,7 @@ typedef struct {
     int        num_features;    /**< Number of features referred */
      std::vector<int>    fids;            /**< Array of feature ids */
 public:
-     int crf1dm_get_featureid(int i)
-     {
-         return this->fids[i];
-     }
+     int crf1dm_get_featureid(int i) { return this->fids[i]; }
 };
 
 void crf1df_generate(
@@ -324,14 +321,14 @@ int crf1df_init_references(
 struct tag_crf1dm;
 typedef struct tag_crf1dm crf1dm_t;
 
-typedef struct {
+ struct crf1dm_feature_t {
     int        type;
     int        src;
     int        dst;
     floatval_t weight;
-} crf1dm_feature_t;
+} ;
 
-typedef struct {
+ struct header_t{
     uint8_t     magic[4];       /* File magic. */
     uint32_t    size;           /* File size. */
     uint8_t     type[4];        /* Model type */
@@ -344,20 +341,20 @@ typedef struct {
     uint32_t    off_attrs;      /* Offset to attribute CQDB. */
     uint32_t    off_labelrefs;  /* Offset to label feature references. */
     uint32_t    off_attrrefs;   /* Offset to attribute feature references. */
-} header_t;
+} ;
 
-typedef struct {
+ struct featureref_header_t {
     uint8_t     chunk[4];       /* Chunk id */
     uint32_t    size;           /* Chunk size. */
     uint32_t    num;            /* Number of items. */
     uint32_t    offsets[1];     /* Offsets. */
-} featureref_header_t;
+} ;
 
-typedef struct {
+ struct feature_header_t {
     uint8_t     chunk[4];       /* Chunk id */
     uint32_t    size;           /* Chunk size. */
     uint32_t    num;            /* Number of items. */
-} feature_header_t;
+} ;
 
 struct tag_crf1dm {
     uint8_t*       buffer_orig;
@@ -410,8 +407,6 @@ struct tag_crf1dmw {
     int crf1dmw_close_features();
     int crf1dmw_put_feature(int fid, const crf1dm_feature_t* f);
 };
-
-
 
 /** @} */
 struct crf1dt_t {
