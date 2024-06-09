@@ -64,66 +64,56 @@ struct FeatureHash {
     }
 };
 
-typedef std::unordered_set<crf1df_feature_t, FeatureHash, FeatureEqual> featureset_t;
-
-
-static featureset_t* featureset_new()
+struct featureset_t
 {
-    featureset_t* p = new featureset_t();
-    return p;
-}
-
-static void featureset_delete(featureset_t* set)
-{
-    delete set;
-}
-
-static int featureset_add(featureset_t* set, const crf1df_feature_t* f)
-{
-    auto p = set->find(*f);
-    if (p != set->end()) {
-        crf1df_feature_t o = *p;
-        o.freq += f->freq;
-        set->erase(p);
-        set->insert(o);
-    } else {
-        set->insert(*f);
+std::unordered_set<crf1df_feature_t, FeatureHash, FeatureEqual> m;
+public:
+    void add(const crf1df_feature_t& f)
+    {
+        auto p = this->m.find(f);
+        if (p != this->m.end()) {
+            crf1df_feature_t o = *p;
+            o.freq += f.freq;
+            this->m.erase(p);
+            this->m.insert(o);
+        } else {
+            this->m.insert(f);
+        }
     }
-    return 0;
-}
-
-static crf1df_feature_t*
-featureset_generate(
+    crf1df_feature_t* 
+    featureset_generate(
     int *ptr_num_features,
-    featureset_t* set,
     floatval_t minfreq
     )
-{
-    int n = 0, k = 0;
-    crf1df_feature_t *features = NULL;
+    {
+        int n = 0, k = 0;
+        crf1df_feature_t *features = NULL;
 
-    /* The first pass: count the number of valid features. */
-    for (auto it = set->begin(); it != set->end(); ++it) {
-        if (it->freq >= minfreq)
-            ++n;
-    }
-
-    /* The second path: copy the valid features to the feature array. */
-    features = (crf1df_feature_t*)calloc(n, sizeof(crf1df_feature_t));
-    if (features != NULL) {
-        for (auto it = set->begin(); it != set->end(); ++it) {
-            if (it->freq >= minfreq) {
-                memcpy(&features[k], &(*it), sizeof(crf1df_feature_t));
-                ++k;
-            }
+        /* The first pass: count the number of valid features. */
+        for (auto it = this->m.begin(); it != this->m.end(); ++it) {
+            if (it->freq >= minfreq)
+                ++n;
         }
-        *ptr_num_features = n;
-        return features;
-    } else {
-        *ptr_num_features = 0;
-        return NULL;
+
+        /* The second path: copy the valid features to the feature array. */
+        features = (crf1df_feature_t*)calloc(n, sizeof(crf1df_feature_t));
+        if (features != NULL) {
+            for (auto it = this->m.begin(); it != this->m.end(); ++it) {
+                if (it->freq >= minfreq) {
+                    memcpy(&features[k], &(*it), sizeof(crf1df_feature_t));
+                    ++k;
+                }
+            }
+            *ptr_num_features = n;
+            return features;
+        } else {
+            *ptr_num_features = 0;
+            return NULL;
+        }
     }
-}
+};
+
+
 
 
 
@@ -142,7 +132,6 @@ crf1df_feature_t* crf1df_generate(
     int c, i, j, s, t;
     crf1df_feature_t f;
     crf1df_feature_t *features = NULL;
-    featureset_t* set = NULL;
     const int N = ds->num_instances;
     const int L = num_labels;
     logging_t lg;
@@ -152,7 +141,7 @@ crf1df_feature_t* crf1df_generate(
     lg.percent = 0;
 
     /* Create an instance of feature set. */
-    set = featureset_new();
+    featureset_t set;
 
     /* Loop over the sequences in the training data. */
     logging_progress_start(&lg);
@@ -175,7 +164,7 @@ crf1df_feature_t* crf1df_generate(
                 f.src = prev;
                 f.dst = cur;
                 f.freq = seq->weight;
-                featureset_add(set, &f);
+                set.add(f);
             }
 
             for (c = 0;c < item->num_contents();++c) {
@@ -184,7 +173,7 @@ crf1df_feature_t* crf1df_generate(
                 f.src = item->contents[c].aid;
                 f.dst = cur;
                 f.freq = seq->weight * item->contents[c].value;
-                featureset_add(set, &f);
+                set.add(f);
 
                 /* Generate state features connecting attributes with all
                    output labels. These features are not unobserved in the
@@ -195,7 +184,7 @@ crf1df_feature_t* crf1df_generate(
                         f.src = item->contents[c].aid;
                         f.dst = i;
                         f.freq = 0;
-                        featureset_add(set, &f);
+                        set.add(f);
                     }
                 }
             }
@@ -217,17 +206,13 @@ crf1df_feature_t* crf1df_generate(
                 f.src = i;
                 f.dst = j;
                 f.freq = 0;
-                featureset_add(set, &f);
+                set.add(f);
             }
         }
     }
 
     /* Convert the feature set to an feature array. */
-    features = featureset_generate(ptr_num_features, set, minfreq);
-
-    /* Delete the feature set. */
-    featureset_delete(set);
-
+    features = set.featureset_generate(ptr_num_features,  minfreq);
     return features;
 }
 
