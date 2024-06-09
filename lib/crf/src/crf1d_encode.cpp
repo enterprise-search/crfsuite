@@ -510,7 +510,7 @@ public:
     }
 
     /* Open a feature chunk in the model file. */
-    if (ret = writer->crf1dmw_open_features()) {
+    if ((ret = writer->crf1dmw_open_features())) {
         goto error_exit;
     }
 
@@ -544,14 +544,14 @@ public:
             feat.weight = w[k];
 
             /* Write the feature. */
-            if (ret = writer->crf1dmw_put_feature(fmap[k], &feat)) {
+            if ((ret = writer->crf1dmw_put_feature(fmap[k], &feat))) {
                 throw std::runtime_error("put feature");
             }
         }
     }
 
     /* Close the feature chunk. */
-    if (ret = writer->crf1dmw_close_features()) {
+    if ((ret = writer->crf1dmw_close_features())) {
         goto error_exit;
     }
 
@@ -561,26 +561,26 @@ public:
 
     /* Write labels. */
     logging(lg, "Writing labels\n", L);
-    if (ret = writer->crf1dmw_open_labels(L)) {
+    if ((ret = writer->crf1dmw_open_labels(L))) {
         goto error_exit;
     }
     for (l = 0;l < L;++l) {
         const char *str = NULL;
         labels->to_string(labels, l, &str);
         if (str != NULL) {
-            if (ret = writer->crf1dmw_put_label(l, str)) {
+            if ((ret = writer->crf1dmw_put_label(l, str))) {
                 throw std::runtime_error("put_label");
             }
             labels->free(labels, str);
         }
     }
-    if (ret = writer->crf1dmw_close_labels()) {
+    if ((ret = writer->crf1dmw_close_labels())) {
         goto error_exit;
     }
 
     /* Write attributes. */
     logging(lg, "Writing attributes\n");
-    if (ret = writer->crf1dmw_open_attrs(B)) {
+    if ((ret = writer->crf1dmw_open_attrs(B))) {
         goto error_exit;
     }
     for (a = 0;a < A;++a) {
@@ -588,46 +588,46 @@ public:
             const char *str = NULL;
             attrs->to_string(attrs, a, &str);
             if (str != NULL) {
-                if (ret = writer->crf1dmw_put_attr(amap[a], str)) {
+                if ((ret = writer->crf1dmw_put_attr(amap[a], str))) {
                     goto error_exit;
                 }
                 attrs->free(attrs, str);
             }
         }
     }
-    if (ret = writer->crf1dmw_close_attrs()) {
+    if ((ret = writer->crf1dmw_close_attrs())) {
         goto error_exit;
     }
 
     /* Write label feature references. */
     logging(lg, "Writing feature references for transitions\n");
-    if (ret = writer->crf1dmw_open_labelrefs(L+2)) {
+    if ((ret = writer->crf1dmw_open_labelrefs(L+2))) {
         goto error_exit;
     }
     for (l = 0;l < L;++l) {
         edge = TRANSITION(this, l);
-        if (ret = writer->crf1dmw_put_labelref(l, edge, fmap)) {
+        if ((ret = writer->crf1dmw_put_labelref(l, edge, fmap))) {
             goto error_exit;
         }
     }
-    if (ret = writer->crf1dmw_close_labelrefs()) {
+    if ((ret = writer->crf1dmw_close_labelrefs())) {
         goto error_exit;
     }
 
     /* Write attribute feature references. */
     logging(lg, "Writing feature references for attributes\n");
-    if (ret = writer->crf1dmw_open_attrrefs(B)) {
+    if ((ret = writer->crf1dmw_open_attrrefs(B))) {
         goto error_exit;
     }
     for (a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             attr = ATTRIBUTE(this, a);
-            if (ret = writer->crf1dmw_put_attrref(amap[a], attr, fmap)) {
+            if ((ret = writer->crf1dmw_put_attrref(amap[a], attr, fmap))) {
                 goto error_exit;
             }
         }
     }
-    if (ret = writer->crf1dmw_close_attrrefs()) {
+    if ((ret = writer->crf1dmw_close_attrrefs())) {
         goto error_exit;
     }
 

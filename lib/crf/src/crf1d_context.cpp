@@ -59,20 +59,16 @@ crf1d_context_t::crf1d_context_t(int flag, int L, int T)
     if (this->trans == NULL) printf("callc\n");
 
     if (this->flag & CTXF_MARGINALS) {
-        this->exp_trans = (floatval_t*)_aligned_malloc((L * L + 4) * sizeof(floatval_t), 16);
-        if (this->exp_trans == NULL) printf("trans exp\n");
-        this->mexp_trans = (floatval_t*)calloc(L * L, sizeof(floatval_t));
-        if (this->mexp_trans == NULL) printf("mexp_trans\n");
+        this->exp_trans = std::vector<floatval_t>(L*L);
+        this->mexp_trans = std::vector<floatval_t>(L*L);
     }
 
-    if (ret = this->crf1dc_set_num_items(T)) {
-        printf("set num items\n");
-    }
+    crf1dc_set_num_items(T);
     /* T gives the 'hint' for maximum length of items. */
     this->num_items = 0;
 }
 
-int crf1d_context_t::crf1dc_set_num_items(int T)
+void crf1d_context_t::crf1dc_set_num_items(int T)
 {
     const int L = this->num_labels;
 
@@ -80,44 +76,34 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
 
     if (this->cap_items < T) {
         free(this->backward_edge);
-        free(this->mexp_state);
         free(this->beta_score);
         free(this->alpha_score);
 
         this->alpha_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        if (this->alpha_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
         this->beta_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        if (this->beta_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
         this->scale_factor = std::vector<floatval_t>(T);
         this->row = std::vector<floatval_t>(L);
 
         if (this->flag & CTXF_VITERBI) {
             this->backward_edge = (int*)calloc(T * L, sizeof(int));
-            if (this->backward_edge == NULL) return CRFSUITEERR_OUTOFMEMORY;
         }
 
         this->state = std::vector<floatval_t>(T*L);
 
         if (this->flag & CTXF_MARGINALS) {
             this->exp_state = std::vector<floatval_t>(T*L);
-            this->mexp_state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-            if (this->mexp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
+            this->mexp_state = std::vector<floatval_t>(T*L);
         }
 
         this->cap_items = T;
     }
-
-    return 0;
 }
 
 crf1d_context_t::~crf1d_context_t()
 {
     free(this->backward_edge);
-    free(this->mexp_state);
     free(this->beta_score);
     free(this->alpha_score);
-    free(this->mexp_trans);
-    _aligned_free(this->exp_trans);
     free(this->trans);
 }
 
@@ -131,12 +117,12 @@ void crf1d_context_t::crf1dc_reset(int flag)
             x = 0.0;
     }
     if (flag & RF_TRANS) {
-        veczero(this->trans, L*L);
+        std::fill_n(this->trans, L*L, 0.0);
     }
 
     if (this->flag & CTXF_MARGINALS) {
-        veczero(this->mexp_state, T*L);
-        veczero(this->mexp_trans, L*L);
+        std::fill_n(this->mexp_state.begin(), T*L, 0.0);
+        std::fill_n(this->mexp_trans.begin(), L*L, 0.0);
         this->log_norm = 0;
     }
 }
@@ -155,8 +141,8 @@ void crf1d_context_t::crf1dc_exp_transition()
 {
     const int L = this->num_labels;
 
-    std::copy_n(this->trans, L*L, this->exp_trans);
-    vecexp(this->exp_trans, L * L);
+    std::copy_n(this->trans, L*L, this->exp_trans.begin());
+    vecexp(this->exp_trans.begin(), L * L);
 }
 
 void crf1d_context_t::crf1dc_alpha_score()
@@ -187,7 +173,7 @@ void crf1d_context_t::crf1dc_alpha_score()
         cur = ALPHA_SCORE(this, t);
         state = EXP_STATE_SCORE(this, t);
 
-        veczero(cur, L);
+        std::fill_n(cur, L, 0.0);
         for (i = 0;i < L;++i) {
             trans = EXP_TRANS_SCORE(this, i);
             vecaadd(cur, prev[i], trans, L);

@@ -73,12 +73,7 @@ static inline void _aligned_free(void *p)
     MIE_ALIGN(16) static const double var[2] = {(val), (val)}
 
 
-inline static void veczero(floatval_t *x, const int n)
-{
-    if (n) {
-        memset(x, 0, sizeof(floatval_t) * n);
-    }
-}
+
 
 inline static void vecset(floatval_t *x, const floatval_t a, const int n)
 {
@@ -336,11 +331,13 @@ inline static void vecexp(double *values, const int n)
 
 #else
 
-inline static void vecexp(double *values, const int n)
+template <typename Iter>
+inline static void vecexp(Iter it, const int n)
 {
     int i;
     for (i = 0;i < n;++i) {
-        values[i] = exp(values[i]);
+        *it = exp(*it);
+        ++it;
     }
 }
 

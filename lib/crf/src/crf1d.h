@@ -159,7 +159,7 @@ struct crf1d_context_t {
      *  of the total score of transition features associating labels #i and #j.
      *  This member is available only with CTXF_MARGINALS flag.
      */
-    floatval_t *exp_trans;
+    std::vector<floatval_t> exp_trans;
 
     /**
      * Model expectations of states.
@@ -167,7 +167,7 @@ struct crf1d_context_t {
      *  expectation (marginal probability) of the state (t,l)
      *  This member is available only with CTXF_MARGINALS flag.
      */
-    floatval_t *mexp_state;
+    std::vector<floatval_t> mexp_state;
 
     /**
      * Model expectations of transitions.
@@ -175,13 +175,13 @@ struct crf1d_context_t {
      *  expectation of the transition (i--j).
      *  This member is available only with CTXF_MARGINALS flag.
      */
-    floatval_t *mexp_trans;
+    std::vector<floatval_t> mexp_trans;
         
 public:
     crf1d_context_t(int flag, int L, int T);
     ~crf1d_context_t();
 
-    int crf1dc_set_num_items( int T);
+    void crf1dc_set_num_items( int T);
     void crf1dc_reset( int flag);
     void crf1dc_exp_state();
     void crf1dc_exp_transition();
