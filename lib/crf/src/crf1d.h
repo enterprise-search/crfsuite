@@ -178,7 +178,19 @@ struct crf1d_context_t {
     std::vector<floatval_t> mexp_trans;
         
 public:
-    crf1d_context_t(int flag, int L, int T);
+    crf1d_context_t(int flag, int L, int T) : flag(flag), num_labels(L), trans(L*L)
+    {
+        int ret = 0;
+
+        if (this->flag & CTXF_MARGINALS) {
+            this->exp_trans = std::vector<floatval_t>(L*L);
+            this->mexp_trans = std::vector<floatval_t>(L*L);
+        }
+
+        crf1dc_set_num_items(T);
+        /* T gives the 'hint' for maximum length of items. */
+        this->num_items = 0;
+    }
     floatval_t crf1dc_lognorm() const { return this->log_norm; }
     void crf1dc_set_num_items( int T);
     void crf1dc_reset( int flag);

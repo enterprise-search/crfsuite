@@ -46,24 +46,7 @@
 #include "crf1d.h"
 #include "vecmath.h"
 
-crf1d_context_t::crf1d_context_t(int flag, int L, int T)
-{
-    int ret = 0;
 
-    this->flag = flag;
-    this->num_labels = L;
-
-    this->trans = std::vector<floatval_t>(L*L);
-
-    if (this->flag & CTXF_MARGINALS) {
-        this->exp_trans = std::vector<floatval_t>(L*L);
-        this->mexp_trans = std::vector<floatval_t>(L*L);
-    }
-
-    crf1dc_set_num_items(T);
-    /* T gives the 'hint' for maximum length of items. */
-    this->num_items = 0;
-}
 
 void crf1d_context_t::crf1dc_set_num_items(int T)
 {
