@@ -201,13 +201,13 @@ struct tag_encoder
     floatval_t partition_factor();
 
     /* Level 3 (marginals). */
-    int objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight);
+    void objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight);
 
 public:
     tag_encoder();
     ~tag_encoder();
 
-    int save_model(const char *filename, const floatval_t *w, logging_t *lg);
+    void save_model(const char *filename, const floatval_t *w, logging_t *lg);
     /**
      * Sets the feature weights (and their scale factor).
      *  @param  self        The encoder instance.
@@ -216,7 +216,7 @@ public:
      *                      feature weights.
      *  @return             A status code.
      */
-    int set_weights(const floatval_t *w, floatval_t scale);
+    void set_weights(const floatval_t *w, floatval_t scale);
     void set_level(int level);
     void holdout_evaluation(dataset_t *ds, const floatval_t *w, logging_t *lg);
 };

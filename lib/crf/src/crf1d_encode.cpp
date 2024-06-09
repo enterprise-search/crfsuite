@@ -805,20 +805,19 @@ int tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::ve
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-int tag_encoder::save_model(const char *filename, const floatval_t *w, logging_t *lg)
+void tag_encoder::save_model(const char *filename, const floatval_t *w, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    return crf1de->save_model( filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);
+    crf1de->save_model( filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);
 }
 
 /* LEVEL_NONE -> LEVEL_WEIGHT. */
-int tag_encoder::set_weights(const floatval_t *w, floatval_t scale)
+void tag_encoder::set_weights(const floatval_t *w, floatval_t scale)
 {
     this->w = w;
     this->scale = scale;
     this->level = LEVEL_WEIGHT-1;
     this->set_level(LEVEL_WEIGHT);
-    return 0;
 }
 
 /* LEVEL_WEIGHT -> LEVEL_INSTANCE. */
@@ -860,7 +859,7 @@ floatval_t tag_encoder::partition_factor()
 }
 
 /* LEVEL_INSTANCE -> LEVEL_MARGINAL. */
-int tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight)
+void tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_t gain, floatval_t weight)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     this->set_level(LEVEL_MARGINAL);
@@ -868,7 +867,6 @@ int tag_encoder::objective_and_gradients(floatval_t *f, floatval_t *g, floatval_
     crf1de->observation_expectation( this->inst, this->inst->labels, g, gain);
     crf1de->model_expectation( this->inst, g, -gain);
     *f = (-crf1de->ctx->crf1dc_score(this->inst->labels) + crf1de->ctx->crf1dc_lognorm()) * weight;
-    return 0;
 }
 
 tag_encoder::~tag_encoder()
