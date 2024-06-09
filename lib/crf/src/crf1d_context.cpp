@@ -81,12 +81,10 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
     if (this->cap_items < T) {
         free(this->backward_edge);
         free(this->mexp_state);
-        _aligned_free(this->exp_state);
         free(this->scale_factor);
         free(this->row);
         free(this->beta_score);
         free(this->alpha_score);
-        free(this->state);
 
         this->alpha_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
         if (this->alpha_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
@@ -102,12 +100,10 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
             if (this->backward_edge == NULL) return CRFSUITEERR_OUTOFMEMORY;
         }
 
-        this->state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        if (this->state == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->state = std::vector<floatval_t>(T*L);
 
         if (this->flag & CTXF_MARGINALS) {
-            this->exp_state = (floatval_t*)_aligned_malloc((T * L + 4) * sizeof(floatval_t), 16);
-            if (this->exp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
+            this->exp_state = std::vector<floatval_t>(T*L);
             this->mexp_state = (floatval_t*)calloc(T * L, sizeof(floatval_t));
             if (this->mexp_state == NULL) return CRFSUITEERR_OUTOFMEMORY;
         }
@@ -122,8 +118,6 @@ crf1d_context_t::~crf1d_context_t()
 {
     free(this->backward_edge);
     free(this->mexp_state);
-    _aligned_free(this->exp_state);
-    free(this->state);
     free(this->scale_factor);
     free(this->row);
     free(this->beta_score);
@@ -139,7 +133,8 @@ void crf1d_context_t::crf1dc_reset(int flag)
     const int L = this->num_labels;
 
     if (flag & RF_STATE) {
-        veczero(this->state, T*L);
+        for (auto &x: this->state)
+            x = 0.0;
     }
     if (flag & RF_TRANS) {
         veczero(this->trans, L*L);
@@ -157,8 +152,9 @@ void crf1d_context_t::crf1dc_exp_state()
     const int T = this->num_items;
     const int L = this->num_labels;
 
-    veccopy(this->exp_state, this->state, L * T);
-    vecexp(this->exp_state, L * T);
+    for (auto i = 0; i < T*L; ++i) {
+        this->exp_state[i] = exp(this->state[i]);
+    }
 }
 
 void crf1d_context_t::crf1dc_exp_transition()

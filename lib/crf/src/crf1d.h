@@ -36,6 +36,7 @@
 #include <crfsuite.h>
 #include <cqdb.h>
 #include "crfsuite_internal.h"
+#include <vector>
 
 
 /**
@@ -100,7 +101,7 @@ struct crf1d_context_t {
      *  This is a [T][L] matrix whose element [t][l] presents total score
      *  of state features associating label #l at #t.
      */
-    floatval_t *state;
+    std::vector<floatval_t> state;
 
     /**
      * Transition scores.
@@ -150,7 +151,7 @@ struct crf1d_context_t {
      *  of the total score of state features associating label #l at #t.
      *  This member is available only with CTXF_MARGINALS flag.
      */
-    floatval_t *exp_state;
+    std::vector<floatval_t> exp_state;
 
     /**
      * Exponents of transition scores.
