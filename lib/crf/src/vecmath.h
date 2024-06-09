@@ -173,7 +173,8 @@ inline static floatval_t vecsumlog(InputIter it, const int n)
 {
     floatval_t s = 0.;
     for (int i = 0;i < n;++i) {
-        s += log(*it++);
+        s += log(*it);
+        ++it;
     }
     return s;
 }

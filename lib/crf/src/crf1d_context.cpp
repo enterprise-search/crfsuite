@@ -81,7 +81,6 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
     if (this->cap_items < T) {
         free(this->backward_edge);
         free(this->mexp_state);
-        free(this->scale_factor);
         free(this->beta_score);
         free(this->alpha_score);
 
@@ -89,8 +88,7 @@ int crf1d_context_t::crf1dc_set_num_items(int T)
         if (this->alpha_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
         this->beta_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
         if (this->beta_score == NULL) return CRFSUITEERR_OUTOFMEMORY;
-        this->scale_factor = (floatval_t*)calloc(T, sizeof(floatval_t));
-        if (this->scale_factor == NULL) return CRFSUITEERR_OUTOFMEMORY;
+        this->scale_factor = std::vector<floatval_t>(T);
         this->row = std::vector<floatval_t>(L);
 
         if (this->flag & CTXF_VITERBI) {
@@ -116,7 +114,6 @@ crf1d_context_t::~crf1d_context_t()
 {
     free(this->backward_edge);
     free(this->mexp_state);
-    free(this->scale_factor);
     free(this->beta_score);
     free(this->alpha_score);
     free(this->mexp_trans);
@@ -206,7 +203,7 @@ void crf1d_context_t::crf1dc_alpha_score()
         norm = 1. / (C[0] * C[1] ... * C[T-1])
         log(norm) = - \sum_{t = 0}^{T-1} log(C[t]).
      */
-    this->log_norm = -vecsumlog(this->scale_factor, T);
+    this->log_norm = -vecsumlog(this->scale_factor.begin(), T);
 }
 
 void crf1d_context_t::crf1dc_beta_score()

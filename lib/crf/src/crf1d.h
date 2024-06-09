@@ -129,7 +129,7 @@ struct crf1d_context_t {
      *  This is a [T] vector whose element [t] presents the scaling
      *  coefficient for the alpha_score and beta_score.
      */
-    floatval_t *scale_factor;
+    std::vector<floatval_t> scale_factor;
 
     /**
      * Row vector (work space).
