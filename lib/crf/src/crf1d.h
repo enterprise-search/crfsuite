@@ -108,21 +108,21 @@ struct crf1d_context_t {
      *  This is a [L][L] matrix whose element [i][j] represents the total
      *  score of transition features associating labels #i and #j.
      */
-    floatval_t *trans;
+    std::vector<floatval_t> trans;
 
     /**
      * Alpha score matrix.
      *  This is a [T][L] matrix whose element [t][l] presents the total
      *  score of paths starting at BOS and arraiving at (t, l).
      */
-    floatval_t *alpha_score;
+    std::vector<floatval_t> alpha_score;
 
     /**
      * Beta score matrix.
      *  This is a [T][L] matrix whose element [t][l] presents the total
      *  score of paths starting at (t, l) and arraiving at EOS.
      */
-    floatval_t *beta_score;
+    std::vector<floatval_t> beta_score;
 
     /**
      * Scale factor vector.
@@ -143,7 +143,7 @@ struct crf1d_context_t {
      *  that yields the maximum score to arrive at (t, j).
      *  This member is available only with CTXF_VITERBI flag enabled.
      */
-    int *backward_edge;
+    std::vector<int> backward_edge;
 
     /**
      * Exponents of state scores.
@@ -179,7 +179,6 @@ struct crf1d_context_t {
         
 public:
     crf1d_context_t(int flag, int L, int T);
-    ~crf1d_context_t();
 
     void crf1dc_set_num_items( int T);
     void crf1dc_reset( int flag);

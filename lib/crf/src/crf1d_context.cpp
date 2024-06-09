@@ -55,8 +55,7 @@ crf1d_context_t::crf1d_context_t(int flag, int L, int T)
     this->flag = flag;
     this->num_labels = L;
 
-    this->trans = (floatval_t*)calloc(L * L, sizeof(floatval_t));
-    if (this->trans == NULL) printf("callc\n");
+    this->trans = std::vector<floatval_t>(L*L);
 
     if (this->flag & CTXF_MARGINALS) {
         this->exp_trans = std::vector<floatval_t>(L*L);
@@ -75,17 +74,14 @@ void crf1d_context_t::crf1dc_set_num_items(int T)
     this->num_items = T;
 
     if (this->cap_items < T) {
-        free(this->backward_edge);
-        free(this->beta_score);
-        free(this->alpha_score);
 
-        this->alpha_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
-        this->beta_score = (floatval_t*)calloc(T * L, sizeof(floatval_t));
+        this->alpha_score = std::vector<floatval_t>(T*L);
+        this->beta_score = std::vector<floatval_t>(T*L);
         this->scale_factor = std::vector<floatval_t>(T);
         this->row = std::vector<floatval_t>(L);
 
         if (this->flag & CTXF_VITERBI) {
-            this->backward_edge = (int*)calloc(T * L, sizeof(int));
+            this->backward_edge = std::vector<int>(T*L);
         }
 
         this->state = std::vector<floatval_t>(T*L);
@@ -99,14 +95,6 @@ void crf1d_context_t::crf1dc_set_num_items(int T)
     }
 }
 
-crf1d_context_t::~crf1d_context_t()
-{
-    free(this->backward_edge);
-    free(this->beta_score);
-    free(this->alpha_score);
-    free(this->trans);
-}
-
 void crf1d_context_t::crf1dc_reset(int flag)
 {
     const int T = this->num_items;
@@ -117,7 +105,7 @@ void crf1d_context_t::crf1dc_reset(int flag)
             x = 0.0;
     }
     if (flag & RF_TRANS) {
-        std::fill_n(this->trans, L*L, 0.0);
+        std::fill_n(this->trans.begin(), L*L, 0.0);
     }
 
     if (this->flag & CTXF_MARGINALS) {
@@ -141,7 +129,7 @@ void crf1d_context_t::crf1dc_exp_transition()
 {
     const int L = this->num_labels;
 
-    std::copy_n(this->trans, L*L, this->exp_trans.begin());
+    std::copy_n(this->trans.begin(), L*L, this->exp_trans.begin());
     vecexp(this->exp_trans.begin(), L * L);
 }
 
