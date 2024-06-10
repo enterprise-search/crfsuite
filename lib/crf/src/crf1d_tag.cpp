@@ -84,25 +84,6 @@ void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
     }
 }
 
-void crf1dt_t::crf1dt_transition_score()
-{
-    crf1dm_feature_t f;
-    feature_refs_t edge;
-    const int L = this->num_labels;
-
-    /* Compute transition scores between two labels. */
-    for (int i = 0;i < L;++i) {
-        floatval_t *trans = TRANS_SCORE(this->ctx, i);
-        this->model->crf1dm_get_labelref(i, &edge);
-        for (int r = 0;r < edge.num_features;++r) {
-            /* Transition feature from #i to #(f->dst). */
-            int fid = this->model->crf1dm_get_featureid(&edge, r);
-            this->model->crf1dm_get_feature(fid, &f);
-            trans[f.dst] = f.weight;
-        }        
-    }
-}
-
 void crf1dt_t::crf1dt_set_level(int level)
 {
     crf1dt_t *crf1dt = this;
@@ -118,17 +99,6 @@ void crf1dt_t::crf1dt_set_level(int level)
     crf1dt->level = level;
 }
 
-void crf1dt_t::crf1dt_delete()
-{
-    crf1dt_t* crf1dt = this;
-    /* Note: we don't own the model object (crf1t->model). */
-    if (crf1dt->ctx != NULL) {
-        delete crf1dt->ctx;
-        crf1dt->ctx = NULL;
-    }
-    free(crf1dt);
-}
-
 crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
 {
     this->num_labels = crf1dm->crf1dm_get_num_labels();
@@ -136,7 +106,23 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
     this->model = crf1dm;
     this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, this->num_labels, 0);
     this->ctx->crf1dc_reset(RF_TRANS);
-    this->crf1dt_transition_score();
+    {
+        crf1dm_feature_t f;
+        feature_refs_t edge;
+        const int L = this->num_labels;
+
+        /* Compute transition scores between two labels. */
+        for (int i = 0;i < L;++i) {
+            floatval_t *trans = &this->ctx->trans[this->ctx->num_labels * i];
+            this->model->crf1dm_get_labelref(i, &edge);
+            for (int r = 0; r < edge.num_features; ++r) {
+                /* Transition feature from #i to #(f->dst). */
+                int fid = this->model->crf1dm_get_featureid(&edge, r);
+                this->model->crf1dm_get_feature(fid, &f);
+                trans[f.dst] = f.weight;
+            }
+        }
+    }
     this->ctx->crf1dc_exp_transition();
     this->level = LEVEL_NONE;
 }

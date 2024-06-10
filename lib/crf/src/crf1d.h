@@ -502,9 +502,7 @@ struct crf1dt_t : tag_crfsuite_tagger {
 public:
     crf1dt_t(crf1dm_t* crf1dm);
     void crf1dt_state_score(const crfsuite_instance_t *inst);
-    void crf1dt_transition_score();
     void crf1dt_set_level(int level);
-    void crf1dt_delete();
 public: // interface
     /*
      *    Implementation of crfsuite_tagger_t object.
