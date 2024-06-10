@@ -544,7 +544,7 @@ int tag_crf1dmw::crf1dmw_put_attrref(int aid, const feature_refs_t* ref, int *ma
     return 0;
 }
 
-int tag_crf1dmw::crf1dmw_open_features()
+int tag_crf1dmw::crf1dmw_open_features(int num_features)
 {
     FILE *fp = this->fp;
     feature_header_t* hfeat = NULL;
@@ -567,6 +567,7 @@ int tag_crf1dmw::crf1dmw_open_features()
     this->hfeat = hfeat;
 
     this->state = WSTATE_FEATURES;
+    this->header.num_features = num_features;
     return 0;
 }
 
@@ -626,9 +627,9 @@ int tag_crf1dmw::crf1dmw_put_feature(int fid, const crf1dm_feature_t* f)
     return 0;
 }
 
-tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
+tag_crf1dm::tag_crf1dm(const void* data, size_t size)
 {
-    this->buffer = (const uint8_t*)buffer;
+    const uint8_t* buffer = (const uint8_t*)data;
 
     if (size <= sizeof(header_t)) {
         printf("EEEE\n");
@@ -640,7 +641,7 @@ tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
     }
 
     /* Read the file header. */
-    const uint8_t* p = this->buffer;
+    const uint8_t* p = buffer;
     p += read_uint8_array(p, header->magic, sizeof(header->magic));
     p += read_uint32(p, &header->size);
     p += read_uint8_array(p, header->type, sizeof(header->type));
@@ -656,17 +657,33 @@ tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
     this->header = header;
 
     this->labels = cqdb_reader(
-        this->buffer + header->off_labels,
+        buffer + header->off_labels,
         size - header->off_labels
         );
 
     this->attrs = cqdb_reader(
-        this->buffer + header->off_attrs,
+        buffer + header->off_attrs,
         size - header->off_attrs
         );
 
+    for (int i = 0; i < header->num_features; ++i) {
+        uint32_t val = 0;
+        crf1dm_feature_t f;
+        uint32_t offset = header->off_features + CHUNK_SIZE;
+        offset += FEATURE_SIZE * i;
+        p = buffer + offset;
+        p += read_uint32(p, &val);
+        f.type = val;
+        p += read_uint32(p, &val);
+        f.src = val;
+        p += read_uint32(p, &val);
+        f.dst = val;
+        p += read_float(p, &f.weight);
+        this->features.push_back(f);
+    }
+
     for (int i = 0; i < header->num_labels; ++i) {
-        p = this->buffer;
+        p = buffer;
         p += this->header->off_labelrefs;
         p += CHUNK_SIZE;
         p += sizeof(uint32_t) * i;
@@ -675,7 +692,7 @@ tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
         read_uint32(p, &offset);
 
         
-        p = this->buffer + offset;
+        p = buffer + offset;
         p += read_uint32(p, &num_features);
         feature_refs_t ref;
         ref.num_features = num_features;
@@ -688,7 +705,7 @@ tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
     }
 
     for (int i = 0; i < header->num_attrs; ++i) {
-        p = this->buffer;
+        p = buffer;
         p += this->header->off_attrrefs;
         p += CHUNK_SIZE;
         p += sizeof(uint32_t) * i;
@@ -696,7 +713,7 @@ tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
         uint32_t num_features;
         read_uint32(p, &offset);
 
-        p = this->buffer + offset;
+        p = buffer + offset;
         p += read_uint32(p, &num_features);
         feature_refs_t ref;
         ref.num_features = num_features;
@@ -800,26 +817,6 @@ const char *tag_crf1dm::crf1dm_to_attr(int aid)
     } else {
         return NULL;
     }
-}
-
-
-
-
-int tag_crf1dm::crf1dm_get_feature(int fid, crf1dm_feature_t* f)
-{
-    const uint8_t *p = NULL;
-    uint32_t val = 0;
-    uint32_t offset = this->header->off_features + CHUNK_SIZE;
-    offset += FEATURE_SIZE * fid;
-    p = this->buffer + offset;
-    p += read_uint32(p, &val);
-    f->type = val;
-    p += read_uint32(p, &val);
-    f->src = val;
-    p += read_uint32(p, &val);
-    f->dst = val;
-    p += read_float(p, &f->weight);
-    return 0;
 }
 
 crfsuite_tagger_t* tag_crf1dm::get_tagger()

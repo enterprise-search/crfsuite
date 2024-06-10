@@ -407,7 +407,6 @@ typedef struct tag_crf1dm crf1dm_t;
  */
 
 struct tag_crf1dm: tag_crfsuite_model {
-    const uint8_t* buffer;
     header_t*      header;
     cqdb_t*        labels;
     cqdb_t*        attrs;
@@ -415,6 +414,7 @@ struct tag_crf1dm: tag_crfsuite_model {
 private:
     std::vector<feature_refs_t> attr_refs;
     std::vector<feature_refs_t> label_refs;
+    std::vector<crf1dm_feature_t> features;
 public:
     tag_crf1dm(const char *filename);
     tag_crf1dm(const void *data, size_t size);
@@ -441,7 +441,11 @@ public:
     int crf1dm_get_featureid(feature_refs_t* ref, int i) {
         return ref->fids[i];   
     }
-    int crf1dm_get_feature(int fid, crf1dm_feature_t* f);
+    int crf1dm_get_feature(int fid, crf1dm_feature_t* f)
+    {
+        *f = this->features[fid];        
+        return 0;
+    }
     void dump(FILE *fp);
 public:
 
@@ -481,7 +485,7 @@ struct tag_crf1dmw {
     int crf1dmw_open_attrrefs(int num_attrs);
     int crf1dmw_close_attrrefs();
     int crf1dmw_put_attrref(int aid, const feature_refs_t* ref, int *map);
-    int crf1dmw_open_features();
+    int crf1dmw_open_features(int num_features);
     int crf1dmw_close_features();
     int crf1dmw_put_feature(int fid, const crf1dm_feature_t* f);
 };

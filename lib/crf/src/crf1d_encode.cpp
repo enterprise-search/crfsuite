@@ -476,7 +476,7 @@ public:
     tag_crf1dmw* writer = new tag_crf1dmw(filename);
 
     /* Open a feature chunk in the model file. */
-    writer->crf1dmw_open_features();
+    writer->crf1dmw_open_features(num_features);
 
     /*
      *  Write the feature values.
