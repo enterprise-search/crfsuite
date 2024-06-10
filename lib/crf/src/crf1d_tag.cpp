@@ -168,134 +168,15 @@ floatval_t crf1dt_t::marginal_path( const int *path, int begin, int end)
     this->crf1dt_set_level(LEVEL_ALPHABETA);
     return this->ctx->crf1dc_marginal_path(path, begin, end);
 }
-/*
- *    Implementation of crfsuite_dictionary_t object for attributes.
- *    This object is instantiated only by a crfsuite_model_t object.
- */
-
-struct ModelAttrDict: crfsuite_dictionary_t {
-private:
-    crf1dm_t * crf1dm;
-public:
-    ModelAttrDict(crf1dm_t* crf1dm) : crf1dm(crf1dm) {}
-
-     int get(const char *str)
-    {
-        /* This object is ready only. */
-        throw std::runtime_error("supported");
-    }
-
-     int to_id(const char *str) { return crf1dm->crf1dm_to_aid(str); }
-
-     int to_string(int id, char const **pstr)
-    {
-        *pstr = crf1dm->crf1dm_to_attr(id);
-        return 0;
-    }
-
-     int num() { return crf1dm->crf1dm_get_num_attrs(); }
-
-     void free(const char *str)
-    {
-        /* all strings are freed on the release of the dictionary object. */
-    }
-
-};
-
-
-/*
- *    Implementation of crfsuite_dictionary_t object for labels.
- *    This object is instantiated only by a crfsuite_model_t object.
- */
-struct ModelLabelsDict : crfsuite_dictionary_t
-{
-private:
-    crf1dm_t * crf1dm;
-public:
-    ModelLabelsDict(crf1dm_t* crf1dm) : crf1dm(crf1dm) {}
-
-
-     int get(const char *str)
-    {
-        /* This object is ready only. */
-        return CRFSUITEERR_NOTSUPPORTED;
-    }
-
-     int to_id(const char *str)
-    {
-        return crf1dm->crf1dm_to_lid(str);
-    }
-
-     int to_string(int id, char const **pstr)
-    {
-        *pstr = crf1dm->crf1dm_to_label(id);
-        return 0;
-    }
-
-     int num()
-    {
-        return crf1dm->crf1dm_get_num_labels();
-    }
-
-     void free( const char *str)
-    {
-        /* all strings are freed on the release of the dictionary object. */
-    }
-
-};
-
-/*
- *    Implementation of crfsuite_model_t object.
- *    This object is instantiated by crf1m_model_create() function.
- */
-
- struct model_internal_t : tag_crfsuite_model{
- private:
-    crf1dm_t*    crf1dm;
-     crfsuite_dictionary_t*    attrs;
-    crfsuite_dictionary_t*    labels;
-public:
-    model_internal_t(crf1dm_t*    crf1dm, crfsuite_dictionary_t* attrs, crfsuite_dictionary_t*labels) : crf1dm(crf1dm), attrs(attrs), labels(labels) {}
-     int addref() { return 1;}
-     int release() { return 1; }
-     crfsuite_tagger_t* get_tagger()
-    {
-        /* Construct a tagger based on the model. */
-        return new crf1dt_t(crf1dm);
-    }
-     crfsuite_dictionary_t* get_labels()
-    {
-        /* We don't increment the reference counter. */
-        return labels;
-    }
-
-     crfsuite_dictionary_t* get_attrs()
-    {
-        /* We don't increment the reference counter. */
-        return attrs;
-    }
-
-     int dump(FILE *fpo)
-    {
-        crf1dm->crf1dm_dump(fpo);
-        return 0;
-    }
-} ;
-
-
-static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
-{
-    model_internal_t *internal = new model_internal_t(crf1dm, new ModelAttrDict(crf1dm), new ModelLabelsDict(crf1dm));
-    *ptr_model = internal;
-    return 0;
-}
 
 int crf1m_create_instance_from_file(const char *filename, void **ptr)
 {
-    return crf1m_model_create(new tag_crf1dm(filename), ptr);
+    *ptr = new tag_crf1dm(filename);
+    return 0;
 }
 
 int crf1m_create_instance_from_memory(const void *data, size_t size, void **ptr)
 {
-    return crf1m_model_create(new tag_crf1dm(data, size), ptr);
+    *ptr = new tag_crf1dm(data, size);
+    return 0;
 }

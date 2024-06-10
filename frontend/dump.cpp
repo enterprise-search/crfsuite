@@ -105,9 +105,7 @@ int main_dump(int argc, char *argv[], const char *argv0)
     }
         
     /* Dump the model. */
-    if (ret = model->dump( fpo)) {
-        goto force_exit;
-    }
+    model->dump( fpo);
 
 force_exit:
     dump_option_finish(&opt);

@@ -724,15 +724,9 @@ tag_crf1dm::~tag_crf1dm()
     // this->buffer = NULL;
 }
 
-int tag_crf1dm::crf1dm_get_num_attrs()
-{
-    return this->header->num_attrs;
-}
+int tag_crf1dm::crf1dm_get_num_attrs() { return this->header->num_attrs; }
 
-int tag_crf1dm::crf1dm_get_num_labels()
-{
-    return this->header->num_labels;
-}
+int tag_crf1dm::crf1dm_get_num_labels() { return this->header->num_labels; }
 
 const char *tag_crf1dm::crf1dm_to_label(int lid)
 {
@@ -833,7 +827,13 @@ int tag_crf1dm::crf1dm_get_feature(int fid, crf1dm_feature_t* f)
     return 0;
 }
 
-void tag_crf1dm::crf1dm_dump(FILE *fp)
+crfsuite_tagger_t* tag_crf1dm::get_tagger()
+{
+    /* Construct a tagger based on the model. */
+    return new crf1dt_t(this);
+}
+
+void tag_crf1dm::dump(FILE *fp)
 {
     int j;
     uint32_t i;

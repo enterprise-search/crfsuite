@@ -366,7 +366,46 @@ typedef struct tag_crf1dm crf1dm_t;
     uint32_t    num;            /* Number of items. */
 } ;
 
-struct tag_crf1dm {
+ /*
+ *    Implementation of crfsuite_dictionary_t object for attributes.
+ *    This object is instantiated only by a crfsuite_model_t object.
+ */
+
+
+ struct OneHotEncoder: crfsuite_dictionary_t {
+ private:
+     cqdb_t*        db;
+     size_t n;
+ public:
+     OneHotEncoder(cqdb_t *db, size_t n): db(db), n(n) {}
+     int get(const char *str)
+     {
+         /* This object is ready only. */
+         throw std::runtime_error("supported");
+     }
+
+     int to_id(const char *str) { return cqdb_to_id(db, str); }
+
+     int to_string(int id, char const **pstr)
+     {
+         *pstr = cqdb_to_string(db, id);
+         return 0;
+     }
+
+     int num() { return this->n; }
+
+     void free(const char *str)
+     {
+         /* all strings are freed on the release of the dictionary object. */
+     }
+};
+
+ /*
+ *    Implementation of crfsuite_model_t object.
+ *    This object is instantiated by crf1m_model_create() function.
+ */
+
+struct tag_crf1dm: tag_crfsuite_model {
     uint8_t*       buffer_orig;
     const uint8_t* buffer;
     uint32_t       size;
@@ -389,7 +428,21 @@ struct tag_crf1dm {
     int crf1dm_get_attrref(int aid, feature_refs_t* ref);
     int crf1dm_get_featureid(feature_refs_t* ref, int i);
     int crf1dm_get_feature(int fid, crf1dm_feature_t* f);
-    void crf1dm_dump(FILE *fp);
+    void dump(FILE *fp);
+public:
+
+    crfsuite_tagger_t* get_tagger();
+    crfsuite_dictionary_t* get_labels()
+    {
+        /* We don't increment the reference counter. */
+        return new OneHotEncoder(labels, header->num_labels);
+    }
+
+    crfsuite_dictionary_t* get_attrs()
+    {
+        /* We don't increment the reference counter. */
+        return new OneHotEncoder(attrs, header->num_attrs);
+    }
 };
 
 struct tag_crf1dmw {

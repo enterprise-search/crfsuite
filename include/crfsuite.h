@@ -317,20 +317,6 @@ typedef int (*crfsuite_logging_callback)(void *user, const char *format, va_list
  */
 struct tag_crfsuite_model {
     /**
-     * Increment the reference counter.
-     *  @param  model       The pointer to this model instance.
-     *  @return int         The reference count after this increment.
-     */
-    virtual int addref() = 0;
-
-    /**
-     * Decrement the reference counter.
-     *  @param  model       The pointer to this model instance.
-     *  @return int         The reference count after this operation.
-     */
-    virtual int release() = 0;
-
-    /**
      * Obtain the pointer to crfsuite_tagger_t interface.
      *  @param  model       The pointer to this model instance.
      *  @param  ptr_tagger  The pointer that receives a crfsuite_tagger_t
@@ -363,7 +349,7 @@ struct tag_crfsuite_model {
      *  @param  fpo         The FILE* pointer.
      *  @return int         The status code.
      */
-    virtual int dump(FILE *fpo) = 0;
+    virtual void dump(FILE *fpo) = 0;
 };
 
 int crfsuite_dictionary_create_instance(const char *interface, void **ptr);
