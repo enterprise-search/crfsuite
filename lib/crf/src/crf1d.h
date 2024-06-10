@@ -496,8 +496,6 @@ struct crf1dt_t : tag_crfsuite_tagger {
 
     crf1dm_t *model;        /**< CRF model. */
     crf1d_context_t *ctx;   /**< CRF context. */
-    int num_labels;         /**< Number of distinct output labels (L). */
-    int num_attributes;     /**< Number of distinct attributes (A). */
     int level;
 public:
     crf1dt_t(crf1dm_t* crf1dm);

@@ -56,7 +56,7 @@ void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
     crf1dm_feature_t f;
     feature_refs_t attr;
     const int T = inst->num_items();
-    const int L = this->num_labels;
+    const int L = this->model->crf1dm_get_num_labels();
 
     /* Loop over the items in the sequence. */
     for (int t = 0;t < T;++t) {
@@ -101,15 +101,14 @@ void crf1dt_t::crf1dt_set_level(int level)
 
 crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
 {
-    this->num_labels = crf1dm->crf1dm_get_num_labels();
-    this->num_attributes = crf1dm->crf1dm_get_num_attrs();
+    auto L = crf1dm->crf1dm_get_num_labels();
+    auto A = crf1dm->crf1dm_get_num_attrs();
     this->model = crf1dm;
-    this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, this->num_labels, 0);
+    this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, L, 0);
     this->ctx->crf1dc_reset(RF_TRANS);
     {
         crf1dm_feature_t f;
         feature_refs_t edge;
-        const int L = this->num_labels;
 
         /* Compute transition scores between two labels. */
         for (int i = 0;i < L;++i) {
