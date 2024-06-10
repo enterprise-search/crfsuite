@@ -294,7 +294,8 @@ enum {
  */
  struct feature_refs_t {
     int        num_features;    /**< Number of features referred */
-    int*    fids;            /**< Array of feature ids */
+    // int*    fids;            /**< Array of feature ids */
+    std::vector<int> fids;
 };
 
 void crf1df_generate(
@@ -413,6 +414,10 @@ struct tag_crf1dm: tag_crfsuite_model {
     cqdb_t*        labels;
     cqdb_t*        attrs;
 
+private:
+    std::vector<feature_refs_t> attr_refs;
+    std::vector<feature_refs_t> label_refs;
+public:
     tag_crf1dm(const char *filename);
     tag_crf1dm(const void *data, size_t size) : tag_crf1dm(NULL, (const uint8_t*)data, size) {}
     tag_crf1dm(uint8_t* buffer_orig, const uint8_t* buffer, uint32_t size);

@@ -135,7 +135,6 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
     this->num_attributes = crf1dm->crf1dm_get_num_attrs();
     this->model = crf1dm;
     this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, this->num_labels, 0);
-    // TODO: assert (this->ctx != NULL);
     this->ctx->crf1dc_reset(RF_TRANS);
     this->crf1dt_transition_score();
     this->ctx->crf1dc_exp_transition();
