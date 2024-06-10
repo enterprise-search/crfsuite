@@ -51,39 +51,6 @@ enum {
     LEVEL_ALPHABETA,
 };
 
-void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t &inst)
-{
-    crf1dm_feature_t f;
-    feature_refs_t attr;
-    const int T = inst.num_items();
-    const int L = this->model->crf1dm_get_num_labels();
-
-    /* Loop over the items in the sequence. */
-    for (int t = 0;t < T;++t) {
-        const crfsuite_item_t& item = inst.items[t];
-        floatval_t* state = STATE_SCORE(this->ctx, t);
-
-        /* Loop over the contents (attributes) attached to the item. */
-        for (int i = 0;i < item.num_contents();++i) {
-            /* Access the list of state features associated with the attribute. */
-            int a = item.contents[i].aid;
-            this->model->crf1dm_get_attrref(a, &attr);
-            /* A scale usually represents the atrribute frequency in the item. */
-            floatval_t value = item.contents[i].value;
-
-            /* Loop over the state features associated with the attribute. */
-            for (int r = 0;r < attr.num_features;++r) {
-                /* The state feature #(attr->fids[r]), which is represented by
-                   the attribute #a, outputs the label #(f->dst). */
-                int fid = this->model->crf1dm_get_featureid(&attr, r);
-                this->model->crf1dm_get_feature(fid, &f);
-                int l = f.dst;
-                state[l] += f.weight * value;
-            }
-        }
-    }
-}
-
 void crf1dt_t::crf1dt_set_level(int level)
 {
     crf1dt_t *crf1dt = this;
@@ -130,7 +97,37 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
 {
     this->ctx->crf1dc_set_num_items(inst.num_items());
     this->ctx->crf1dc_reset(RF_STATE);
-    this->crf1dt_state_score(inst);
+    {
+        crf1dm_feature_t f;
+        feature_refs_t attr;
+        const int T = inst.num_items();
+        const int L = this->model->crf1dm_get_num_labels();
+
+        /* Loop over the items in the sequence. */
+        for (int t = 0;t < T;++t) {
+            const crfsuite_item_t& item = inst.items[t];
+            floatval_t* state = STATE_SCORE(this->ctx, t);
+
+            /* Loop over the contents (attributes) attached to the item. */
+            for (int i = 0;i < item.num_contents();++i) {
+                /* Access the list of state features associated with the attribute. */
+                int a = item.contents[i].aid;
+                this->model->crf1dm_get_attrref(a, &attr);
+                /* A scale usually represents the atrribute frequency in the item. */
+                floatval_t value = item.contents[i].value;
+
+                /* Loop over the state features associated with the attribute. */
+                for (int r = 0;r < attr.num_features;++r) {
+                    /* The state feature #(attr->fids[r]), which is represented by
+                    the attribute #a, outputs the label #(f->dst). */
+                    int fid = this->model->crf1dm_get_featureid(&attr, r);
+                    this->model->crf1dm_get_feature(fid, &f);
+                    int l = f.dst;
+                    state[l] += f.weight * value;
+                }
+            }
+        }
+    }
     this->level = LEVEL_SET;
     return 0;
 }

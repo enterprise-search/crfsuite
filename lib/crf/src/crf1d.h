@@ -499,7 +499,6 @@ struct crf1dt_t : tag_crfsuite_tagger {
     int level;
 public:
     crf1dt_t(crf1dm_t* crf1dm);
-    void crf1dt_state_score(const crfsuite_instance_t &inst);
     void crf1dt_set_level(int level);
 public: // interface
     /*
