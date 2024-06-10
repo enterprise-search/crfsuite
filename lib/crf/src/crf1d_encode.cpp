@@ -437,18 +437,11 @@ public:
     }
 
 
-    int save_model(
-        const char *filename,
-        const floatval_t *w,
-        crfsuite_dictionary_t *attrs,
-        crfsuite_dictionary_t *labels,
-        logging_t *lg
-        )
+    int save_model(const char *filename,const floatval_t *w, crfsuite_dictionary_t *attrs, crfsuite_dictionary_t *labels, logging_t *lg)
     {
     int a, k, l, ret;
     clock_t begin;
-    int *fmap = NULL, *amap = NULL;
-    tag_crf1dmw* writer = NULL;
+    
     const feature_refs_t *edge = NULL, *attr = NULL;
     const floatval_t threshold = 0.01;
     const int L = this->num_labels;
@@ -461,10 +454,8 @@ public:
     begin = clock();
 
     /* Allocate and initialize the feature mapping. */
-    fmap = (int*)calloc(K, sizeof(int));
-    if (fmap == NULL) {
-        goto error_exit;
-    }
+    int *fmap = new int[K];
+    
 #ifdef  CRF_TRAIN_SAVE_NO_PRUNING
     for (k = 0;k < K;++k) fmap[k] = k;
     J = K;
@@ -473,10 +464,7 @@ public:
 #endif/*CRF_TRAIN_SAVE_NO_PRUNING*/
 
     /* Allocate and initialize the attribute mapping. */
-    amap = (int*)calloc(A, sizeof(int));
-    if (amap == NULL) {
-        goto error_exit;
-    }
+    int *amap = new int[A];    
 #ifdef  CRF_TRAIN_SAVE_NO_PRUNING
     for (a = 0;a < A;++a) amap[a] = a;
     B = A;
@@ -487,15 +475,10 @@ public:
     /*
      *  Open a model writer.
      */
-    writer = new tag_crf1dmw(filename);
-    if (writer == NULL) {
-        goto error_exit;
-    }
+    tag_crf1dmw* writer = new tag_crf1dmw(filename);    
 
     /* Open a feature chunk in the model file. */
-    if ((ret = writer->crf1dmw_open_features())) {
-        goto error_exit;
-    }
+    writer->crf1dmw_open_features();
 
     /*
      *  Write the feature values.
@@ -527,16 +510,12 @@ public:
             feat.weight = w[k];
 
             /* Write the feature. */
-            if ((ret = writer->crf1dmw_put_feature(fmap[k], &feat))) {
-                throw std::runtime_error("put feature");
-            }
+            writer->crf1dmw_put_feature(fmap[k], &feat);
         }
     }
 
     /* Close the feature chunk. */
-    if ((ret = writer->crf1dmw_close_features())) {
-        goto error_exit;
-    }
+    writer->crf1dmw_close_features();
 
     logging(lg, "Number of active features: %d (%d)\n", J, K);
     logging(lg, "Number of active attributes: %d (%d)\n", B, A);
@@ -544,98 +523,62 @@ public:
 
     /* Write labels. */
     logging(lg, "Writing labels\n", L);
-    if ((ret = writer->crf1dmw_open_labels(L))) {
-        goto error_exit;
-    }
+    writer->crf1dmw_open_labels(L);
     for (l = 0;l < L;++l) {
         const char *str = NULL;
         labels->to_string( l, &str);
         if (str != NULL) {
-            if ((ret = writer->crf1dmw_put_label(l, str))) {
-                throw std::runtime_error("put_label");
-            }
+            writer->crf1dmw_put_label(l, str);
             labels->free( str);
         }
     }
-    if ((ret = writer->crf1dmw_close_labels())) {
-        goto error_exit;
-    }
+    writer->crf1dmw_close_labels();
 
     /* Write attributes. */
     logging(lg, "Writing attributes\n");
-    if ((ret = writer->crf1dmw_open_attrs(B))) {
-        goto error_exit;
-    }
+    writer->crf1dmw_open_attrs(B);
     for (a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             const char *str = NULL;
             attrs->to_string( a, &str);
             if (str != NULL) {
-                if ((ret = writer->crf1dmw_put_attr(amap[a], str))) {
-                    goto error_exit;
-                }
+                writer->crf1dmw_put_attr(amap[a], str);
                 attrs->free( str);
             }
         }
     }
-    if ((ret = writer->crf1dmw_close_attrs())) {
-        goto error_exit;
-    }
+    writer->crf1dmw_close_attrs();
 
     /* Write label feature references. */
     logging(lg, "Writing feature references for transitions\n");
-    if ((ret = writer->crf1dmw_open_labelrefs(L+2))) {
-        goto error_exit;
-    }
+    writer->crf1dmw_open_labelrefs(L+2);
     for (l = 0;l < L;++l) {
         edge = TRANSITION(this, l);
-        if ((ret = writer->crf1dmw_put_labelref(l, edge, fmap))) {
-            goto error_exit;
-        }
+        writer->crf1dmw_put_labelref(l, edge, fmap);
     }
-    if ((ret = writer->crf1dmw_close_labelrefs())) {
-        goto error_exit;
-    }
+    writer->crf1dmw_close_labelrefs();
 
     /* Write attribute feature references. */
     logging(lg, "Writing feature references for attributes\n");
-    if ((ret = writer->crf1dmw_open_attrrefs(B))) {
-        goto error_exit;
-    }
+     writer->crf1dmw_open_attrrefs(B);
     for (a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             attr = ATTRIBUTE(this, a);
-            if ((ret = writer->crf1dmw_put_attrref(amap[a], attr, fmap))) {
-                goto error_exit;
-            }
+            writer->crf1dmw_put_attrref(amap[a], attr, fmap);
         }
     }
-    if ((ret = writer->crf1dmw_close_attrrefs())) {
-        goto error_exit;
-    }
+    writer->crf1dmw_close_attrrefs();
 
     /* Close the writer. */
     delete writer;
     logging(lg, "Seconds required: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
     logging(lg, "\n");
 
-    free(amap);
-    free(fmap);
+    delete[] amap;
+    delete[] fmap;
     return 0;
-
-    error_exit:
-        if (writer != NULL) {
-            delete writer;
-        }
-        if (amap != NULL) {
-            free(amap);
-        }
-        if (fmap != NULL) {
-            free(fmap);
-        }
-        return ret;
     }
-} ;
+};
 
 static int crf1de_exchange_options(crfsuite_params_t* params, crf1de_option_t* opt, int mode)
 {
