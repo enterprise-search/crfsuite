@@ -387,26 +387,26 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
      */
 
     /* Compute the scores at (0, *). */
-    cur = ALPHA_SCORE(this, 0);
-    state = STATE_SCORE(this, 0);
+    cur = (&((this->alpha_score)[(this->num_labels) * (0) + (0)]));
+    state = (&((this->state)[(this->num_labels) * (0) + (0)]));
     for (j = 0;j < L;++j) {
         cur[j] = state[j];
     }
 
     /* Compute the scores at (t, *). */
     for (t = 1;t < T;++t) {
-        prev = ALPHA_SCORE(this, t-1);
-        cur = ALPHA_SCORE(this, t);
-        state = STATE_SCORE(this, t);
-        back = BACKWARD_EDGE_AT(this, t);
+        prev = (&((this->alpha_score)[(this->num_labels) * (t - 1) + (0)]));
+        cur = (&((this->alpha_score)[(this->num_labels) * (t) + (0)]));
+        state = (&((this->state)[(this->num_labels) * (t) + (0)]));
+        back = (&((this->backward_edge)[(this->num_labels) * (t) + (0)]));
 
         /* Compute the score of (t, j). */
-        for (j = 0;j < L;++j) {
+        for (j = 0; j < L; ++j) {
             max_score = -FLOAT_MAX;
             argmax_score = -1;
-            for (i = 0;i < L;++i) {
+            for (i = 0; i < L; ++i) {
                 /* Transit from (t-1, i) to (t, j). */
-                trans = TRANS_SCORE(this, i);
+                trans = (&((this->trans)[(this->num_labels) * (i) + (0)]));
                 score = prev[i] + trans[j];
 
                 /* Store this path if it has the maximum score. */
@@ -416,7 +416,8 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
                 }
             }
             /* Backward link (#t, #j) -> (#t-1, #i). */
-            if (argmax_score >= 0) back[j] = argmax_score;
+            if (argmax_score >= 0)
+                back[j] = argmax_score;
             /* Add the state score on (t, j). */
             cur[j] = max_score + state[j];
         }
@@ -424,7 +425,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 
     /* Find the node (#T, #i) that reaches EOS with the maximum score. */
     max_score = -FLOAT_MAX;
-    prev = ALPHA_SCORE(this, T-1);
+    prev = (&((this->alpha_score)[(this->num_labels) * (T - 1) + (0)]));
     /* Set a score for T-1 to be overwritten later. Just in case we don't
        end up with something beating -FLOAT_MAX. */
     labels[T-1] = 0;
@@ -437,8 +438,8 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 
     /* Tag labels by tracing the backward links. */
     for (t = T-2;0 <= t;--t) {
-        back = BACKWARD_EDGE_AT(this, t+1);
-        labels[t] = back[labels[t+1]];
+        back = (&((this->backward_edge)[(this->num_labels) * (t + 1) + (0)]));
+        labels[t] = back[labels[t + 1]];
     }
 
     /* Return the maximum score (without the normalization factor subtracted). */
