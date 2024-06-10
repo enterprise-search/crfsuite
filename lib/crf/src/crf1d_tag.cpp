@@ -378,17 +378,7 @@ public:
 
 static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
 {
-    int ret = 0;
-
-    *ptr_model = NULL;
-
-    if (crf1dm == NULL) {
-        throw std::runtime_error("unsupported");
-    }
-
-    /* Create an instance of internal data attached to the model. */
     model_internal_t *internal = new model_internal_t(crf1dm, new ModelAttrDict(crf1dm), new ModelLabelsDict(crf1dm));
-
     *ptr_model = internal;
     return 0;
 }
