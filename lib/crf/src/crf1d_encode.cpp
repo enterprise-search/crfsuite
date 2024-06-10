@@ -439,7 +439,6 @@ public:
 
     int save_model(const char *filename,const floatval_t *w, crfsuite_dictionary_t *attrs, crfsuite_dictionary_t *labels, logging_t *lg)
     {
-    int a, k, l, ret;
     clock_t begin;
     
     const feature_refs_t *edge = NULL, *attr = NULL;
@@ -457,10 +456,10 @@ public:
     int *fmap = new int[K];
     
 #ifdef  CRF_TRAIN_SAVE_NO_PRUNING
-    for (k = 0;k < K;++k) fmap[k] = k;
+    for (int k = 0;k < K;++k) fmap[k] = k;
     J = K;
 #else
-    for (k = 0;k < K;++k) fmap[k] = -1;
+    for (int k = 0;k < K;++k) fmap[k] = -1;
 #endif/*CRF_TRAIN_SAVE_NO_PRUNING*/
 
     /* Allocate and initialize the attribute mapping. */
@@ -469,7 +468,7 @@ public:
     for (a = 0;a < A;++a) amap[a] = a;
     B = A;
 #else
-    for (a = 0;a < A;++a) amap[a] = -1;
+    for (int a = 0;a < A;++a) amap[a] = -1;
 #endif/*CRF_TRAIN_SAVE_NO_PRUNING*/
 
     /*
@@ -484,7 +483,7 @@ public:
      *  Write the feature values.
      *     (with determining active features and attributes).
      */
-    for (k = 0;k < K;++k) {
+    for (int k = 0;k < K;++k) {
         crf1df_feature_t* f = &this->features[k];
         if (w[k] != 0) {
             int src;
@@ -524,7 +523,7 @@ public:
     /* Write labels. */
     logging(lg, "Writing labels\n", L);
     writer->crf1dmw_open_labels(L);
-    for (l = 0;l < L;++l) {
+    for (int l = 0;l < L;++l) {
         const char *str = NULL;
         labels->to_string( l, &str);
         if (str != NULL) {
@@ -537,7 +536,7 @@ public:
     /* Write attributes. */
     logging(lg, "Writing attributes\n");
     writer->crf1dmw_open_attrs(B);
-    for (a = 0;a < A;++a) {
+    for (int a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             const char *str = NULL;
             attrs->to_string( a, &str);
@@ -552,7 +551,7 @@ public:
     /* Write label feature references. */
     logging(lg, "Writing feature references for transitions\n");
     writer->crf1dmw_open_labelrefs(L+2);
-    for (l = 0;l < L;++l) {
+    for (int l = 0;l < L;++l) {
         edge = TRANSITION(this, l);
         writer->crf1dmw_put_labelref(l, edge, fmap);
     }
@@ -561,7 +560,7 @@ public:
     /* Write attribute feature references. */
     logging(lg, "Writing feature references for attributes\n");
      writer->crf1dmw_open_attrrefs(B);
-    for (a = 0;a < A;++a) {
+    for (int a = 0;a < A;++a) {
         if (0 <= amap[a]) {
             attr = ATTRIBUTE(this, a);
             writer->crf1dmw_put_attrref(amap[a], attr, fmap);
