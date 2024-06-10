@@ -73,18 +73,15 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
     this->model = crf1dm;
     this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, L, 0);
     this->ctx->crf1dc_reset(RF_TRANS);
-    {
-        crf1dm_feature_t f;
-        feature_refs_t edge;
-
+    {        
         /* Compute transition scores between two labels. */
         for (int i = 0;i < L;++i) {
             floatval_t *trans = &this->ctx->trans[this->ctx->num_labels * i];
-            this->model->crf1dm_get_labelref(i, &edge);
+            const feature_refs_t &edge = this->model->crf1dm_get_labelref(i);
             for (int r = 0; r < edge.num_features; ++r) {
                 /* Transition feature from #i to #(f->dst). */
-                int fid = this->model->crf1dm_get_featureid(&edge, r);
-                this->model->crf1dm_get_feature(fid, &f);
+                int fid = this->model->crf1dm_get_featureid(edge, r);
+                const crf1dm_feature_t &f = this->model->crf1dm_get_feature(fid);
                 trans[f.dst] = f.weight;
             }
         }
@@ -97,9 +94,7 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
 {
     this->ctx->crf1dc_set_num_items(inst.num_items());
     this->ctx->crf1dc_reset(RF_STATE);
-    {
-        crf1dm_feature_t f;
-        feature_refs_t attr;
+    {        
         const int T = inst.num_items();
         const int L = this->model->crf1dm_get_num_labels();
 
@@ -112,7 +107,7 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
             for (int i = 0;i < item.num_contents();++i) {
                 /* Access the list of state features associated with the attribute. */
                 int a = item.contents[i].aid;
-                this->model->crf1dm_get_attrref(a, &attr);
+                const feature_refs_t& attr = this->model->crf1dm_get_attrref(a);
                 /* A scale usually represents the atrribute frequency in the item. */
                 floatval_t value = item.contents[i].value;
 
@@ -120,8 +115,8 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
                 for (int r = 0;r < attr.num_features;++r) {
                     /* The state feature #(attr->fids[r]), which is represented by
                     the attribute #a, outputs the label #(f->dst). */
-                    int fid = this->model->crf1dm_get_featureid(&attr, r);
-                    this->model->crf1dm_get_feature(fid, &f);
+                    int fid = this->model->crf1dm_get_featureid(attr, r);
+                    const crf1dm_feature_t& f = this->model->crf1dm_get_feature(fid);
                     int l = f.dst;
                     state[l] += f.weight * value;
                 }

@@ -760,65 +760,6 @@ tag_crf1dm::tag_crf1dm(const char *filename)
     *this = tag_crf1dm(buffer, size);
 }
 
-tag_crf1dm::~tag_crf1dm()
-{
-    // if (this->labels != NULL) {
-    //     cqdb_delete(this->labels);
-    // }
-    // if (this->attrs != NULL) {
-    //     cqdb_delete(this->attrs);
-    // }
-    // if (this->header != NULL) {
-    //     free(this->header);
-    //     this->header = NULL;
-    // }
-    // if (this->buffer_orig != NULL) {
-    //     free(this->buffer_orig);
-    //     this->buffer_orig = NULL;
-    // }
-    // this->buffer = NULL;
-}
-
-int tag_crf1dm::crf1dm_get_num_attrs() { return this->header->num_attrs; }
-
-int tag_crf1dm::crf1dm_get_num_labels() { return this->header->num_labels; }
-
-const char *tag_crf1dm::crf1dm_to_label(int lid)
-{
-    if (this->labels != NULL) {
-        return cqdb_to_string(this->labels, lid);
-    } else {
-        return NULL;
-    }
-}
-
-int tag_crf1dm::crf1dm_to_lid(const char *value)
-{
-    if (this->labels != NULL) {
-        return cqdb_to_id(this->labels, value);
-    } else {
-        return -1;
-    }
-}
-
-int tag_crf1dm::crf1dm_to_aid(const char *value)
-{
-    if (this->attrs != NULL) {
-        return cqdb_to_id(this->attrs, value);
-    } else {
-        return -1;
-    }
-}
-
-const char *tag_crf1dm::crf1dm_to_attr(int aid)
-{
-    if (this->attrs != NULL) {
-        return cqdb_to_string(this->attrs, aid);
-    } else {
-        return NULL;
-    }
-}
-
 crfsuite_tagger_t* tag_crf1dm::get_tagger()
 {
     /* Construct a tagger based on the model. */
@@ -829,7 +770,6 @@ void tag_crf1dm::dump(FILE *fp)
 {
     int j;
     uint32_t i;
-    feature_refs_t refs;
     const header_t* hfile = this->header;
 
     /* Dump the file header. */
@@ -884,13 +824,13 @@ void tag_crf1dm::dump(FILE *fp)
     /* Dump the transition features. */
     fprintf(fp, "TRANSITIONS = {\n");
     for (i = 0;i < hfile->num_labels;++i) {
-        this->crf1dm_get_labelref(i, &refs);
+        const auto& refs = this->crf1dm_get_labelref(i);
         for (j = 0;j < refs.num_features;++j) {
-            crf1dm_feature_t f;
-            int fid = this->crf1dm_get_featureid(&refs, j);
+
+            int fid = this->crf1dm_get_featureid(refs, j);
             const char *from = NULL, *to = NULL;
 
-            this->crf1dm_get_feature(fid, &f);
+            const crf1dm_feature_t& f = this->crf1dm_get_feature(fid);
             from = this->crf1dm_to_label(f.src);
             to = this->crf1dm_to_label(f.dst);
             fprintf(fp, "  (%d) %s --> %s: %f\n", f.type, from, to, f.weight);
@@ -902,13 +842,13 @@ void tag_crf1dm::dump(FILE *fp)
     /* Dump the transition features. */
     fprintf(fp, "STATE_FEATURES = {\n");
     for (i = 0;i < hfile->num_attrs;++i) {
-        this->crf1dm_get_attrref(i, &refs);
+        const auto& refs = this->crf1dm_get_attrref(i);
         for (j = 0;j < refs.num_features;++j) {
-            crf1dm_feature_t f;
-            int fid = this->crf1dm_get_featureid(&refs, j);
+
+            int fid = this->crf1dm_get_featureid(refs, j);
             const char *attr = NULL, *to = NULL;
 
-            this->crf1dm_get_feature(fid, &f);
+            const crf1dm_feature_t& f = this->crf1dm_get_feature(fid);
 #if 0
             if (f.src != i) {
                 fprintf(fp, "WARNING: an inconsistent attribute reference.\n");

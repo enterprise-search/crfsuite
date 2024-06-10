@@ -418,34 +418,50 @@ private:
 public:
     tag_crf1dm(const char *filename);
     tag_crf1dm(const void *data, size_t size);
-    ~tag_crf1dm();
 
-    int crf1dm_get_num_attrs();
-    int crf1dm_get_num_labels();
-    const char *crf1dm_to_label(int lid);
-    int crf1dm_to_lid(const char *value);
-    int crf1dm_to_aid(const char *value);
-    const char *crf1dm_to_attr(int aid);
+    int crf1dm_get_num_attrs() { return this->header->num_attrs; }
+    int crf1dm_get_num_labels() { return this->header->num_labels; }
 
-    int crf1dm_get_labelref(int lid, feature_refs_t* ref)
+    const char *crf1dm_to_label(int lid)
     {
-        *ref = this->label_refs[lid];
-        return 0;
+        if (this->labels != NULL) {
+            return cqdb_to_string(this->labels, lid);
+        } else {
+            return NULL;
+        }
     }
 
-    int crf1dm_get_attrref(int aid, feature_refs_t* ref)
+    int crf1dm_to_lid(const char *value)
     {
-        *ref = this->attr_refs[aid];
-        return 0;
+        if (this->labels != NULL) {
+            return cqdb_to_id(this->labels, value);
+        } else {
+            return -1;
+        }
     }
-    int crf1dm_get_featureid(feature_refs_t* ref, int i) {
-        return ref->fids[i];   
-    }
-    int crf1dm_get_feature(int fid, crf1dm_feature_t* f)
+
+    int tcrf1dm_to_aid(const char *value)
     {
-        *f = this->features[fid];        
-        return 0;
+        if (this->attrs != NULL) {
+            return cqdb_to_id(this->attrs, value);
+        } else {
+            return -1;
+        }
     }
+
+    const char *crf1dm_to_attr(int aid)
+    {
+        if (this->attrs != NULL) {
+            return cqdb_to_string(this->attrs, aid);
+        } else {
+            return NULL;
+        }
+    }
+
+    const feature_refs_t& crf1dm_get_labelref(int lid) {return this->label_refs[lid];}
+    const feature_refs_t& crf1dm_get_attrref(int aid) {return this->attr_refs[aid];}
+    int crf1dm_get_featureid(const feature_refs_t& ref, int i) { return ref.fids[i]; }
+    const crf1dm_feature_t& crf1dm_get_feature(int fid)    {return this->features[fid]; }
     void dump(FILE *fp);
 public:
 
