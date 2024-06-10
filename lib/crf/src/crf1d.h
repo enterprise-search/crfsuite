@@ -299,7 +299,7 @@ enum {
 
 void crf1df_generate(
     std::vector<crf1df_feature_t>& features,
-    dataset_t *ds,
+    dataset_t &ds,
     int num_labels,
     int num_attributes,
     int connect_all_attrs,

@@ -411,7 +411,7 @@ public:
         begin = clock();
         crf1df_generate(
             this->features,
-            ds,
+            *ds,
             L,
             A,
             opt->feature_possible_states ? 1 : 0,

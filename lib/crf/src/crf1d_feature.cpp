@@ -92,7 +92,7 @@ public:
 
 void crf1df_generate(
     std::vector<crf1df_feature_t>& features,
-    dataset_t *ds,
+    dataset_t &ds,
     int num_labels,
     int num_attributes,
     int connect_all_attrs,
@@ -104,7 +104,7 @@ void crf1df_generate(
 {
     int c, i, j, s, t;
     crf1df_feature_t f;
-    const int N = ds->num_instances;
+    const int N = ds.num_instances;
     const int L = num_labels;
     logging_t lg;
 
@@ -121,7 +121,7 @@ void crf1df_generate(
     for (s = 0;s < N;++s) {
         int prev = L, cur = 0;
         const crfsuite_item_t* item = NULL;
-        const crfsuite_instance_t* seq = ds->get( s);
+        const crfsuite_instance_t* seq = ds.get( s);
         const int T = seq->num_items();
 
         /* Loop over the items in the sequence. */
