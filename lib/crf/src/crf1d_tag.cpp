@@ -51,16 +51,16 @@ enum {
     LEVEL_ALPHABETA,
 };
 
-void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
+void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t &inst)
 {
     crf1dm_feature_t f;
     feature_refs_t attr;
-    const int T = inst->num_items();
+    const int T = inst.num_items();
     const int L = this->model->crf1dm_get_num_labels();
 
     /* Loop over the items in the sequence. */
     for (int t = 0;t < T;++t) {
-        const crfsuite_item_t& item = inst->items[t];
+        const crfsuite_item_t& item = inst.items[t];
         floatval_t* state = STATE_SCORE(this->ctx, t);
 
         /* Loop over the contents (attributes) attached to the item. */
@@ -126,9 +126,9 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
     this->level = LEVEL_NONE;
 }
 
-int crf1dt_t::set(crfsuite_instance_t *inst)
+int crf1dt_t::set(const crfsuite_instance_t &inst)
 {
-    this->ctx->crf1dc_set_num_items(inst->num_items());
+    this->ctx->crf1dc_set_num_items(inst.num_items());
     this->ctx->crf1dc_reset(RF_STATE);
     this->crf1dt_state_score(inst);
     this->level = LEVEL_SET;

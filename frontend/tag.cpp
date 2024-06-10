@@ -328,7 +328,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
                 std::vector<int> output(inst.num_items());
 
                 /* Set the instance to the tagger. */
-                if ((ret = tagger->set( &inst))) {
+                if ((ret = tagger->set(inst))) {
                     goto force_exit;
                 }
 

@@ -399,7 +399,7 @@ struct tag_crfsuite_tagger {
      *  @param  inst        The item sequence to be tagged.
      *  @return int         The status code.
      */
-    virtual int set(crfsuite_instance_t *inst) = 0;
+    virtual int set(const crfsuite_instance_t &inst) = 0;
 
     /**
      * Obtain the number of items in the current instance.

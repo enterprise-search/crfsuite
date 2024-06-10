@@ -499,7 +499,7 @@ struct crf1dt_t : tag_crfsuite_tagger {
     int level;
 public:
     crf1dt_t(crf1dm_t* crf1dm);
-    void crf1dt_state_score(const crfsuite_instance_t *inst);
+    void crf1dt_state_score(const crfsuite_instance_t &inst);
     void crf1dt_set_level(int level);
 public: // interface
     /*
@@ -509,7 +509,7 @@ public: // interface
     int length() const { return this->ctx->num_items; }
     floatval_t viterbi(std::vector<int>& labels) { return this->ctx->crf1dc_viterbi(labels); }
     floatval_t score(std::vector<int>& path) { return this->ctx->crf1dc_score(path); }
-    int set(crfsuite_instance_t *inst);
+    int set(const crfsuite_instance_t &inst);
     floatval_t lognorm();
     floatval_t marginal_point( int l, int t);
     floatval_t marginal_path( const int *path, int begin, int end);
