@@ -266,7 +266,6 @@ public:
      crfsuite_dictionary_t*    attrs;
     crfsuite_dictionary_t*    labels;
 public:
-    model_internal_t(crf1dm_t*    crf1dm) : crf1dm(crf1dm) {}
     model_internal_t(crf1dm_t*    crf1dm, crfsuite_dictionary_t* attrs, crfsuite_dictionary_t*labels) : crf1dm(crf1dm), attrs(attrs), labels(labels) {}
      int addref() { return 1;}
      int release() { return 1; }

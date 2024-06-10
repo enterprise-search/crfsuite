@@ -441,7 +441,6 @@ public:
     {
     clock_t begin;
     
-    const feature_refs_t *edge = NULL, *attr = NULL;
     const floatval_t threshold = 0.01;
     const int L = this->num_labels;
     const int A = this->num_attributes;
@@ -474,7 +473,7 @@ public:
     /*
      *  Open a model writer.
      */
-    tag_crf1dmw* writer = new tag_crf1dmw(filename);    
+    tag_crf1dmw* writer = new tag_crf1dmw(filename);
 
     /* Open a feature chunk in the model file. */
     writer->crf1dmw_open_features();
@@ -550,9 +549,10 @@ public:
 
     /* Write label feature references. */
     logging(lg, "Writing feature references for transitions\n");
+
     writer->crf1dmw_open_labelrefs(L+2);
     for (int l = 0;l < L;++l) {
-        edge = TRANSITION(this, l);
+        const feature_refs_t *edge = TRANSITION(this, l);
         writer->crf1dmw_put_labelref(l, edge, fmap);
     }
     writer->crf1dmw_close_labelrefs();
@@ -562,7 +562,7 @@ public:
      writer->crf1dmw_open_attrrefs(B);
     for (int a = 0;a < A;++a) {
         if (0 <= amap[a]) {
-            attr = ATTRIBUTE(this, a);
+            const feature_refs_t *attr = ATTRIBUTE(this, a);
             writer->crf1dmw_put_attrref(amap[a], attr, fmap);
         }
     }
