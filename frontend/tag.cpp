@@ -248,24 +248,19 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
     char *comment = NULL;
     iwa_t* iwa = NULL;
     const iwa_token_t* token = NULL;
-    crfsuite_tagger_t *tagger = NULL;
-    crfsuite_dictionary_t *attrs = NULL, *labels = NULL;
+
     FILE *fp = NULL, *fpi = opt->fpi, *fpo = opt->fpo, *fpe = opt->fpe;
 
     /* Obtain the dictionary interface representing the labels in the model. */
-    if (ret = model->get_labels( &labels)) {
-        goto force_exit;
-    }
+    crfsuite_dictionary_t* labels = model->get_labels();
+
 
     /* Obtain the dictionary interface representing the attributes in the model. */
-    if (ret = model->get_attrs(&attrs)) {
-        goto force_exit;
-    }
+    crfsuite_dictionary_t *attrs = model->get_attrs();
 
     /* Obtain the tagger interface. */
-    if (ret = model->get_tagger(&tagger)) {
-        goto force_exit;
-    }
+    crfsuite_tagger_t *tagger = model->get_tagger();
+
 
     /* Initialize the objects for instance and evaluation. */
     L = labels->num();

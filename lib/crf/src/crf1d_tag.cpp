@@ -343,57 +343,29 @@ public:
     crfsuite_dictionary_t*    attrs;
     crfsuite_dictionary_t*    labels;
     model_internal_t(crf1dm_t*    crf1dm) : crf1dm(crf1dm) {}
-     int addref()
+     int addref() { return 1;}
+     int release() { return 1; }
+     crfsuite_tagger_t* get_tagger()
     {
-         return 1;
-    }
-     int release()
-    {
-        return 1;
-    }
-     int get_tagger(crfsuite_tagger_t** ptr_tagger)
-    {
-        int ret = 0;
-        crf1dt_t *crf1dt = NULL;
-        crfsuite_tagger_t *tagger = NULL;
-
         /* Construct a tagger based on the model. */
-        crf1dt = new crf1dt_t(crf1dm);
-        if (crf1dt == NULL) {
-            ret = CRFSUITEERR_OUTOFMEMORY;
-            goto error_exit;
-        }
+        crf1dt_t *crf1dt = new crf1dt_t(crf1dm);        
 
         /* Create an instance of tagger object. */
-        tagger = (crfsuite_tagger_t*)calloc(1, sizeof(crfsuite_tagger_t));
-        if (tagger == NULL) {
-            ret = CRFSUITEERR_OUTOFMEMORY;
-            goto error_exit;
-        }
+        crfsuite_tagger_t *tagger = new crfsuite_tagger_t();
         tagger->internal = crf1dt;
         tagger->nref = 1;
-        *ptr_tagger = tagger;
-        return 0;
-
-    error_exit:
-        free(tagger);
-        if (crf1dt != NULL) {
-            delete crf1dt;
-        }
-        return ret;
+        return tagger;
     }
-     int get_labels(crfsuite_dictionary_t** ptr_labels)
+     crfsuite_dictionary_t* get_labels()
     {
         /* We don't increment the reference counter. */
-        *ptr_labels = labels;
-        return 0;
+        return labels;
     }
 
-     int get_attrs(crfsuite_dictionary_t** ptr_attrs)
+     crfsuite_dictionary_t* get_attrs()
     {
         /* We don't increment the reference counter. */
-        *ptr_attrs = attrs;
-        return 0;
+        return attrs;
     }
 
      int dump(FILE *fpo)
@@ -407,7 +379,6 @@ public:
 static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
 {
     int ret = 0;
-    crfsuite_dictionary_t *attrs = NULL, *labels = NULL;
 
     *ptr_model = NULL;
 
@@ -418,15 +389,13 @@ static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
     /* Create an instance of internal data attached to the model. */
     model_internal_t *internal = new model_internal_t(crf1dm);
 
+    /* Set the internal data for the model object. */
+
     /* Create an instance of dictionary object for attributes. */
-    attrs = new ModelAttrDict(crf1dm);
+    internal->attrs = new ModelAttrDict(crf1dm);
 
     /* Create an instance of dictionary object for labels. */
-    labels = new ModelLabelsDict(crf1dm);
-
-    /* Set the internal data for the model object. */
-    internal->attrs = attrs;
-    internal->labels = labels;
+    internal->labels = new ModelLabelsDict(crf1dm);
 
     *ptr_model = internal;
     return 0;

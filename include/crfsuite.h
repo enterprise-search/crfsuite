@@ -337,7 +337,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    virtual int get_tagger(crfsuite_tagger_t** ptr_tagger) = 0;
+    virtual crfsuite_tagger_t* get_tagger() = 0;
 
     /**
      * Obtain the pointer to crfsuite_dictionary_t interface for labels.
@@ -346,7 +346,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    virtual int get_labels(crfsuite_dictionary_t** ptr_labels) = 0;
+    virtual crfsuite_dictionary_t* get_labels() = 0;
 
     /**
      * Obtain the pointer to crfsuite_dictionary_t interface for attributes.
@@ -355,7 +355,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    virtual int get_attrs(crfsuite_dictionary_t** ptr_attrs) = 0;
+    virtual crfsuite_dictionary_t* get_attrs() = 0;
 
     /**
      * Print the model in human-readable format.
