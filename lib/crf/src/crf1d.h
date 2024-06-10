@@ -407,7 +407,6 @@ typedef struct tag_crf1dm crf1dm_t;
  */
 
 struct tag_crf1dm: tag_crfsuite_model {
-    uint8_t*       buffer_orig;
     const uint8_t* buffer;
     uint32_t       size;
     header_t*      header;
@@ -419,8 +418,7 @@ private:
     std::vector<feature_refs_t> label_refs;
 public:
     tag_crf1dm(const char *filename);
-    tag_crf1dm(const void *data, size_t size) : tag_crf1dm(NULL, (const uint8_t*)data, size) {}
-    tag_crf1dm(uint8_t* buffer_orig, const uint8_t* buffer, uint32_t size);
+    tag_crf1dm(const void *data, size_t size);
     ~tag_crf1dm();
 
     int crf1dm_get_num_attrs();

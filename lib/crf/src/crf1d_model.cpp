@@ -626,10 +626,9 @@ int tag_crf1dmw::crf1dmw_put_feature(int fid, const crf1dm_feature_t* f)
     return 0;
 }
 
-tag_crf1dm::tag_crf1dm(uint8_t* buffer_orig, const uint8_t* buffer, uint32_t size)
+tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
 {
-    this->buffer_orig = buffer_orig;
-    this->buffer = buffer;
+    this->buffer = (const uint8_t*)buffer;
     this->size = size;
 
     if (this->size <= sizeof(header_t)) {
@@ -742,7 +741,7 @@ tag_crf1dm::tag_crf1dm(const char *filename)
     }
     fclose(fp);
 
-    *this = tag_crf1dm(buffer_orig, buffer, size);
+    *this = tag_crf1dm(buffer, size);
 }
 
 tag_crf1dm::~tag_crf1dm()
