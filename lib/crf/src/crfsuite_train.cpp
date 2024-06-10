@@ -178,11 +178,6 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
     if (filename != NULL && *filename != '\0') {
         gm->save_model(filename, w, lg);
     }
-
-    // if (0 <= holdout) {
-    //     dataset_finish(&testset);
-    // }
-    // dataset_finish(&trainset);
     free(w);
 
     return 0;
