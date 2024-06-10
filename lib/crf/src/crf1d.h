@@ -408,7 +408,6 @@ typedef struct tag_crf1dm crf1dm_t;
 
 struct tag_crf1dm: tag_crfsuite_model {
     const uint8_t* buffer;
-    uint32_t       size;
     header_t*      header;
     cqdb_t*        labels;
     cqdb_t*        attrs;

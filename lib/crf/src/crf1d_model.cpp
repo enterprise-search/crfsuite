@@ -629,9 +629,8 @@ int tag_crf1dmw::crf1dmw_put_feature(int fid, const crf1dm_feature_t* f)
 tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
 {
     this->buffer = (const uint8_t*)buffer;
-    this->size = size;
 
-    if (this->size <= sizeof(header_t)) {
+    if (size <= sizeof(header_t)) {
         printf("EEEE\n");
     }
     
@@ -658,12 +657,12 @@ tag_crf1dm::tag_crf1dm(const void* buffer, size_t size)
 
     this->labels = cqdb_reader(
         this->buffer + header->off_labels,
-        this->size - header->off_labels
+        size - header->off_labels
         );
 
     this->attrs = cqdb_reader(
         this->buffer + header->off_attrs,
-        this->size - header->off_attrs
+        size - header->off_attrs
         );
 
     for (int i = 0; i < header->num_labels; ++i) {
