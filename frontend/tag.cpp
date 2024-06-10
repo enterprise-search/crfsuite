@@ -165,8 +165,7 @@ output_result(
     const char *label = NULL;
 
     if (opt->probability) {
-        floatval_t lognorm;
-        tagger->lognorm( &lognorm);
+        floatval_t lognorm = tagger->lognorm();
 	fprintf(fpo, "@score\t%f\t%f\n", score, lognorm);
         fprintf(fpo, "@probability\t%f\n", exp(score - lognorm));
     }
@@ -183,13 +182,13 @@ output_result(
         labels->free( label);
 
         if (opt->marginal) {
-            tagger->marginal_point( output[i], i, &prob);
+            prob = tagger->marginal_point( output[i], i);
             fprintf(fpo, ":%f", prob);
         }
 
         if (opt->marginal_all) {
             for (l = 0;l < labels->num();++l) {
-                tagger->marginal_point( l, i, &prob);
+                prob = tagger->marginal_point( l, i);
                 labels->to_string( l, &label);
                 fprintf(fpo, "\t%s:%f", label, prob);
                 labels->free(label);
@@ -334,9 +333,7 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
                 }
 
                 /* Obtain the viterbi label sequence. */
-                if ((ret = tagger->viterbi(output, &score))) {
-                    goto force_exit;
-                }
+                score = tagger->viterbi(output);
 
                 ++N;
 

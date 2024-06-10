@@ -408,36 +408,12 @@ public:
  */
 struct tag_crfsuite_tagger {
     /**
-     * Pointer to the internal data (internal use only).
-     */
-    void *internal;
-
-    /**
-     * Reference counter (internal use only).
-     */
-    int nref;
-
-    /**
-     * Increment the reference counter.
-     *  @param  tagger      The pointer to this tagger instance.
-     *  @return int         The reference count after this increment.
-     */
-    int addref();
-
-    /**
-     * Decrement the reference counter.
-     *  @param  tagger      The pointer to this tagger instance.
-     *  @return int         The reference count after this operation.
-     */
-    int release();
-
-    /**
      * Set an instance to the tagger.
      *  @param  tagger      The pointer to this tagger instance.
      *  @param  inst        The item sequence to be tagged.
      *  @return int         The status code.
      */
-    int set(crfsuite_instance_t *inst);
+    virtual int set(crfsuite_instance_t *inst) = 0;
 
     /**
      * Obtain the number of items in the current instance.
@@ -446,7 +422,7 @@ struct tag_crfsuite_tagger {
      *                      set() function.
      *  @return int         The status code.
      */
-    int length();
+    virtual int length() const = 0;
 
     /**
      * Find the Viterbi label sequence.
@@ -458,7 +434,7 @@ struct tag_crfsuite_tagger {
      *                      score of the Viterbi label sequence.
      *  @return int         The status code.
      */
-    int viterbi(std::vector<int>& labels, floatval_t *ptr_score);
+    virtual floatval_t viterbi(std::vector<int>& labels) = 0;
 
     
 
@@ -470,7 +446,7 @@ struct tag_crfsuite_tagger {
      *                      logarithm of the partition factor.
      *  @return int         The status code.
      */
-    int lognorm(floatval_t *ptr_norm);
+    virtual floatval_t lognorm() = 0;
 
     /**
      * Compute the marginal probability of a label at a position.
@@ -483,7 +459,7 @@ struct tag_crfsuite_tagger {
      *                      marginal probability.
      *  @return int         The status code.
      */
-    int marginal_point(int l, int t, floatval_t *ptr_prob);
+    virtual floatval_t marginal_point(int l, int t) = 0;
 
     /**
      * Compute the marginal probability of a partial label sequence.
@@ -495,7 +471,7 @@ struct tag_crfsuite_tagger {
      *                      marginal probability.
      *  @return int         The status code.
      */
-    int marginal_path(const int *path, int begin, int end, floatval_t *ptr_prob);
+    virtual floatval_t marginal_path(const int *path, int begin, int end) = 0;
     /**
      * Compute the score of a label sequence.
      *  @param  tagger      The pointer to this tagger instance.
@@ -504,7 +480,7 @@ struct tag_crfsuite_tagger {
      *                      score of the label sequence.
      *  @return int         The status code.
      */
-    int score(std::vector<int>& path, floatval_t *ptr_score);
+    virtual floatval_t score(std::vector<int>& path) = 0;
 };
 
 /**

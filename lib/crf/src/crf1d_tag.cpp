@@ -153,96 +153,32 @@ crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
     this->level = LEVEL_NONE;
 }
 
-/*
- *    Implementation of crfsuite_tagger_t object.
- *    This object is instantiated only by a crfsuite_model_t object.
- */
-
-int tag_crfsuite_tagger::addref()
+int crf1dt_t::set(crfsuite_instance_t *inst)
 {
-    return crfsuite_interlocked_increment(&this->nref);
-}
-
- int tag_crfsuite_tagger::release()
-{
-    int count = crfsuite_interlocked_decrement(&this->nref);
-    if (count == 0) {
-        /* This instance is being destroyed. */
-        delete ((crf1dt_t*)this->internal);
-    }
-    return count;
-}
-
- int tag_crfsuite_tagger::set(crfsuite_instance_t *inst)
-{
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1d_context_t* ctx = crf1dt->ctx;
-    ctx->crf1dc_set_num_items(inst->num_items());
-    crf1dt->ctx->crf1dc_reset(RF_STATE);
-    crf1dt->crf1dt_state_score(inst);
-    crf1dt->level = LEVEL_SET;
+    this->ctx->crf1dc_set_num_items(inst->num_items());
+    this->ctx->crf1dc_reset(RF_STATE);
+    this->crf1dt_state_score(inst);
+    this->level = LEVEL_SET;
     return 0;
 }
 
- int tag_crfsuite_tagger::length()
+floatval_t crf1dt_t::lognorm()
 {
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1d_context_t* ctx = crf1dt->ctx;
-    return ctx->num_items;
+    this->crf1dt_set_level(LEVEL_ALPHABETA);
+    return this->ctx->crf1dc_lognorm();
 }
 
- int tag_crfsuite_tagger::viterbi(std::vector<int>& labels, floatval_t *ptr_score)
+floatval_t crf1dt_t::marginal_point( int l, int t)
 {
-    floatval_t score;
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1d_context_t* ctx = crf1dt->ctx;
-
-    score = ctx->crf1dc_viterbi(labels);
-    if (ptr_score != NULL) {
-        *ptr_score = score;
-    }
-
-    return 0;
+    this->crf1dt_set_level(LEVEL_ALPHABETA);
+    return this->ctx->crf1dc_marginal_point(l, t);
 }
 
-int tag_crfsuite_tagger::score(std::vector<int>& path, floatval_t *ptr_score)
+floatval_t crf1dt_t::marginal_path( const int *path, int begin, int end)
 {
-    floatval_t score;
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1d_context_t* ctx = crf1dt->ctx;
-    score = ctx->crf1dc_score(path);
-    if (ptr_score != NULL) {
-        *ptr_score = score;
-    }
-    return 0;
+    this->crf1dt_set_level(LEVEL_ALPHABETA);
+    return this->ctx->crf1dc_marginal_path(path, begin, end);
 }
-
- int tag_crfsuite_tagger::lognorm( floatval_t *ptr_norm)
-{
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
-    *ptr_norm = crf1dt->ctx->crf1dc_lognorm();
-    return 0;
-}
-
- int tag_crfsuite_tagger::marginal_point( int l, int t, floatval_t *ptr_prob)
-{
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
-    *ptr_prob = crf1dt->ctx->crf1dc_marginal_point(l, t);
-    return 0;
-}
-
- int tag_crfsuite_tagger::marginal_path( const int *path, int begin, int end, floatval_t *ptr_prob)
-{
-    crf1dt_t* crf1dt = (crf1dt_t*)this->internal;
-    crf1dt->crf1dt_set_level(LEVEL_ALPHABETA);
-    *ptr_prob = crf1dt->ctx->crf1dc_marginal_path(path, begin, end);
-    return 0;
-}
-
-
-
 /*
  *    Implementation of crfsuite_dictionary_t object for attributes.
  *    This object is instantiated only by a crfsuite_model_t object.
@@ -348,13 +284,7 @@ public:
      crfsuite_tagger_t* get_tagger()
     {
         /* Construct a tagger based on the model. */
-        crf1dt_t *crf1dt = new crf1dt_t(crf1dm);        
-
-        /* Create an instance of tagger object. */
-        crfsuite_tagger_t *tagger = new crfsuite_tagger_t();
-        tagger->internal = crf1dt;
-        tagger->nref = 1;
-        return tagger;
+        return new crf1dt_t(crf1dm);
     }
      crfsuite_dictionary_t* get_labels()
     {

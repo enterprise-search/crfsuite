@@ -600,8 +600,6 @@ static int crf1de_exchange_options(crfsuite_params_t* params, crf1de_option_t* o
     return 0;
 }
 
-
-
 /*
  *    Implementation of encoder_t object.
  */
