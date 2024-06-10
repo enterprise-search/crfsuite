@@ -102,9 +102,8 @@ crfsuite_params_t* tag_crfsuite_train_internal::params()
 int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *filename, int holdout)
 {
     char *algorithm = NULL;
-    crfsuite_train_internal_t *tr = this;
-    logging_t *lg = tr->lg;
-    encoder_t *gm = tr->gm;
+    logging_t *lg = this->lg;
+    encoder_t *gm = this->gm;
     floatval_t *w = NULL;
     dataset_t trainset;
     dataset_t testset;
@@ -118,17 +117,17 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
     }
 
     /* Set the training set to the CRF, and generate features. */
-    gm->exchange_options(tr->m_params, -1);
+    gm->exchange_options(this->m_params, -1);
     gm->initialize(&trainset, lg);
 
     /* Call the training algorithm. */
-    switch (tr->algorithm) {
+    switch (this->algorithm) {
     case TRAIN_LBFGS:
         crfsuite_train_lbfgs(
             gm,
             &trainset,
             (holdout != -1 ? &testset : NULL),
-            tr->m_params,
+            this->m_params,
             lg,
             &w
             );
@@ -138,7 +137,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             gm,
             &trainset,
             (holdout != -1 ? &testset : NULL),
-            tr->m_params,
+            this->m_params,
             lg,
             &w
             );
@@ -148,7 +147,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             gm,
             &trainset,
             (holdout != -1 ? &testset : NULL),
-            tr->m_params,
+            this->m_params,
             lg,
             &w
             );
@@ -158,7 +157,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             gm,
             &trainset,
             (holdout != -1 ? &testset : NULL),
-            tr->m_params,
+            this->m_params,
             lg,
             &w
             );
@@ -168,7 +167,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             gm,
             &trainset,
             (holdout != -1 ? &testset : NULL),
-            tr->m_params,
+            this->m_params,
             lg,
             &w
             );
