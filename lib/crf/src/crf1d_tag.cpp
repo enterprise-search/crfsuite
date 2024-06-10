@@ -53,37 +53,31 @@ enum {
 
 void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
 {
-    crf1dt_t *crf1dt = this;
-    int a, i, l, t, r, fid;
     crf1dm_feature_t f;
     feature_refs_t attr;
-    floatval_t value, *state = NULL;
-    crf1dm_t* model = crf1dt->model;
-    crf1d_context_t* ctx = crf1dt->ctx;
-    const crfsuite_item_t* item = NULL;
     const int T = inst->num_items();
-    const int L = crf1dt->num_labels;
+    const int L = this->num_labels;
 
     /* Loop over the items in the sequence. */
-    for (t = 0;t < T;++t) {
-        item = &inst->items[t];
-        state = STATE_SCORE(ctx, t);
+    for (int t = 0;t < T;++t) {
+        const crfsuite_item_t& item = inst->items[t];
+        floatval_t* state = STATE_SCORE(this->ctx, t);
 
         /* Loop over the contents (attributes) attached to the item. */
-        for (i = 0;i < item->num_contents();++i) {
+        for (int i = 0;i < item.num_contents();++i) {
             /* Access the list of state features associated with the attribute. */
-            a = item->contents[i].aid;
-            model->crf1dm_get_attrref(a, &attr);
+            int a = item.contents[i].aid;
+            this->model->crf1dm_get_attrref(a, &attr);
             /* A scale usually represents the atrribute frequency in the item. */
-            value = item->contents[i].value;
+            floatval_t value = item.contents[i].value;
 
             /* Loop over the state features associated with the attribute. */
-            for (r = 0;r < attr.num_features;++r) {
+            for (int r = 0;r < attr.num_features;++r) {
                 /* The state feature #(attr->fids[r]), which is represented by
                    the attribute #a, outputs the label #(f->dst). */
-                fid = model->crf1dm_get_featureid(&attr, r);
-                model->crf1dm_get_feature(fid, &f);
-                l = f.dst;
+                int fid = this->model->crf1dm_get_featureid(&attr, r);
+                this->model->crf1dm_get_feature(fid, &f);
+                int l = f.dst;
                 state[l] += f.weight * value;
             }
         }
@@ -92,23 +86,18 @@ void crf1dt_t::crf1dt_state_score(const crfsuite_instance_t *inst)
 
 void crf1dt_t::crf1dt_transition_score()
 {
-    crf1dt_t* crf1dt = this;
-    int i, r, fid;
     crf1dm_feature_t f;
     feature_refs_t edge;
-    floatval_t *trans = NULL;
-    crf1dm_t* model = crf1dt->model;
-    crf1d_context_t* ctx = crf1dt->ctx;
-    const int L = crf1dt->num_labels;
+    const int L = this->num_labels;
 
     /* Compute transition scores between two labels. */
-    for (i = 0;i < L;++i) {
-        trans = TRANS_SCORE(ctx, i);
-        model->crf1dm_get_labelref(i, &edge);
-        for (r = 0;r < edge.num_features;++r) {
+    for (int i = 0;i < L;++i) {
+        floatval_t *trans = TRANS_SCORE(this->ctx, i);
+        this->model->crf1dm_get_labelref(i, &edge);
+        for (int r = 0;r < edge.num_features;++r) {
             /* Transition feature from #i to #(f->dst). */
-            fid = model->crf1dm_get_featureid(&edge, r);
-            model->crf1dm_get_feature(fid, &f);
+            int fid = this->model->crf1dm_get_featureid(&edge, r);
+            this->model->crf1dm_get_feature(fid, &f);
             trans[f.dst] = f.weight;
         }        
     }
