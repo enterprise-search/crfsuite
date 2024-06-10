@@ -368,8 +368,7 @@ public:
         }
     }
 
-    void
-    set_data(
+    void set_data(
         dataset_t *ds,
         int num_labels,
         int num_attributes,

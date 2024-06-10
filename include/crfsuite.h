@@ -372,18 +372,15 @@ int crfsuite_dictionary_create_instance(const char *interface, void **ptr);
  * CRFSuite trainer interface.
  */
 struct tag_crfsuite_trainer {
-    /**
-     * Pointer to the internal data (internal use only).
-     */
-    void *internal;
-
 public:
+    // tag_crfsuite_trainer(int ftype, int algorithm);
+    // ~tag_crfsuite_trainer();
     /**
      * Obtain the pointer to crfsuite_params_t interface.
      *  @param  trainer     The pointer to this trainer instance.
      *  @return crfsuite_params_t*  The pointer to crfsuite_params_t.
      */
-    tag_crfsuite_params* params();
+    virtual tag_crfsuite_params* params() = 0;
 
     /**
      * Set the callback function and user-defined data.
@@ -391,7 +388,7 @@ public:
      *  @param  user        The pointer to the user-defined data.
      *  @param  cbm         The pointer to the callback function.
      */
-    void set_message_callback(void *user, crfsuite_logging_callback cbm);
+    virtual void set_message_callback(void *user, crfsuite_logging_callback cbm) = 0;
 
     /**
      * Start a training process.
@@ -403,11 +400,7 @@ public:
      *  @param  holdout     The holdout group.
      *  @return int         The status code.
      */
-    int train(const crfsuite_data_t *data, const char *filename, int holdout);
-
-    tag_crfsuite_trainer(void *p);
-    tag_crfsuite_trainer(int ftype, int algorithm);
-    ~tag_crfsuite_trainer();
+    virtual int train(const crfsuite_data_t *data, const char *filename, int holdout) = 0;
 };
 
 /**

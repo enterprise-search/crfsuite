@@ -127,14 +127,18 @@ typedef void (*crfsuite_encoder_features_on_path_callback)(void *instance, int f
 /**
  * Internal data structure for 
  */
-struct tag_crfsuite_train_internal {
+struct tag_crfsuite_train_internal: public tag_crfsuite_trainer {
     encoder_t *gm;      /** Interface to the graphical model. */
-    crfsuite_params_t *params;       /**< Parameter interface. */
+    crfsuite_params_t *m_params;       /**< Parameter interface. */
     logging_t* lg;              /**< Logging interface. */
     int feature_type;           /**< Feature type. */
     int algorithm;              /**< Training algorithm. */
 
     tag_crfsuite_train_internal(int ftype, int algorithm);
+    ~tag_crfsuite_train_internal();
+    void set_message_callback(void *instance, crfsuite_logging_callback cbm);
+    crfsuite_params_t* params();
+    int train(const crfsuite_data_t *data, const char *filename, int holdout);
 };
 
 /**
