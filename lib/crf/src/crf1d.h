@@ -426,9 +426,21 @@ public:
     int crf1dm_to_lid(const char *value);
     int crf1dm_to_aid(const char *value);
     const char *crf1dm_to_attr(int aid);
-    int crf1dm_get_labelref(int lid, feature_refs_t* ref);
-    int crf1dm_get_attrref(int aid, feature_refs_t* ref);
-    int crf1dm_get_featureid(feature_refs_t* ref, int i);
+
+    int crf1dm_get_labelref(int lid, feature_refs_t* ref)
+    {
+        *ref = this->label_refs[lid];
+        return 0;
+    }
+
+    int crf1dm_get_attrref(int aid, feature_refs_t* ref)
+    {
+        *ref = this->attr_refs[aid];
+        return 0;
+    }
+    int crf1dm_get_featureid(feature_refs_t* ref, int i) {
+        return ref->fids[i];   
+    }
     int crf1dm_get_feature(int fid, crf1dm_feature_t* f);
     void dump(FILE *fp);
 public:

@@ -802,21 +802,8 @@ const char *tag_crf1dm::crf1dm_to_attr(int aid)
     }
 }
 
-int tag_crf1dm::crf1dm_get_labelref(int lid, feature_refs_t* ref)
-{
-    *ref = this->label_refs[lid];
-    return 0;
-}
 
-int tag_crf1dm::crf1dm_get_attrref(int aid, feature_refs_t* ref)
-{
-    *ref = this->attr_refs[aid];
-    return 0;
-}
 
-int tag_crf1dm::crf1dm_get_featureid(feature_refs_t* ref, int i) {
-    return ref->fids[i];   
-}
 
 int tag_crf1dm::crf1dm_get_feature(int fid, crf1dm_feature_t* f)
 {
