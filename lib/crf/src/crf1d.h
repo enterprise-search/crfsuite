@@ -180,8 +180,6 @@ struct crf1d_context_t {
 public:
     crf1d_context_t(int flag, int L, int T) : flag(flag), num_labels(L), trans(L*L)
     {
-        int ret = 0;
-
         if (this->flag & CTXF_MARGINALS) {
             this->exp_trans = std::vector<floatval_t>(L*L);
             this->mexp_trans = std::vector<floatval_t>(L*L);
