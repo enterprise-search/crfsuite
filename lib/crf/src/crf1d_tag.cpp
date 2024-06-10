@@ -338,11 +338,11 @@ public:
  struct model_internal_t : tag_crfsuite_model{
  private:
     crf1dm_t*    crf1dm;
-
-public:
-    crfsuite_dictionary_t*    attrs;
+     crfsuite_dictionary_t*    attrs;
     crfsuite_dictionary_t*    labels;
+public:
     model_internal_t(crf1dm_t*    crf1dm) : crf1dm(crf1dm) {}
+    model_internal_t(crf1dm_t*    crf1dm, crfsuite_dictionary_t* attrs, crfsuite_dictionary_t*labels) : crf1dm(crf1dm), attrs(attrs), labels(labels) {}
      int addref() { return 1;}
      int release() { return 1; }
      crfsuite_tagger_t* get_tagger()
@@ -387,15 +387,7 @@ static int crf1m_model_create(crf1dm_t *crf1dm, void** ptr_model)
     }
 
     /* Create an instance of internal data attached to the model. */
-    model_internal_t *internal = new model_internal_t(crf1dm);
-
-    /* Set the internal data for the model object. */
-
-    /* Create an instance of dictionary object for attributes. */
-    internal->attrs = new ModelAttrDict(crf1dm);
-
-    /* Create an instance of dictionary object for labels. */
-    internal->labels = new ModelLabelsDict(crf1dm);
+    model_internal_t *internal = new model_internal_t(crf1dm, new ModelAttrDict(crf1dm), new ModelLabelsDict(crf1dm));
 
     *ptr_model = internal;
     return 0;
