@@ -214,17 +214,6 @@ private:
 public:
     ModelLabelsDict(crf1dm_t* crf1dm) : crf1dm(crf1dm) {}
 
-     int addref()
-    {
-        /* This object is owned only by a crfsuite_model_t object. */
-        return 1;
-    }
-
-     int release()
-    {
-        /* This object is owned and freed only by a crfsuite_model_t object. */
-        return 1;
-    }
 
      int get(const char *str)
     {

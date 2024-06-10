@@ -488,30 +488,6 @@ struct tag_crfsuite_tagger {
  */
 struct tag_crfsuite_dictionary {
     /**
-     * Pointer to the internal data (internal use only).
-     */
-    void *internal;
-
-    /**
-     * Reference counter (internal use only).
-     */
-    int nref;
-
-    /**
-     * Increment the reference counter.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @return int         The reference count after this increment.
-     */
-    virtual int addref() { return 1; }
-
-    /**
-     * Decrement the reference counter.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @return int         The reference count after this operation.
-     */
-    virtual int release() { return 1; }
-
-    /**
      * Assign and obtain the integer ID for the string.
      *  @param  dic         The pointer to this dictionary instance.
      *  @param  str         The string.
