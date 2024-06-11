@@ -100,8 +100,7 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
 
         /* Loop over the items in the sequence. */
         for (int t = 0;t < T;++t) {
-            const crfsuite_item_t& item = inst.items[t];
-            floatval_t* state = STATE_SCORE(this->ctx, t);
+            const crfsuite_item_t& item = inst.items[t];           
 
             /* Loop over the contents (attributes) attached to the item. */
             for (int i = 0;i < item.num_contents();++i) {
@@ -118,7 +117,7 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
                     int fid = this->model->crf1dm_get_featureid(attr, r);
                     const crf1dm_feature_t& f = this->model->crf1dm_get_feature(fid);
                     int l = f.dst;
-                    state[l] += f.weight * value;
+                    (((this->ctx->state)[(this->ctx->num_labels) * (t) + (l)])) += f.weight * value;
                 }
             }
         }
