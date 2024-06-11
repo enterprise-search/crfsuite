@@ -392,7 +392,6 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 
     /* Compute the scores at (t, *). */
     for (int t = 1;t < T;++t) {
-        state = (&((this->state)[(this->num_labels) * (t) + (0)]));
 
         /* Compute the score of (t, j). */
         for (int j = 0; j < L; ++j) {
@@ -412,7 +411,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
             if (argmax_score >= 0)
                 (((this->backward_edge)[(this->num_labels) * (t) + (j)])) = argmax_score;
             /* Add the state score on (t, j). */
-            (((this->alpha_score)[(this->num_labels) * (t) + (j)])) = max_score + state[j];
+            (((this->alpha_score)[(this->num_labels) * (t) + (j)])) = max_score + (((this->state)[(this->num_labels) * (t) + (j)]));
         }
     }
 
