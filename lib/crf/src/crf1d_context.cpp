@@ -375,7 +375,6 @@ floatval_t crf1d_context_t::crf1dc_score(const std::vector<int>& labels)
 floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 {
     int *back = NULL;
-    floatval_t max_score, score;
     const int T = this->num_items;
     const int L = this->num_labels;
 
@@ -393,11 +392,11 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 
         /* Compute the score of (t, j). */
         for (int j = 0; j < L; ++j) {
-            max_score = -FLOAT_MAX;
+            floatval_t max_score = -FLOAT_MAX;
             int argmax_score = -1;
             for (int i = 0; i < L; ++i) {
                 /* Transit from (t-1, i) to (t, j). */
-                score = (((this->alpha_score)[(this->num_labels) * (t - 1) + (i)])) + (((this->trans)[(this->num_labels) * (i) + (j)]));
+                floatval_t score = (((this->alpha_score)[(this->num_labels) * (t - 1) + (i)])) + (((this->trans)[(this->num_labels) * (i) + (j)]));
 
                 /* Store this path if it has the maximum score. */
                 if (max_score < score) {
@@ -414,7 +413,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
     }
 
     /* Find the node (#T, #i) that reaches EOS with the maximum score. */
-    max_score = -FLOAT_MAX;
+    floatval_t max_score = -FLOAT_MAX;
     /* Set a score for T-1 to be overwritten later. Just in case we don't
        end up with something beating -FLOAT_MAX. */
     labels[T-1] = 0;
