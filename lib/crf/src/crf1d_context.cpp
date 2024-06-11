@@ -392,7 +392,6 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 
     /* Compute the scores at (t, *). */
     for (int t = 1;t < T;++t) {
-        prev = (&((this->alpha_score)[(this->num_labels) * (t - 1) + (0)]));
         cur = (&((this->alpha_score)[(this->num_labels) * (t) + (0)]));
         state = (&((this->state)[(this->num_labels) * (t) + (0)]));
         back = (&((this->backward_edge)[(this->num_labels) * (t) + (0)]));
@@ -403,7 +402,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
             argmax_score = -1;
             for (int i = 0; i < L; ++i) {
                 /* Transit from (t-1, i) to (t, j). */
-                score = prev[i] + (((this->trans)[(this->num_labels) * (i) + (j)]));
+                score = (((this->alpha_score)[(this->num_labels) * (t - 1) + (i)])) + (((this->trans)[(this->num_labels) * (i) + (j)]));
 
                 /* Store this path if it has the maximum score. */
                 if (max_score < score) {
