@@ -375,8 +375,7 @@ floatval_t crf1d_context_t::crf1dc_score(const std::vector<int>& labels)
 floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 {
     int *back = NULL;
-    floatval_t max_score, score, *cur = NULL;
-    int argmax_score;
+    floatval_t max_score, score;
     const int T = this->num_items;
     const int L = this->num_labels;
 
@@ -395,7 +394,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
         /* Compute the score of (t, j). */
         for (int j = 0; j < L; ++j) {
             max_score = -FLOAT_MAX;
-            argmax_score = -1;
+            int argmax_score = -1;
             for (int i = 0; i < L; ++i) {
                 /* Transit from (t-1, i) to (t, j). */
                 score = (((this->alpha_score)[(this->num_labels) * (t - 1) + (i)])) + (((this->trans)[(this->num_labels) * (i) + (j)]));
