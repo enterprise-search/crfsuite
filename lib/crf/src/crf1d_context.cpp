@@ -374,7 +374,6 @@ floatval_t crf1d_context_t::crf1dc_score(const std::vector<int>& labels)
 
 floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 {
-    int *back = NULL;
     const int T = this->num_items;
     const int L = this->num_labels;
 
@@ -427,8 +426,8 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 
     /* Tag labels by tracing the backward links. */
     for (int t = T-2;0 <= t;--t) {
-        back = (&((this->backward_edge)[(this->num_labels) * (t + 1) + (0)]));
-        labels[t] = back[labels[t + 1]];
+        auto i = labels[t+1];
+        labels[t] = (((this->backward_edge)[(this->num_labels) * (t + 1) + (i)]));
     }
 
     /* Return the maximum score (without the normalization factor subtracted). */
