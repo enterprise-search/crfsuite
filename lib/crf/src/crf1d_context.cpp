@@ -386,10 +386,8 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
      */
 
     /* Compute the scores at (0, *). */
-    cur = (&((this->alpha_score)[(this->num_labels) * (0) + (0)]));
-    state = (&((this->state)[(this->num_labels) * (0) + (0)]));
     for (int j = 0;j < L;++j) {
-        cur[j] = state[j];
+        (((this->alpha_score)[(this->num_labels) * (0) + (j)])) = (((this->state)[(this->num_labels) * (0) + (j)]));
     }
 
     /* Compute the scores at (t, *). */
