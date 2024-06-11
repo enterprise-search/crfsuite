@@ -624,6 +624,7 @@ int tag_crf1dmw::crf1dmw_put_feature(int fid, const crf1dm_feature_t* f)
     write_uint32(fp, f->dst);
     write_float(fp, f->weight);
     ++hfeat->num;
+    printf("hfeat->num = %d\n", hfeat->num);
     return 0;
 }
 
@@ -654,6 +655,8 @@ tag_crf1dm::tag_crf1dm(const void* data, size_t size)
     p += read_uint32(p, &header->off_attrs);
     p += read_uint32(p, &header->off_labelrefs);
     p += read_uint32(p, &header->off_attrrefs);
+    printf("nf: %d, nl: %d, na: %d, of: %d, ol:%d, oa: %d, olr: %d, oar: %d\n", header->num_features, header->num_labels, header->num_attrs,
+    header->off_features, header->off_labels, header->off_attrs, header->off_labelrefs, header->off_attrrefs);
     this->header = header;
 
     this->labels = cqdb_reader(
@@ -666,11 +669,18 @@ tag_crf1dm::tag_crf1dm(const void* data, size_t size)
         size - header->off_attrs
         );
 
-    for (int i = 0; i < header->num_features; ++i) {
+    // read chunk
+    uint32_t offset = header->off_features;
+    feature_header_t fh;
+    read_uint8_array(buffer+offset, fh.chunk, 4);
+    read_uint32(buffer+offset+4, &fh.size);
+    read_uint32(buffer+offset+8, &fh.num);
+    printf("chunk: %s, sz = %d, num = %d\n", fh.chunk, fh.size, fh.num);
+    for (int i = 0; i < fh.num; ++i) {
         uint32_t val = 0;
         crf1dm_feature_t f;
         uint32_t offset = header->off_features + CHUNK_SIZE;
-        offset += FEATURE_SIZE * i;
+        offset += FEATURE_SIZE * i;                
         p = buffer + offset;
         p += read_uint32(p, &val);
         f.type = val;

@@ -374,7 +374,6 @@ floatval_t crf1d_context_t::crf1dc_score(const std::vector<int>& labels)
 
 floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
 {
-    int i, j, t;
     int *back = NULL;
     floatval_t max_score, score, *cur = NULL;
     int argmax_score;
@@ -389,22 +388,22 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
     /* Compute the scores at (0, *). */
     cur = (&((this->alpha_score)[(this->num_labels) * (0) + (0)]));
     state = (&((this->state)[(this->num_labels) * (0) + (0)]));
-    for (j = 0;j < L;++j) {
+    for (int j = 0;j < L;++j) {
         cur[j] = state[j];
     }
 
     /* Compute the scores at (t, *). */
-    for (t = 1;t < T;++t) {
+    for (int t = 1;t < T;++t) {
         prev = (&((this->alpha_score)[(this->num_labels) * (t - 1) + (0)]));
         cur = (&((this->alpha_score)[(this->num_labels) * (t) + (0)]));
         state = (&((this->state)[(this->num_labels) * (t) + (0)]));
         back = (&((this->backward_edge)[(this->num_labels) * (t) + (0)]));
 
         /* Compute the score of (t, j). */
-        for (j = 0; j < L; ++j) {
+        for (int j = 0; j < L; ++j) {
             max_score = -FLOAT_MAX;
             argmax_score = -1;
-            for (i = 0; i < L; ++i) {
+            for (int i = 0; i < L; ++i) {
                 /* Transit from (t-1, i) to (t, j). */
                 trans = (&((this->trans)[(this->num_labels) * (i) + (0)]));
                 score = prev[i] + trans[j];
@@ -429,7 +428,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
     /* Set a score for T-1 to be overwritten later. Just in case we don't
        end up with something beating -FLOAT_MAX. */
     labels[T-1] = 0;
-    for (i = 0;i < L;++i) {
+    for (int i = 0;i < L;++i) {
         if (max_score < prev[i]) {
             max_score = prev[i];
             labels[T-1] = i;        /* Tag the item #T. */
@@ -437,7 +436,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
     }
 
     /* Tag labels by tracing the backward links. */
-    for (t = T-2;0 <= t;--t) {
+    for (int t = T-2;0 <= t;--t) {
         back = (&((this->backward_edge)[(this->num_labels) * (t + 1) + (0)]));
         labels[t] = back[labels[t + 1]];
     }
