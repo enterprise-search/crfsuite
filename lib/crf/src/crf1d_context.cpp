@@ -403,8 +403,7 @@ floatval_t crf1d_context_t::crf1dc_viterbi(std::vector<int>& labels)
             argmax_score = -1;
             for (int i = 0; i < L; ++i) {
                 /* Transit from (t-1, i) to (t, j). */
-                trans = (&((this->trans)[(this->num_labels) * (i) + (0)]));
-                score = prev[i] + trans[j];
+                score = prev[i] + (((this->trans)[(this->num_labels) * (i) + (j)]));
 
                 /* Store this path if it has the maximum score. */
                 if (max_score < score) {
