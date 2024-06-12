@@ -333,19 +333,19 @@ public:
         }
     }
 
-    void set_data(dataset_t *ds,logging_t *lg)
+    void set_data(dataset_t &ds,logging_t *lg)
     {
         int i;
         clock_t begin = 0;
         int T = 0;
-        const int L = ds->data->labels->num();
-        const int A = ds->data->attrs->num();
-        const int N = ds->num_instances;
+        const int L = ds.data->labels->num();
+        const int A = ds.data->attrs->num();
+        const int N = ds.num_instances;
         crf1de_option_t *opt = &this->opt;
 
         /* Find the maximum length of items in the data set. */
         for (i = 0;i < N;++i) {
-            const crfsuite_instance_t *inst = ds->get( i);
+            const crfsuite_instance_t *inst = ds.get( i);
             if (T < inst->num_items()) {
                 T = inst->num_items();
             }
@@ -366,7 +366,7 @@ public:
         begin = clock();
         crf1df_generate(
             this->features,
-            *ds,
+            ds,
             L,
             A,
             opt->feature_possible_states ? 1 : 0,
@@ -619,7 +619,7 @@ int tag_encoder::exchange_options(crfsuite_params_t* params, int mode)
     return crf1de_exchange_options(params, &crf1de->opt, mode);
 }
 
-void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
+void tag_encoder::initialize(dataset_t &ds, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
 

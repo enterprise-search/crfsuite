@@ -118,7 +118,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
 
     /* Set the training set to the CRF, and generate features. */
     gm->exchange_options(this->m_params, -1);
-    gm->initialize(&trainset, lg);
+    gm->initialize(trainset, lg);
 
     /* Call the training algorithm. */
     switch (this->algorithm) {

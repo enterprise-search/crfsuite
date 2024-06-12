@@ -173,7 +173,7 @@ struct tag_encoder
      *  @param  lg          The logging interface.
      *  @return             A status code.
      */
-    void initialize(dataset_t *ds, logging_t *lg);
+    void initialize(dataset_t &ds, logging_t *lg);
 
     /**
      * Compute the objective value and gradients for the whole data set.
