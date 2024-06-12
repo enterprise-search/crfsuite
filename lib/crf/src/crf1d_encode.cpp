@@ -65,12 +65,6 @@
  * CRF1d internal data.
  */
  struct crf1de_t{
-    int num_labels;                 /**< Number of distinct output labels (L). */
-    int num_attributes;             /**< Number of distinct attributes (A). */
-
-    int cap_items;                  /**< Maximum length of sequences in the data set. */
-
-    int num_features;               /**< Number of distinct features (K). */
     std::vector<crf1df_feature_t> features;     /**< Array of feature descriptors [K]. */
     std::vector<feature_refs_t> attributes;     /**< References to attribute features [A]. */
     std::vector<feature_refs_t> forward_trans;  /**< References to transition features [L]. */
@@ -78,21 +72,14 @@
     crf1d_context_t *ctx;           /**< CRF1d context. */
     crf1de_option_t opt;            /**< CRF1d options. */
 public:
-     crf1de_t()
-    {
-        this->num_labels = 0;
-        this->num_attributes = 0;
-        this->cap_items = 0;
-        this->num_features = 0;
-        this->ctx = NULL;
-        /* Initialize except for opt. */
-    }   
-     void state_score(const crfsuite_instance_t* inst,const floatval_t* w)
+    size_t num_labels() const { return this->forward_trans.size(); }
+    crf1de_t() {}
+    void state_score(const crfsuite_instance_t* inst,const floatval_t* w)
     {
         int i, t, r;
         crf1d_context_t* ctx = this->ctx;
         const int T = inst->num_items();
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         /* Loop over the items in the sequence. */
         for (t = 0;t < T;++t) {
@@ -126,7 +113,7 @@ public:
         int i, t, r;
         crf1d_context_t* ctx = this->ctx;
         const int T = inst->num_items();
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         /* Forward to the non-scaling version for fast computation when scale == 1. */
         if (scale == 1.) {
@@ -163,7 +150,7 @@ public:
     {
         int i, r;
         crf1d_context_t* ctx = this->ctx;
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         /* Compute transition scores between two labels. */
         for (i = 0;i < L;++i) {
@@ -185,7 +172,7 @@ public:
     {
         int i, r;
         crf1d_context_t* ctx = this->ctx;
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         /* Forward to the non-scaling version for fast computation when scale == 1. */
         if (scale == 1.) {
@@ -218,7 +205,7 @@ public:
         int c, i = -1, t, r;
         crf1d_context_t* ctx = this->ctx;
         const int T = inst->num_items();
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         /* Loop over the items in the sequence. */
         for (t = 0;t < T;++t) {
@@ -270,7 +257,7 @@ public:
         int c, i = -1, t, r;
         crf1d_context_t* ctx = this->ctx;
         const int T = inst->num_items();
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         /* Loop over the items in the sequence. */
         for (t = 0;t < T;++t) {
@@ -322,7 +309,7 @@ public:
         const feature_refs_t *attr = NULL, *trans = NULL;
         const crfsuite_item_t* item = NULL;
         const int T = inst->num_items();
-        const int L = this->num_labels;
+        const int L = this->num_labels();
 
         for (t = 0;t < T;++t) {
             floatval_t *prob = STATE_MEXP(ctx, t);
@@ -372,10 +359,6 @@ public:
         const int N = ds->num_instances;
         crf1de_option_t *opt = &this->opt;
 
-        /* Initialize the member variables. */
-        this->num_attributes = A;
-        this->num_labels = L;
-
         /* Find the maximum length of items in the data set. */
         for (i = 0;i < N;++i) {
             const crfsuite_instance_t *inst = ds->get( i);
@@ -408,8 +391,8 @@ public:
             lg->func,
             lg->instance
             );
-        this->num_features = this->features.size();
-        logging(lg, "Number of features: %d\n", this->num_features);
+        auto num_features = this->features.size();
+        logging(lg, "Number of features: %d\n", num_features);
         logging(lg, "Seconds required: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
         logging(lg, "\n");
 
@@ -420,7 +403,7 @@ public:
             this->attributes,
             this->forward_trans,
             this->features,
-            this->num_features,
+            this->features.size(),
             A,
             L);
     }
@@ -431,9 +414,9 @@ public:
     clock_t begin;
     
     const floatval_t threshold = 0.01;
-    const int L = this->num_labels;
-    const int A = this->num_attributes;
-    const int K = this->num_features;
+    const int L = this->num_labels();
+    const int A = this->attributes.size();
+    const int K = this->features.size();
     int J = 0, B = 0;
 
     /* Start storing the model. */
@@ -465,7 +448,7 @@ public:
     tag_crf1dmw* writer = new tag_crf1dmw(filename);
 
     /* Open a feature chunk in the model file. */
-    writer->crf1dmw_open_features(num_features);
+    writer->crf1dmw_open_features(K);
 
     /*
      *  Write the feature values.
@@ -662,7 +645,7 @@ void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
         ds->data->attrs->num(),
         lg);
     this->ds = ds;
-    this->num_features = crf1de->num_features;
+    this->num_features = crf1de->features.size();
     this->cap_items = crf1de->ctx->cap_items;
 }
 
@@ -673,7 +656,7 @@ void tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t 
     floatval_t logp = 0, logl = 0;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     const int N = ds->num_instances;
-    const int K = crf1de->num_features;
+    const int K = crf1de->features.size();
 
     /*
         Initialize the gradients with observation expectations.
