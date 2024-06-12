@@ -69,20 +69,18 @@ void crf1dt_t::crf1dt_set_level(int level)
 crf1dt_t::crf1dt_t(crf1dm_t* crf1dm)
 {
     auto L = crf1dm->crf1dm_get_num_labels();
-    auto A = crf1dm->crf1dm_get_num_attrs();
     this->model = crf1dm;
     this->ctx = new crf1d_context_t(CTXF_VITERBI | CTXF_MARGINALS, L, 0);
     this->ctx->crf1dc_reset(RF_TRANS);
     {        
         /* Compute transition scores between two labels. */
         for (int i = 0;i < L;++i) {
-            floatval_t *trans = &this->ctx->trans[this->ctx->num_labels * i];
             const feature_refs_t &edge = this->model->crf1dm_get_labelref(i);
             for (int r = 0; r < edge.num_features; ++r) {
                 /* Transition feature from #i to #(f->dst). */
                 int fid = this->model->crf1dm_get_featureid(edge, r);
                 const crf1dm_feature_t &f = this->model->crf1dm_get_feature(fid);
-                trans[f.dst] = f.weight;
+                this->ctx->trans[this->ctx->num_labels * i + f.dst] = f.weight;
             }
         }
     }
@@ -96,7 +94,6 @@ int crf1dt_t::set(const crfsuite_instance_t &inst)
     this->ctx->crf1dc_reset(RF_STATE);
     {        
         const int T = inst.num_items();
-        const int L = this->model->crf1dm_get_num_labels();
 
         /* Loop over the items in the sequence. */
         for (int t = 0;t < T;++t) {
