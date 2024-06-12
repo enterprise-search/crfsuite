@@ -151,7 +151,6 @@ struct tag_encoder
     const floatval_t *w;
     floatval_t scale;
 
-    dataset_t *ds;
     const crfsuite_instance_t *inst;
     int level;
 
@@ -211,7 +210,7 @@ public:
     tag_encoder();
     ~tag_encoder();
 
-    void save_model(const char *filename, const std::vector<floatval_t> &w, logging_t *lg);
+    void save_model(const char *filename, const dataset_t& ds, const std::vector<floatval_t> &w, logging_t *lg);
     /**
      * Sets the feature weights (and their scale factor).
      *  @param  self        The encoder instance.

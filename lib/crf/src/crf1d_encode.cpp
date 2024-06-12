@@ -624,7 +624,6 @@ void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
     crf1de_t *crf1de = (crf1de_t*)this->internal;
 
     crf1de->set_data(ds,lg);
-    this->ds = ds;
     this->num_features = crf1de->features.size();
     this->cap_items = crf1de->ctx->cap_items;
 }
@@ -690,10 +689,10 @@ void tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::v
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-void tag_encoder::save_model(const char *filename, const std::vector<floatval_t> &w, logging_t *lg)
+void tag_encoder::save_model(const char *filename, const dataset_t& ds, const std::vector<floatval_t> &w, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    crf1de->save_model( filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);
+    crf1de->save_model( filename, w, ds.data->attrs,  ds.data->labels, lg);
 }
 
 /* LEVEL_NONE -> LEVEL_WEIGHT. */

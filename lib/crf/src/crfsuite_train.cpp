@@ -176,7 +176,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
 
     /* Store the model file. */
     if (filename != NULL && *filename != '\0') {
-        gm->save_model(filename, w, lg);
+        gm->save_model(filename, trainset, w, lg);
     }
 
     return 0;
