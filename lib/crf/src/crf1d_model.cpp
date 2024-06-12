@@ -624,7 +624,6 @@ int tag_crf1dmw::crf1dmw_put_feature(int fid, const crf1dm_feature_t* f)
     write_uint32(fp, f->dst);
     write_float(fp, f->weight);
     ++hfeat->num;
-    printf("hfeat->num = %d\n", hfeat->num);
     return 0;
 }
 

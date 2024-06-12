@@ -86,19 +86,8 @@ public:
         this->num_features = 0;
         this->ctx = NULL;
         /* Initialize except for opt. */
-    }
-    ~crf1de_t()
-    {
-        int i;
-        if (this->ctx != NULL) {
-            delete this->ctx;
-            this->ctx = NULL;
-        }                 
-    }
-     void state_score(
-    const crfsuite_instance_t* inst,
-    const floatval_t* w
-    )
+    }   
+     void state_score(const crfsuite_instance_t* inst,const floatval_t* w)
     {
         int i, t, r;
         crf1d_context_t* ctx = this->ctx;
