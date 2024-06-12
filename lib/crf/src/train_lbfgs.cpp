@@ -53,7 +53,7 @@
 /**
  * Training parameters (configurable with crfsuite_params_t interface).
  */
-typedef struct {
+struct training_option_t {
     floatval_t  c1;
     floatval_t  c2;
     int         memory;
@@ -63,20 +63,36 @@ typedef struct {
     int         max_iterations;
     char*       linesearch;
     int         linesearch_max_iterations;
-} training_option_t;
+} ;
 
 /**
  * Internal data structure for the callback function of lbfgs().
  */
-typedef struct {
+struct lbfgs_internal_t {
     encoder_t *gm;
     dataset_t *trainset;
     dataset_t *testset;
     logging_t *lg;
     floatval_t c2;
-    floatval_t* best_w;
+    floatval_t* best_w; /* Allocate an array that stores the best weights. */
     clock_t begin;
-} lbfgs_internal_t;
+
+    lbfgs_internal_t(encoder_t *gm,
+                     dataset_t *trainset,
+                     dataset_t *testset,
+                     floatval_t c2,
+                     size_t K,
+                     logging_t *lg)
+        :
+        gm(gm),
+        trainset(trainset),
+        testset(testset),
+        lg(lg),
+        c2(c2),
+        best_w(new floatval_t[K])
+        ,begin(clock())
+    {}
+};
 
 static lbfgsfloatval_t lbfgs_evaluate(
     void *instance,
@@ -227,12 +243,10 @@ int crfsuite_train_lbfgs(
     const int L = trainset->data->labels->num();
     const int A =  trainset->data->attrs->num();
     const int K = gm->num_features;
-    lbfgs_internal_t lbfgsi;
     lbfgs_parameter_t lbfgsparam;
     training_option_t opt;
 
 	/* Initialize the variables. */
-	memset(&lbfgsi, 0, sizeof(lbfgsi));
 	memset(&opt, 0, sizeof(opt));
     lbfgs_parameter_init(&lbfgsparam);
 
@@ -240,12 +254,6 @@ int crfsuite_train_lbfgs(
      * documentation, this needs to be allocated with lbfgs_malloc. */
     floatval_t *w = lbfgs_malloc(K);
     if (w == NULL) {
-        throw std::runtime_error("OOM");
-    }
- 
-    /* Allocate an array that stores the best weights. */ 
-    lbfgsi.best_w = (floatval_t*)calloc(sizeof(floatval_t), K);
-    if (lbfgsi.best_w == NULL) {
         throw std::runtime_error("OOM");
     }
 
@@ -286,15 +294,8 @@ int crfsuite_train_lbfgs(
         lbfgsparam.orthantwise_c = 0;
     }
 
-    /* Set other callback data. */
-    lbfgsi.gm = gm;
-    lbfgsi.trainset = trainset;
-    lbfgsi.testset = testset;
-    lbfgsi.c2 = opt.c2;
-    lbfgsi.lg = lg;
+    lbfgs_internal_t lbfgsi(gm, trainset, testset, opt.c2, K, lg);
 
-    /* Call the L-BFGS solver. */
-    lbfgsi.begin = clock();
     int lbret = lbfgs(
         K,
         w,
@@ -320,7 +321,6 @@ int crfsuite_train_lbfgs(
 
 	/* Report the run-time for the training. */
     logging(lg, "Total seconds required for training: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
-    logging(lg, "\n");
 
     /* Exit with success. */
     lbfgs_free(w);
