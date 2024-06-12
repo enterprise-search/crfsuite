@@ -251,7 +251,7 @@ int crfsuite_train_passive_aggressive(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t> &output
     )
 {
     int n, i, u, ret = 0;
@@ -417,7 +417,8 @@ int crfsuite_train_passive_aggressive(
 
     free(ws);
     free(w);
-    *ptr_w = wa;
+    std::copy_n(wa, K, std::back_inserter(output));
+    free(wa);
     delta_finish(&dc);
     return ret;
 
@@ -425,7 +426,6 @@ error_exit:
     free(wa);
     free(ws);
     free(w);
-    *ptr_w = NULL;
     delta_finish(&dc);
 
     return ret;

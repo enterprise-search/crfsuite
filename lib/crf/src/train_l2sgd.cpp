@@ -442,7 +442,7 @@ int crfsuite_train_l2sgd(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& output
     )
 {
     int ret = 0;
@@ -498,7 +498,8 @@ int crfsuite_train_l2sgd(
     logging(lg, "Total seconds required for training: %.3f\n", (clock() - clk_begin) / (double)CLOCKS_PER_SEC);
     logging(lg, "\n");
 
-    *ptr_w = w;
+    std::copy_n(w, K, std::back_inserter(output));
+    free(w);
     return ret;
 
 error_exit:

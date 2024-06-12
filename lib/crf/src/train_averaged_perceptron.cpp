@@ -109,7 +109,7 @@ int crfsuite_train_averaged_perceptron(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t> &output
     )
 {
     int n, i, c, ret = 0;
@@ -226,14 +226,14 @@ int crfsuite_train_averaged_perceptron(
 
     free(ws);
     free(w);
-    *ptr_w = wa;
+    std::copy_n(wa, K, std::back_inserter(output));
+    free(wa);
     return ret;
 
 error_exit:
     free(wa);
     free(ws);
     free(w);
-    *ptr_w = NULL;
 
     return ret;
 }

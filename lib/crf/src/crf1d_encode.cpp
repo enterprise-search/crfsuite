@@ -393,7 +393,7 @@ public:
     }
 
 
-    int save_model(const char *filename,const floatval_t *w, crfsuite_dictionary_t *attrs, crfsuite_dictionary_t *labels, logging_t *lg)
+    int save_model(const char *filename,const std::vector<floatval_t>& w, crfsuite_dictionary_t *attrs, crfsuite_dictionary_t *labels, logging_t *lg)
     {
     clock_t begin;
     
@@ -690,7 +690,7 @@ void tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::v
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-void tag_encoder::save_model(const char *filename, const floatval_t *w, logging_t *lg)
+void tag_encoder::save_model(const char *filename, const std::vector<floatval_t> &w, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     crf1de->save_model( filename, w, this->ds->data->attrs,  this->ds->data->labels, lg);

@@ -211,7 +211,7 @@ public:
     tag_encoder();
     ~tag_encoder();
 
-    void save_model(const char *filename, const floatval_t *w, logging_t *lg);
+    void save_model(const char *filename, const std::vector<floatval_t> &w, logging_t *lg);
     /**
      * Sets the feature weights (and their scale factor).
      *  @param  self        The encoder instance.
@@ -240,7 +240,7 @@ int crfsuite_train_lbfgs(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& w
     );
 
 void crfsuite_train_lbfgs_init(crfsuite_params_t* params);
@@ -253,7 +253,7 @@ int crfsuite_train_averaged_perceptron(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& w
     );
 
 void crfsuite_train_l2sgd_init(crfsuite_params_t* params);
@@ -264,7 +264,7 @@ int crfsuite_train_l2sgd(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& w
     );
 
 void crfsuite_train_passive_aggressive_init(crfsuite_params_t* params);
@@ -275,7 +275,7 @@ int crfsuite_train_passive_aggressive(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& w
     );
 
 void crfsuite_train_arow_init(crfsuite_params_t* params);
@@ -286,7 +286,7 @@ int crfsuite_train_arow(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& w
     );
 
 int crf1de_create_instance(const char *iid, void **ptr);

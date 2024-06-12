@@ -220,7 +220,7 @@ int crfsuite_train_lbfgs(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& output
     )
 {
     int ret = 0, lbret;
@@ -321,7 +321,7 @@ int crfsuite_train_lbfgs(
 
     /* Set the best_w array (allocated by us) as the result array, which the
      * callee can safely `free`. */
-    *ptr_w = lbfgsi.best_w;
+    std::copy_n(lbfgsi.best_w, K, std::back_inserter(output));
 
 	/* Report the run-time for the training. */
     logging(lg, "Total seconds required for training: %.3f\n", (clock() - begin) / (double)CLOCKS_PER_SEC);
@@ -329,11 +329,12 @@ int crfsuite_train_lbfgs(
 
     /* Exit with success. */
     lbfgs_free(w);
+    free(lbfgsi.best_w);
+
     return 0;
 
 error_exit:
 	free(lbfgsi.best_w);
 	lbfgs_free(w);
-	*ptr_w = NULL;
 	return ret;
 }

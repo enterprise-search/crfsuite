@@ -237,7 +237,7 @@ int crfsuite_train_arow(
     dataset_t *testset,
     crfsuite_params_t *params,
     logging_t *lg,
-    floatval_t **ptr_w
+    std::vector<floatval_t>& output
     )
 {
     int n, i, j, k, ret = 0;
@@ -390,7 +390,8 @@ int crfsuite_train_arow(
 
     free(prod);
     free(cov);
-    *ptr_w = mean;
+    std::copy_n(mean, K, std::back_inserter(output));
+    free(mean);
     delta_finish(&dc);
     return ret;
 
@@ -398,7 +399,6 @@ error_exit:
     free(prod);
     free(cov);
     free(mean);
-    *ptr_w = NULL;
     delta_finish(&dc);
 
     return ret;

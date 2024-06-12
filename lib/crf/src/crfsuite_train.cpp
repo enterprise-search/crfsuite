@@ -104,7 +104,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
     char *algorithm = NULL;
     logging_t *lg = this->lg;
     encoder_t *gm = this->gm;
-    floatval_t *w = NULL;
+    std::vector<floatval_t> w;
     dataset_t trainset;
     dataset_t testset;
 
@@ -129,7 +129,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             (holdout != -1 ? &testset : NULL),
             this->m_params,
             lg,
-            &w
+            w
             );
         break;
     case TRAIN_L2SGD:
@@ -139,7 +139,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             (holdout != -1 ? &testset : NULL),
             this->m_params,
             lg,
-            &w
+            w
             );
         break;
     case TRAIN_AVERAGED_PERCEPTRON:
@@ -149,7 +149,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             (holdout != -1 ? &testset : NULL),
             this->m_params,
             lg,
-            &w
+            w
             );
         break;
     case TRAIN_PASSIVE_AGGRESSIVE:
@@ -159,7 +159,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             (holdout != -1 ? &testset : NULL),
             this->m_params,
             lg,
-            &w
+            w
             );
         break;
     case TRAIN_AROW:
@@ -169,7 +169,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
             (holdout != -1 ? &testset : NULL),
             this->m_params,
             lg,
-            &w
+            w
             );
         break;
     }
@@ -178,7 +178,6 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
     if (filename != NULL && *filename != '\0') {
         gm->save_model(filename, w, lg);
     }
-    free(w);
 
     return 0;
 }
