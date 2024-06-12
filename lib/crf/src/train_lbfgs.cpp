@@ -86,7 +86,6 @@ static lbfgsfloatval_t lbfgs_evaluate(
     const lbfgsfloatval_t step
     )
 {
-    int i;
     floatval_t f, norm = 0.;
     lbfgs_internal_t *lbfgsi = (lbfgs_internal_t*)instance;
     encoder_t *gm = lbfgsi->gm;
@@ -98,7 +97,7 @@ static lbfgsfloatval_t lbfgs_evaluate(
     /* L2 regularization. */
     if (0 < lbfgsi->c2) {
         const floatval_t c22 = lbfgsi->c2 * 2.;
-        for (i = 0;i < n;++i) {
+        for (int i = 0;i < n;++i) {
             g[i] += (c22 * x[i]);
             norm += x[i] * x[i];
         }
@@ -223,8 +222,6 @@ int crfsuite_train_lbfgs(
     std::vector<floatval_t>& output
     )
 {
-    int ret = 0, lbret;
-    floatval_t *w = NULL;
     clock_t begin = clock();
     const int N = trainset->num_instances;
     const int L = trainset->data->labels->num();
@@ -241,17 +238,15 @@ int crfsuite_train_lbfgs(
 
     /* Allocate an array that stores the current weights. As per the liblbfgs
      * documentation, this needs to be allocated with lbfgs_malloc. */
-    w = lbfgs_malloc(K);
+    floatval_t *w = lbfgs_malloc(K);
     if (w == NULL) {
-		ret = CRFSUITEERR_OUTOFMEMORY;
-		goto error_exit;
+        throw std::runtime_error("OOM");
     }
  
     /* Allocate an array that stores the best weights. */ 
     lbfgsi.best_w = (floatval_t*)calloc(sizeof(floatval_t), K);
     if (lbfgsi.best_w == NULL) {
-		ret = CRFSUITEERR_OUTOFMEMORY;
-		goto error_exit;
+        throw std::runtime_error("OOM");
     }
 
     /* Read the L-BFGS parameters. */
@@ -300,7 +295,7 @@ int crfsuite_train_lbfgs(
 
     /* Call the L-BFGS solver. */
     lbfgsi.begin = clock();
-    lbret = lbfgs(
+    int lbret = lbfgs(
         K,
         w,
         NULL,
@@ -332,9 +327,4 @@ int crfsuite_train_lbfgs(
     free(lbfgsi.best_w);
 
     return 0;
-
-error_exit:
-	free(lbfgsi.best_w);
-	lbfgs_free(w);
-	return ret;
 }

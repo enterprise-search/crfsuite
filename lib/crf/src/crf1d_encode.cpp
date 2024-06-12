@@ -335,7 +335,6 @@ public:
 
     void set_data(dataset_t &ds,logging_t *lg)
     {
-        int i;
         clock_t begin = 0;
         int T = 0;
         const int L = ds.data->labels->num();
@@ -344,7 +343,7 @@ public:
         crf1de_option_t *opt = &this->opt;
 
         /* Find the maximum length of items in the data set. */
-        for (i = 0;i < N;++i) {
+        for (int i = 0;i < N;++i) {
             const crfsuite_instance_t *inst = ds.get( i);
             if (T < inst->num_items()) {
                 T = inst->num_items();
@@ -367,8 +366,6 @@ public:
         crf1df_generate(
             this->features,
             ds,
-            L,
-            A,
             opt->feature_possible_states ? 1 : 0,
             opt->feature_possible_transitions ? 1 : 0,
             opt->feature_minfreq,
@@ -386,10 +383,8 @@ public:
         crf1df_init_references(
             this->attributes,
             this->forward_trans,
-            this->features,
-            this->features.size(),
-            A,
-            L);
+            this->features)
+           ;
     }
 
 

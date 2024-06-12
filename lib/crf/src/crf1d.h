@@ -299,8 +299,6 @@ enum {
 void crf1df_generate(
     std::vector<crf1df_feature_t>& features,
     dataset_t &ds,
-    int num_labels,
-    int num_attributes,
     int connect_all_attrs,
     int connect_all_edges,
     floatval_t minfreq,
@@ -312,11 +310,7 @@ void crf1df_generate(
 int crf1df_init_references(
     std::vector<feature_refs_t>& attributes,
     std::vector<feature_refs_t>& trans,
-    const std::vector<crf1df_feature_t>& features,
-    const int K,
-    const int A,
-    const int L
-    );
+    const std::vector<crf1df_feature_t>& features    );
 
 /** @} */
 

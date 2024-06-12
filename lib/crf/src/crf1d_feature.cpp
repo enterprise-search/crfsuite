@@ -93,8 +93,6 @@ public:
 void crf1df_generate(
     std::vector<crf1df_feature_t>& features,
     dataset_t &ds,
-    int num_labels,
-    int num_attributes,
     int connect_all_attrs,
     int connect_all_edges,
     floatval_t minfreq,
@@ -102,10 +100,9 @@ void crf1df_generate(
     void *instance
     )
 {
-    int c, i, j, s, t;
     crf1df_feature_t f;
     const int N = ds.num_instances;
-    const int L = num_labels;
+    const int L = ds.data->labels->num();
     logging_t lg;
 
     lg.func = func;
@@ -118,15 +115,14 @@ void crf1df_generate(
     /* Loop over the sequences in the training data. */
     logging_progress_start(&lg);
 
-    for (s = 0;s < N;++s) {
+    for (int s = 0;s < N;++s) {
         int prev = L, cur = 0;
-        const crfsuite_item_t* item = NULL;
         const crfsuite_instance_t* seq = ds.get( s);
         const int T = seq->num_items();
 
         /* Loop over the items in the sequence. */
-        for (t = 0;t < T;++t) {
-            item = &seq->items[t];
+        for (int t = 0;t < T;++t) {
+            const crfsuite_item_t* item = &seq->items[t];
             cur = seq->labels[t];
 
             /* Transition feature: label #prev -> label #(item->yid).
@@ -139,7 +135,7 @@ void crf1df_generate(
                 set.add(f);
             }
 
-            for (c = 0;c < item->num_contents();++c) {
+            for (int c = 0;c < item->num_contents();++c) {
                 /* State feature: attribute #a -> state #(item->yid). */
                 f.type = FT_STATE;
                 f.src = item->contents[c].aid;
@@ -151,7 +147,7 @@ void crf1df_generate(
                    output labels. These features are not unobserved in the
                    training data (zero expexcations). */
                 if (connect_all_attrs) {
-                    for (i = 0;i < L;++i) {
+                    for (int i = 0;i < L;++i) {
                         f.type = FT_STATE;
                         f.src = item->contents[c].aid;
                         f.dst = i;
@@ -172,8 +168,8 @@ void crf1df_generate(
        These features are not unobserved in the training data
        (zero expexcations). */
     if (connect_all_edges) {
-        for (i = 0;i < L;++i) {
-            for (j = 0;j < L;++j) {
+        for (int i = 0;i < L;++i) {
+            for (int j = 0;j < L;++j) {
                 f.type = FT_TRANS;
                 f.src = i;
                 f.dst = j;
@@ -190,12 +186,11 @@ void crf1df_generate(
 int crf1df_init_references(
     std::vector<feature_refs_t>& attributes,
     std::vector<feature_refs_t>& trans,
-    const std::vector<crf1df_feature_t> &features,
-    const int K,
-    const int A,
-    const int L
-    )
+    const std::vector<crf1df_feature_t> &features)
 {
+    const int K = features.size();
+    const int      A = attributes.size();
+    const int L = trans.size();
     printf("generate: attrs: %lld, A = %d, trans: %lld, L = %d, features: %lld, K = %d\n", attributes.size(), A, trans.size(), L, features.size(), K);
     /*
         The purpose of this routine is to collect references (indices) of:
