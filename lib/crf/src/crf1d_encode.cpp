@@ -344,18 +344,13 @@ public:
         }
     }
 
-    void set_data(
-        dataset_t *ds,
-        int num_labels,
-        int num_attributes,
-        logging_t *lg
-        )
+    void set_data(dataset_t *ds,logging_t *lg)
     {
         int i;
         clock_t begin = 0;
         int T = 0;
-        const int L = num_labels;
-        const int A = num_attributes;
+        const int L = ds->data->labels->num();
+        const int A = ds->data->attrs->num();
         const int N = ds->num_instances;
         crf1de_option_t *opt = &this->opt;
 
@@ -639,11 +634,7 @@ void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
 
-    crf1de->set_data(
-        ds,
-        ds->data->labels->num(),
-        ds->data->attrs->num(),
-        lg);
+    crf1de->set_data(ds,lg);
     this->ds = ds;
     this->num_features = crf1de->features.size();
     this->cap_items = crf1de->ctx->cap_items;
