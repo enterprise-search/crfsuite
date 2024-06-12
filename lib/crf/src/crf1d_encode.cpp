@@ -72,18 +72,18 @@
     crf1d_context_t *ctx;           /**< CRF1d context. */
     crf1de_option_t opt;            /**< CRF1d options. */
 public:
-    size_t num_labels() const { return this->forward_trans.size(); }
     crf1de_t() {}
-    void state_score(const crfsuite_instance_t* inst,const floatval_t* w)
+    size_t num_labels() const { return this->forward_trans.size(); }
+    void state_score(const crfsuite_instance_t& inst,const floatval_t* w)
     {
         int i, t, r;
         crf1d_context_t* ctx = this->ctx;
-        const int T = inst->num_items();
+        const int T = inst.num_items();
         const int L = this->num_labels();
 
         /* Loop over the items in the sequence. */
         for (t = 0;t < T;++t) {
-            const crfsuite_item_t *item = &inst->items[t];
+            const crfsuite_item_t *item = &inst.items[t];
             floatval_t *state = STATE_SCORE(ctx, t);
 
             /* Loop over the contents (attributes) attached to the item. */
@@ -117,7 +117,7 @@ public:
 
         /* Forward to the non-scaling version for fast computation when scale == 1. */
         if (scale == 1.) {
-            this->state_score( inst, w);
+            this->state_score( *inst, w);
             return;
         }
 
@@ -641,12 +641,12 @@ void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-void tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g)
+void tag_encoder::objective_and_gradients_batch(dataset_t& ds, const floatval_t *w, floatval_t *f, floatval_t *g)
 {
     int i;
     floatval_t logp = 0, logl = 0;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    const int N = ds->num_instances;
+    const int N = ds.num_instances;
     const int K = crf1de->features.size();
 
     /*
@@ -669,12 +669,12 @@ void tag_encoder::objective_and_gradients_batch(dataset_t *ds, const floatval_t 
         Compute model expectations.
      */
     for (i = 0;i < N;++i) {
-        const crfsuite_instance_t *seq = ds->get( i);
+        const crfsuite_instance_t *seq = ds.get( i);
 
         /* Set label sequences and state scores. */
         crf1de->ctx->crf1dc_set_num_items(seq->num_items());
         crf1de->ctx->crf1dc_reset(RF_STATE);
-        crf1de->state_score( seq, w);
+        crf1de->state_score(*seq, w);
         crf1de->ctx->crf1dc_exp_state();
 
         /* Compute forward/backward scores. */

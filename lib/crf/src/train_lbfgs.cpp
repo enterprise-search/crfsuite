@@ -93,7 +93,7 @@ static lbfgsfloatval_t lbfgs_evaluate(
     dataset_t *trainset = lbfgsi->trainset;
 
     /* Compute the objective value and gradients. */
-    gm->objective_and_gradients_batch(trainset, x, &f, g);
+    gm->objective_and_gradients_batch(*trainset, x, &f, g);
     
     /* L2 regularization. */
     if (0 < lbfgsi->c2) {

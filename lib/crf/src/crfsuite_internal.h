@@ -186,7 +186,7 @@ struct tag_encoder
      *  @param  g           The pointer to the array that receives gradients.
      *  @return             A status code.
      */
-    void objective_and_gradients_batch(dataset_t *ds, const floatval_t *w, floatval_t *f, floatval_t *g);
+    void objective_and_gradients_batch(dataset_t &ds, const floatval_t *w, floatval_t *f, floatval_t *g);
 
     void features_on_path(const crfsuite_instance_t *inst, const std::vector<int>& path, crfsuite_encoder_features_on_path_callback func, void *instance);
 
