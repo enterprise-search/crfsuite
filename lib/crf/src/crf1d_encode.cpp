@@ -104,11 +104,7 @@ public:
         }
     }
      void
-    state_score_scaled(
-        const crfsuite_instance_t* inst,
-        const floatval_t* w,
-        const floatval_t scale
-        )
+    state_score_scaled(const crfsuite_instance_t* inst,const floatval_t* w,const floatval_t scale)
     {
         int i, t, r;
         crf1d_context_t* ctx = this->ctx;
@@ -121,7 +117,7 @@ public:
             return;
         }
 
-        /* Loop over the items in the sequence. */
+        /* Loop over the items in the sequence. */       
         for (t = 0;t < T;++t) {
             const crfsuite_item_t *item = &inst->items[t];
             floatval_t *state = STATE_SCORE(ctx, t);
@@ -143,10 +139,7 @@ public:
             }
         }
     }
-     void
-    transition_score(
-        const floatval_t* w
-        )
+    void transition_score(const floatval_t* w)
     {
         int i, r;
         crf1d_context_t* ctx = this->ctx;
@@ -164,11 +157,7 @@ public:
             }        
         }
     }
-     void
-    transition_score_scaled(
-        const floatval_t* w,
-        const floatval_t scale
-        )
+    void transition_score_scaled(const floatval_t* w, const floatval_t scale)
     {
         int i, r;
         crf1d_context_t* ctx = this->ctx;
@@ -643,7 +632,6 @@ void tag_encoder::initialize(dataset_t *ds, logging_t *lg)
 /* LEVEL_NONE -> LEVEL_NONE. */
 void tag_encoder::objective_and_gradients_batch(dataset_t& ds, const floatval_t *w, floatval_t *f, floatval_t *g)
 {
-    int i;
     floatval_t logp = 0, logl = 0;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
     const int N = ds.num_instances;
@@ -652,7 +640,7 @@ void tag_encoder::objective_and_gradients_batch(dataset_t& ds, const floatval_t 
     /*
         Initialize the gradients with observation expectations.
      */
-    for (i = 0;i < K;++i) {
+    for (int i = 0;i < K;++i) {
         crf1df_feature_t* f = &crf1de->features[i];
         g[i] = -f->freq;
     }
@@ -668,7 +656,7 @@ void tag_encoder::objective_and_gradients_batch(dataset_t& ds, const floatval_t 
     /*
         Compute model expectations.
      */
-    for (i = 0;i < N;++i) {
+    for (int i = 0;i < N;++i) {
         const crfsuite_instance_t *seq = ds.get( i);
 
         /* Set label sequences and state scores. */
