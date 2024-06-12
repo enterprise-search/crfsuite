@@ -619,7 +619,7 @@ int tag_encoder::exchange_options(crfsuite_params_t* params, int mode)
     return crf1de_exchange_options(params, &crf1de->opt, mode);
 }
 
-void tag_encoder::initialize(dataset_t &ds, logging_t *lg)
+void tag_encoder::set_data(dataset_t &ds, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
 
