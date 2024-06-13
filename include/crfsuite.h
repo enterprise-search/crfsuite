@@ -529,55 +529,6 @@ struct tag_crfsuite_tagger {
 };
 
 /**
- * CRFSuite dictionary interface.
- */
-struct tag_crfsuite_dictionary {
-    /**
-     * Assign and obtain the integer ID for the string.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @param  str         The string.
-     *  @return int         The ID associated with the string if any,
-     *                      the new ID otherwise.
-     */
-    virtual int get(const char *str) = 0;
-
-    /**
-     * Obtain the integer ID for the string.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @param  str         The string.
-     *  @return int         The ID associated with the string if any,
-     *                      \c -1 otherwise.
-     */
-    virtual int to_id(const char *str) = 0;
-
-    /**
-     * Obtain the string for the ID.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @param  id          the string ID.
-     *  @param  pstr        \c *pstr points to the string associated with
-     *                      the ID if any, \c NULL otherwise.
-     *  @return int         \c 0 if the string ID is associated with a string,
-     *                      \c 1 otherwise.
-     */
-    virtual int to_string(int id, char const **pstr) = 0;
-
-    /**
-     * Obtain the number of strings in the dictionary.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @return int         The number of strings stored in the dictionary.
-     */
-    virtual int num() = 0;
-
-    /**
-     * Free the memory block allocated by to_string() function.
-     *  @param  dic         The pointer to this dictionary instance.
-     *  @param  str         The pointer to the string whose memory block is
-     *                      freed.
-     */
-    virtual void free(const char *str) = 0;
-};
-
-/**
  * CRFSuite parameter interface.
  */
 struct tag_crfsuite_params {
