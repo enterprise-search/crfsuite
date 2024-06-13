@@ -53,7 +53,7 @@ void tag_encoder::holdout_evaluation(
     int max_length = 0;
 
     /* Initialize the evaluation table. */
-    crfsuite_evaluation_init(&eval, ds->data->labels->num());
+    crfsuite_evaluation_init(&eval, ds->num_labels());
 
     this->set_weights(w, 1.);
 
@@ -71,5 +71,8 @@ void tag_encoder::holdout_evaluation(
 
     /* Report the performance. */
     crfsuite_evaluation_finalize(&eval);
-    crfsuite_evaluation_output(&eval, ds->data->labels, lg->func, lg->instance);
+    // crfsuite_evaluation_output(&eval, ds->data->labels, lg->func, lg->instance);
+    logging(lg, "Macro-average precision, recall, F1: (%f, %f, %f)\n",eval.macro_precision, eval.macro_recall, eval.macro_fmeasure);
+    logging(lg, "Item accuracy: %d / %d (%1.4f)\n",eval.item_total_correct, eval.item_total_num, eval.item_accuracy);
+    logging(lg, "Instance accuracy: %d / %d (%1.4f)\n",eval.inst_total_correct, eval.inst_total_num, eval.inst_accuracy);
 }

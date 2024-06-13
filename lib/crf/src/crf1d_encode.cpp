@@ -337,8 +337,8 @@ public:
     {
         clock_t begin = 0;
         int T = 0;
-        const int L = ds.data->labels->num();
-        const int A = ds.data->attrs->num();
+        const int L = ds.num_labels();
+        const int A = ds.num_attrs();
         const int N = ds.num_instances();
         crf1de_option_t *opt = &this->opt;
 
@@ -685,7 +685,7 @@ void tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::v
 void tag_encoder::save_model(const char *filename, const dataset_t& ds, const std::vector<floatval_t> &w, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    crf1de->save_model( filename, w, ds.data->attrs,  ds.data->labels, lg);
+    crf1de->save_model( filename, w, ds.attrs(),  ds.labels(), lg);
 }
 
 /* LEVEL_NONE -> LEVEL_WEIGHT. */

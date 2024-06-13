@@ -58,9 +58,14 @@ struct tag_encoder;
 typedef struct tag_encoder encoder_t;
 
 struct dataset_t {
+private:
     crfsuite_data_t *data;
     std::vector<int> perm;
 public:
+    const TextVectorization* labels() const { return this->data->labels; }
+    const TextVectorization* attrs() const { return this->data->attrs; }
+    size_t num_labels() const { return this->data->labels->num(); }
+    size_t num_attrs() const { return this->data->attrs->num(); }
     size_t num_instances() const { return this->perm.size(); }
     void shuffle() {
         //     int i;

@@ -240,8 +240,8 @@ int crfsuite_train_lbfgs(
 {
     clock_t begin = clock();
     const int N = trainset->num_instances();
-    const int L = trainset->data->labels->num();
-    const int A =  trainset->data->attrs->num();
+    const int L = trainset->num_labels();
+    const int A =  trainset->num_attrs();
     const int K = gm->num_features;
     lbfgs_parameter_t lbfgsparam;
     training_option_t opt;
