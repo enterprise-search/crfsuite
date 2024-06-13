@@ -155,7 +155,7 @@ output_result(
     crfsuite_tagger_t *tagger,
     const crfsuite_instance_t *inst,
     std::vector<int>& output,
-    crfsuite_dictionary_t *labels,
+    const StringLookup *labels,
     floatval_t score,
     const tagger_option_t* opt
     )
@@ -174,12 +174,10 @@ output_result(
         if (opt->reference) {
             labels->to_string( inst->labels[i], &label);
             fprintf(fpo, "%s\t", label);
-            labels->free( label);
         }
 
         labels->to_string(output[i], &label);
         fprintf(fpo, "%s", label);
-        labels->free( label);
 
         if (opt->marginal) {
             prob = tagger->marginal_point( output[i], i);
@@ -187,11 +185,10 @@ output_result(
         }
 
         if (opt->marginal_all) {
-            for (l = 0;l < labels->num();++l) {
+            for (l = 0;l < labels->size();++l) {
                 prob = tagger->marginal_point( l, i);
                 labels->to_string( l, &label);
                 fprintf(fpo, "\t%s:%f", label, prob);
-                labels->free(label);
             }
         }
 
@@ -204,8 +201,8 @@ static void
 output_instance(
     FILE *fpo,
     const crfsuite_instance_t *inst,
-    crfsuite_dictionary_t *labels,
-    crfsuite_dictionary_t *attrs
+    StringLookup *labels,
+    StringLookup *attrs
     )
 {
     int i, j;
@@ -214,13 +211,11 @@ output_instance(
         const char *label = NULL;
         labels->to_string(inst->labels[i], &label);
         fprintf(fpo, "%s", label);
-        labels->free(label);
 
         for (j = 0;j < inst->items[i].num_contents();++j) {
             const char *attr = NULL;
             attrs->to_string( inst->items[i].contents[j].aid, &attr);
             fprintf(fpo, "\t%s:%f", attr, inst->items[i].contents[j].value);
-            attrs->free( attr);
         }
 
         fprintf(fpo, "\n");
@@ -251,18 +246,18 @@ static int tag(tagger_option_t* opt, crfsuite_model_t* model)
     FILE *fp = NULL, *fpi = opt->fpi, *fpo = opt->fpo, *fpe = opt->fpe;
 
     /* Obtain the dictionary interface representing the labels in the model. */
-    crfsuite_dictionary_t* labels = model->get_labels();
+    auto labels = model->get_labels();
 
 
     /* Obtain the dictionary interface representing the attributes in the model. */
-    crfsuite_dictionary_t *attrs = model->get_attrs();
+    auto attrs = model->get_attrs();
 
     /* Obtain the tagger interface. */
     crfsuite_tagger_t *tagger = model->get_tagger();
 
 
     /* Initialize the objects for instance and evaluation. */
-    L = labels->num();
+    L = labels->size();
     crfsuite_evaluation_init(&eval, L);
 
     /* Open the stream for the input data. */

@@ -237,7 +237,6 @@ int main_learn(int argc, char *argv[], const char *argv0)
     FILE *fpi = stdin, *fpo = stdout, *fpe = stderr;
     crfsuite_data_t data;
     crfsuite_trainer_t *trainer = NULL;
-    crfsuite_dictionary_t *attrs = NULL, *labels = NULL;
 
     /* Initializations. */
     learn_option_init(&opt);
@@ -276,18 +275,8 @@ int main_learn(int argc, char *argv[], const char *argv0)
     }
 
     /* Create dictionaries for attributes and labels. */
-    ret = crfsuite_dictionary_create_instance("dictionary", (void**)&data.attrs);
-    if (ret) {
-        fprintf(fpe, "ERROR: Failed to create a dictionary instance.\n");
-        ret = 1;
-        goto force_exit;
-    }
-    ret = crfsuite_dictionary_create_instance("dictionary", (void**)&data.labels);
-    if (ret) {
-        fprintf(fpe, "ERROR: Failed to create a dictionary instance.\n");
-        ret = 1;
-        goto force_exit;
-    }
+    data.attrs = new TextVectorization();
+    data.labels = new TextVectorization();    
 
     /* Create a trainer instance. */
     sprintf(trainer_id, "train/%s/%s", opt.type, opt.algorithm);

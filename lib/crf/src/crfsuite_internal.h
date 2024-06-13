@@ -225,7 +225,6 @@ public:
 };
 
 
-
 void holdout_evaluation(
     encoder_t *gm,
     dataset_t *testset,

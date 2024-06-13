@@ -388,7 +388,7 @@ public:
     }
 
 
-    int save_model(const char *filename,const std::vector<floatval_t>& w, crfsuite_dictionary_t *attrs, crfsuite_dictionary_t *labels, logging_t *lg)
+    int save_model(const char *filename,const std::vector<floatval_t>& w, const TextVectorization *attrs, const TextVectorization *labels, logging_t *lg)
     {
     clock_t begin;
     
@@ -478,7 +478,6 @@ public:
         labels->to_string( l, &str);
         if (str != NULL) {
             writer->crf1dmw_put_label(l, str);
-            labels->free( str);
         }
     }
     writer->crf1dmw_close_labels();
@@ -492,7 +491,6 @@ public:
             attrs->to_string( a, &str);
             if (str != NULL) {
                 writer->crf1dmw_put_attr(amap[a], str);
-                attrs->free( str);
             }
         }
     }

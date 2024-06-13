@@ -42,16 +42,12 @@
 #include "logging.h"
 
 int crf1de_create_instance(const char *iid, void **ptr);
-int crfsuite_dictionary_create_instance(const char *interface, void **ptr);
 int crf1m_create_instance_from_file(const char *filename, void **ptr);
 int crf1m_create_instance_from_memory(const void *data, size_t size, void **ptr);
 
 int crfsuite_create_instance(const char *iid, void **ptr)
 {
-    int ret = 
-        crf1de_create_instance(iid, ptr) == 0 ||
-        crfsuite_dictionary_create_instance(iid, ptr) == 0;
-
+    int ret = crf1de_create_instance(iid, ptr) == 0;
     return ret;
 }
 
@@ -199,9 +195,8 @@ void crfsuite_evaluation_finalize(crfsuite_evaluation_t* eval)
     }
 }
 
-void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, crfsuite_dictionary_t* labels, crfsuite_logging_callback cbm, void *instance)
+void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, const TextVectorization* labels, crfsuite_logging_callback cbm, void *instance)
 {
-    int i;
     const char *lstr = NULL;
     logging_t lg;
 
@@ -210,33 +205,47 @@ void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, crfsuite_dictionary
 
     logging(&lg, "Performance by label (#match, #model, #ref) (precision, recall, F1):\n");
 
-    for (i = 0;i < eval->num_labels;++i) {
+    for (int i = 0;i < eval->num_labels;++i) {
         const crfsuite_label_evaluation_t* lev = &eval->tbl[i];
 
         labels->to_string(i, &lstr);
         if (lstr == NULL) lstr = "[UNKNOWN]";
 
         if (lev->num_observation == 0) {
-            logging(&lg, "    %s: (%d, %d, %d) (******, ******, ******)\n",
-                lstr, lev->num_correct, lev->num_model, lev->num_observation
-                );
+            logging(&lg, "    %s: (%d, %d, %d) (******, ******, ******)\n",lstr, lev->num_correct, lev->num_model, lev->num_observation);
         } else {
-            logging(&lg, "    %s: (%d, %d, %d) (%1.4f, %1.4f, %1.4f)\n",
-                lstr, lev->num_correct, lev->num_model, lev->num_observation,
-                lev->precision, lev->recall, lev->fmeasure
-                );
+            logging(&lg, "    %s: (%d, %d, %d) (%1.4f, %1.4f, %1.4f)\n",lstr, lev->num_correct, lev->num_model, lev->num_observation,lev->precision, lev->recall, lev->fmeasure);
         }
-        labels->free( lstr);
     }
-    logging(&lg, "Macro-average precision, recall, F1: (%f, %f, %f)\n",
-        eval->macro_precision, eval->macro_recall, eval->macro_fmeasure
-        );
-    logging(&lg, "Item accuracy: %d / %d (%1.4f)\n",
-        eval->item_total_correct, eval->item_total_num, eval->item_accuracy
-        );
-    logging(&lg, "Instance accuracy: %d / %d (%1.4f)\n",
-        eval->inst_total_correct, eval->inst_total_num, eval->inst_accuracy
-        );
+    logging(&lg, "Macro-average precision, recall, F1: (%f, %f, %f)\n",eval->macro_precision, eval->macro_recall, eval->macro_fmeasure);
+    logging(&lg, "Item accuracy: %d / %d (%1.4f)\n",eval->item_total_correct, eval->item_total_num, eval->item_accuracy);
+    logging(&lg, "Instance accuracy: %d / %d (%1.4f)\n",eval->inst_total_correct, eval->inst_total_num, eval->inst_accuracy);
+}
+void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, const StringLookup* labels, crfsuite_logging_callback cbm, void *instance)
+{
+    const char *lstr = NULL;
+    logging_t lg;
+
+    lg.func = cbm;
+    lg.instance = instance;
+
+    logging(&lg, "Performance by label (#match, #model, #ref) (precision, recall, F1):\n");
+
+    for (int i = 0;i < eval->num_labels;++i) {
+        const crfsuite_label_evaluation_t* lev = &eval->tbl[i];
+
+        labels->to_string(i, &lstr);
+        if (lstr == NULL) lstr = "[UNKNOWN]";
+
+        if (lev->num_observation == 0) {
+            logging(&lg, "    %s: (%d, %d, %d) (******, ******, ******)\n",lstr, lev->num_correct, lev->num_model, lev->num_observation);
+        } else {
+            logging(&lg, "    %s: (%d, %d, %d) (%1.4f, %1.4f, %1.4f)\n",lstr, lev->num_correct, lev->num_model, lev->num_observation,lev->precision, lev->recall, lev->fmeasure);
+        }
+    }
+    logging(&lg, "Macro-average precision, recall, F1: (%f, %f, %f)\n",eval->macro_precision, eval->macro_recall, eval->macro_fmeasure);
+    logging(&lg, "Item accuracy: %d / %d (%1.4f)\n",eval->item_total_correct, eval->item_total_num, eval->item_accuracy);
+    logging(&lg, "Instance accuracy: %d / %d (%1.4f)\n",eval->inst_total_correct, eval->inst_total_num, eval->inst_accuracy);
 }
 
 int crfsuite_interlocked_increment(int *count)

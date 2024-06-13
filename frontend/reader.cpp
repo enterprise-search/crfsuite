@@ -63,8 +63,8 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
     crfsuite_item_t item;
     crfsuite_attribute_t cont;
     iwa_t* iwa = NULL;
-    crfsuite_dictionary_t *attrs = data->attrs;
-    crfsuite_dictionary_t *labels = data->labels;
+    auto attrs = data->attrs;
+    auto labels = data->labels;
     const iwa_token_t *token = NULL;
     long filesize = 0, begin = 0, offset = 0;
     int prev = 0, current = 0;

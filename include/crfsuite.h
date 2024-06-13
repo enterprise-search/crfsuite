@@ -36,7 +36,10 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <cqdb.h>
 #include <vector>
+#include <map>
+#include <string>
 
 /** 
  * \addtogroup crfsuite_api CRFSuite C API
@@ -87,6 +90,68 @@ enum {
 
 /**@}*/
 
+ struct StringLookup {
+ private:
+     cqdb_t*        db;
+     size_t n;
+ public:
+     StringLookup(cqdb_t *db, size_t n): db(db), n(n) {}
+
+     int to_id(const char *str) const { return cqdb_to_id(db, str); }
+
+     int to_string(int id, char const **pstr) const
+     {
+         *pstr = cqdb_to_string(db, id);
+         return 0;
+     }
+
+     size_t size() const { return this->n; }
+
+};
+
+struct TextVectorization {
+public:
+    int get(const char *str)
+    {
+        auto s = std::string(str);
+        auto it = this->m.find(s);
+        if (it != this->m.end()) {
+            return it->second;
+        } else {
+            this->m[s] = this->v.size();
+            this->v.push_back(s);
+            return this->v.size()-1;
+        }
+        return 0;
+    }
+    int to_id(const char *str) const
+    {
+        auto s = std::string(str);
+        auto it = this->m.find(s);
+        if (it != this->m.end()) {
+            return it->second;
+        }
+        return -1;
+    }
+
+    int to_string(int id, char const **pstr) const
+    {
+        if (id < this->v.size()) {
+            auto s = this->v[id];
+            char *dst = (char*)malloc(s.length()+1);
+            if (dst) {
+                strcpy(dst, s.c_str());
+                *pstr = dst;
+                return 0;
+            }
+        }
+        return 1;
+    }
+    size_t num() const { return this->v.size();}
+private:
+    std::map<std::string, int> m;
+    std::vector<std::string> v;
+};
 
 
 /**
@@ -105,10 +170,6 @@ typedef struct tag_crfsuite_trainer crfsuite_trainer_t;
 struct tag_crfsuite_tagger;
 /** CRFSuite tagger interface. */
 typedef struct tag_crfsuite_tagger crfsuite_tagger_t;
-
-struct tag_crfsuite_dictionary;
-/** CRFSuite dictionary interface. */
-typedef struct tag_crfsuite_dictionary crfsuite_dictionary_t;
 
 struct tag_crfsuite_params;
 /** CRFSuite parameter interface. */
@@ -199,9 +260,9 @@ struct crfsuite_data_t{
     std::vector<crfsuite_instance_t>     instances;
 
     /** Dictionary object for attributes. */
-    crfsuite_dictionary_t    *attrs;
+    TextVectorization    *attrs;
     /** Dictionary object for labels. */
-    crfsuite_dictionary_t    *labels;
+    TextVectorization    *labels;
 public:
 
     void append(const crfsuite_instance_t& inst)
@@ -332,7 +393,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    virtual crfsuite_dictionary_t* get_labels() = 0;
+    virtual const StringLookup* get_labels() = 0;
 
     /**
      * Obtain the pointer to crfsuite_dictionary_t interface for attributes.
@@ -341,7 +402,7 @@ struct tag_crfsuite_model {
      *                      pointer.
      *  @return int         The status code.
      */
-    virtual crfsuite_dictionary_t* get_attrs() = 0;
+    virtual const StringLookup* get_attrs() = 0;
 
     /**
      * Print the model in human-readable format.
@@ -351,8 +412,6 @@ struct tag_crfsuite_model {
      */
     virtual void dump(FILE *fpo) = 0;
 };
-
-int crfsuite_dictionary_create_instance(const char *interface, void **ptr);
 
 /**
  * CRFSuite trainer interface.
@@ -732,8 +791,8 @@ int crfsuite_create_instance_from_memory(const void *data, size_t size, void **p
 int crfsuite_create_tagger(
     const char *filename,
     crfsuite_tagger_t** ptr_tagger,
-    crfsuite_dictionary_t** ptr_attrs,
-    crfsuite_dictionary_t** ptr_labels
+    StringLookup** ptr_attrs,
+    StringLookup** ptr_labels
     );
 
 /**@}*/
@@ -795,7 +854,8 @@ void crfsuite_evaluation_finalize(crfsuite_evaluation_t* eval);
  *  @param  user        The pointer to the user data that is forwarded to the
  *                      callback function.
  */
-void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, crfsuite_dictionary_t* labels, crfsuite_logging_callback cbm, void *user);
+void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, const TextVectorization* labels, crfsuite_logging_callback cbm, void *user);
+void crfsuite_evaluation_output(crfsuite_evaluation_t* eval, const StringLookup* labels, crfsuite_logging_callback cbm, void *user);
 
 /**@}*/
 

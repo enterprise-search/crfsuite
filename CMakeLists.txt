@@ -36,7 +36,6 @@ FILE (GLOB
       ${PROJECT_SOURCE_DIR}/lib/crf/src/crf1d_tag.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/crfsuite_train.cpp
-      ${PROJECT_SOURCE_DIR}/lib/crf/src/dictionary.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/holdout.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/logging.cpp
       ${PROJECT_SOURCE_DIR}/lib/crf/src/params.cpp
