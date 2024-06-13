@@ -239,7 +239,7 @@ int crfsuite_train_lbfgs(
     )
 {
     clock_t begin = clock();
-    const int N = trainset->num_instances;
+    const int N = trainset->num_instances();
     const int L = trainset->data->labels->num();
     const int A =  trainset->data->attrs->num();
     const int K = gm->num_features;

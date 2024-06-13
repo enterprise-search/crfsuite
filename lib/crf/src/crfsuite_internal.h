@@ -57,19 +57,19 @@ typedef struct tag_crfsuite_train_internal crfsuite_train_internal_t;
 struct tag_encoder;
 typedef struct tag_encoder encoder_t;
 
- struct dataset_t {
+struct dataset_t {
     crfsuite_data_t *data;
     std::vector<int> perm;
-    int num_instances;
 public:
+    size_t num_instances() const { return this->perm.size(); }
     void shuffle() {
-            int i;
-        for (i = 0;i < this->num_instances;++i) {
-            int j = rand() % this->num_instances;
-            int tmp = this->perm[j];
-            this->perm[j] = this->perm[i];
-            this->perm[i] = tmp;
-        }
+        //     int i;
+        // for (i = 0;i < this->num_instances;++i) {
+        //     int j = rand() % this->num_instances;
+        //     int tmp = this->perm[j];
+        //     this->perm[j] = this->perm[i];
+        //     this->perm[i] = tmp;
+        // }
     }
     crfsuite_instance_t *get(int i)
     {
@@ -77,45 +77,21 @@ public:
     }
 
     void init_trainset(crfsuite_data_t *data, int holdout)
-    {
-        int i, n = 0;
-
-        for (i = 0;i < data->num_instances();++i) {
-            if (data->instances[i].group != holdout) {
-                ++n;
-            }
-        }
-
+    {      
         this->data = data;
-        this->num_instances = n;
-        this->perm = std::vector<int>(n);
 
-        n = 0;
-        for (i = 0;i < data->num_instances();++i) {
+        for (int i = 0;i < data->num_instances();++i) {
             if (data->instances[i].group != holdout) {
-                this->perm[n++] = i;
+                this->perm.push_back(i);
             }
         }    
     }
 
     void init_testset(crfsuite_data_t *data, int holdout)
     {
-        int i, n = 0;
-
-        for (i = 0;i < data->num_instances();++i) {
+        for (int i = 0;i < data->num_instances();++i) {
             if (data->instances[i].group == holdout) {
-                ++n;
-            }
-        }
-
-        this->data = data;
-        this->num_instances = n;
-        this->perm = std::vector<int>(n);
-
-        n = 0;
-        for (i = 0;i < data->num_instances();++i) {
-            if (data->instances[i].group == holdout) {
-                this->perm[n++] = i;
+                this->perm.push_back(i);
             }
         }
     }

@@ -101,7 +101,7 @@ void crf1df_generate(
     )
 {
     crf1df_feature_t f;
-    const int N = ds.num_instances;
+    const int N = ds.num_instances();
     const int L = ds.data->labels->num();
     logging_t lg;
 

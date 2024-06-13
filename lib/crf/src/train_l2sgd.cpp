@@ -298,7 +298,7 @@ l2sgd_calibration(
     floatval_t best_loss = DBL_MAX;
     floatval_t eta = opt->calibration_eta;
     floatval_t best_eta = opt->calibration_eta;
-    const int N = ds->num_instances;
+    const int N = ds->num_instances();
     const int S = MIN(N, opt->calibration_samples);
     const int K = gm->num_features;
     const floatval_t init_eta = opt->calibration_eta;
@@ -449,7 +449,7 @@ int crfsuite_train_l2sgd(
     floatval_t *w = NULL;
     clock_t clk_begin;
     floatval_t loss = 0;
-    const int N = trainset->num_instances;
+    const int N = trainset->num_instances();
     const int K = gm->num_features;
     const int T = gm->cap_items;
     training_option_t opt;

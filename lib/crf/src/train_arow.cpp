@@ -243,7 +243,7 @@ int crfsuite_train_arow(
     int n, i, j, k, ret = 0;
     floatval_t beta;
     floatval_t *mean = NULL, *cov = NULL, *prod = NULL;
-    const int N = trainset->num_instances;
+    const int N = trainset->num_instances();
     const int K = gm->num_features;
     const int T = gm->cap_items;
     training_option_t opt;

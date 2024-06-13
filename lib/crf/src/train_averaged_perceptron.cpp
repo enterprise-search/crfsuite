@@ -116,7 +116,7 @@ int crfsuite_train_averaged_perceptron(
     floatval_t *w = NULL;
     floatval_t *ws = NULL;
     floatval_t *wa = NULL;
-    const int N = trainset->num_instances;
+    const int N = trainset->num_instances();
     const int K = gm->num_features;
     const int T = gm->cap_items;
     training_option_t opt;

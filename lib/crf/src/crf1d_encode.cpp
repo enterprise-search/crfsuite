@@ -339,7 +339,7 @@ public:
         int T = 0;
         const int L = ds.data->labels->num();
         const int A = ds.data->attrs->num();
-        const int N = ds.num_instances;
+        const int N = ds.num_instances();
         crf1de_option_t *opt = &this->opt;
 
         /* Find the maximum length of items in the data set. */
@@ -626,7 +626,7 @@ void tag_encoder::objective_and_gradients_batch(dataset_t& ds, const floatval_t 
 {
     floatval_t logp = 0, logl = 0;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    const int N = ds.num_instances;
+    const int N = ds.num_instances();
     const int K = crf1de->features.size();
 
     /*
