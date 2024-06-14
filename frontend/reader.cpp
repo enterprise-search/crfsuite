@@ -56,18 +56,17 @@ static int progress(FILE *fpo, int prev, int current)
     return prev;
 }
 
-int read_data(FILE *fpi, FILE *fpo, crfsuite_dataset_t* data, int group)
+dataset_t read_data(TextVectorization* attrs, TextVectorization*labels, FILE *fpi, FILE *fpo, int group)
 {
     int n = 0;
     int lid = -1;
     crfsuite_item_t item;
     crfsuite_attribute_t cont;
     iwa_t* iwa = NULL;
-    auto attrs = data->attrs;
-    auto labels = data->labels;
     const iwa_token_t *token = NULL;
     long filesize = 0, begin = 0, offset = 0;
     int prev = 0, current = 0;
+    std::vector<crfsuite_instance_t> instances;
 
     /* Initialize the instance.*/
     crfsuite_instance_t inst;
@@ -116,7 +115,7 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_dataset_t* data, int group)
                         fprintf(fpo, "\n");
                         fprintf(fpo, "ERROR: unrecognized declaration: %s\n", token->attr);
                         iwa_delete(iwa);
-                        return -1;
+                        throw std::runtime_error("read");
                     }
                 } else {
                     /* Label. */
@@ -135,7 +134,10 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_dataset_t* data, int group)
         case IWA_NONE:
         case IWA_EOF:
             /* Put the training instance. */
-            data->append(inst);
+            if (!inst.empty()) {
+                instances.push_back(inst);
+            }
+
             inst.clear();
             inst.group = group;
             inst.weight = 1.;
@@ -149,5 +151,5 @@ int read_data(FILE *fpi, FILE *fpo, crfsuite_dataset_t* data, int group)
 
     iwa_delete(iwa);
 
-    return n;
+    return dataset_t(instances, labels->num(), attrs->num());
 }

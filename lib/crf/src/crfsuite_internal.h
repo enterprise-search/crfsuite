@@ -57,51 +57,6 @@ typedef struct tag_crfsuite_train_internal crfsuite_train_internal_t;
 struct tag_encoder;
 typedef struct tag_encoder encoder_t;
 
-struct dataset_t {
-private:
-    crfsuite_dataset_t *data;
-    std::vector<int> perm;
-public:
-    const TextVectorization* labels() const { return this->data->labels; }
-    const TextVectorization* attrs() const { return this->data->attrs; }
-    size_t num_labels() const { return this->data->labels->num(); }
-    size_t num_attrs() const { return this->data->attrs->num(); }
-    size_t num_instances() const { return this->perm.size(); }
-    void shuffle() {
-        //     int i;
-        // for (i = 0;i < this->num_instances;++i) {
-        //     int j = rand() % this->num_instances;
-        //     int tmp = this->perm[j];
-        //     this->perm[j] = this->perm[i];
-        //     this->perm[i] = tmp;
-        // }
-    }
-    crfsuite_instance_t *get(int i)
-    {
-        return &this->data->instances[this->perm[i]];
-    }
-
-    void init_trainset(crfsuite_dataset_t *data, int holdout)
-    {      
-        this->data = data;
-
-        for (int i = 0;i < data->num_instances();++i) {
-            if (data->instances[i].group != holdout) {
-                this->perm.push_back(i);
-            }
-        }    
-    }
-
-    void init_testset(crfsuite_dataset_t *data, int holdout)
-    {
-        for (int i = 0;i < data->num_instances();++i) {
-            if (data->instances[i].group == holdout) {
-                this->perm.push_back(i);
-            }
-        }
-    }
-} ;
-
 
 typedef void (*crfsuite_encoder_features_on_path_callback)(void *instance, int fid, floatval_t value);
 
@@ -116,10 +71,9 @@ struct tag_crfsuite_train_internal: public tag_crfsuite_trainer {
     int algorithm;              /**< Training algorithm. */
 
     tag_crfsuite_train_internal(int ftype, int algorithm);
-    ~tag_crfsuite_train_internal();
     void set_message_callback(void *instance, crfsuite_logging_callback cbm);
     crfsuite_params_t* params();
-    int train(const crfsuite_dataset_t *data, const char *filename, int holdout);
+    int train(const crfsuite_dataset_t *data, const char *filename, int holdout, const TextVectorization *attrs, const TextVectorization *labels);
 };
 
 /**
@@ -191,7 +145,7 @@ public:
     tag_encoder();
     ~tag_encoder();
 
-    void save_model(const char *filename, const dataset_t& ds, const std::vector<floatval_t> &w, logging_t *lg);
+    void save_model(const char *filename, const std::vector<floatval_t> &w, const TextVectorization *attrs, const TextVectorization *labels, logging_t *lg);
     /**
      * Sets the feature weights (and their scale factor).
      *  @param  self        The encoder instance.

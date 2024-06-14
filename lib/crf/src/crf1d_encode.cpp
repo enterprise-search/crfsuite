@@ -339,7 +339,7 @@ public:
         int T = 0;
         const int L = ds.num_labels();
         const int A = ds.num_attrs();
-        const int N = ds.num_instances();
+        const int N = ds.size();
         crf1de_option_t *opt = &this->opt;
 
         /* Find the maximum length of items in the data set. */
@@ -626,7 +626,7 @@ void tag_encoder::objective_and_gradients_batch(dataset_t& ds, const floatval_t 
 {
     floatval_t logp = 0, logl = 0;
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    const int N = ds.num_instances();
+    const int N = ds.size();
     const int K = crf1de->features.size();
 
     /*
@@ -682,10 +682,10 @@ void tag_encoder::features_on_path(const crfsuite_instance_t *inst, const std::v
 }
 
 /* LEVEL_NONE -> LEVEL_NONE. */
-void tag_encoder::save_model(const char *filename, const dataset_t& ds, const std::vector<floatval_t> &w, logging_t *lg)
+void tag_encoder::save_model(const char *filename, const std::vector<floatval_t> &w, const TextVectorization *attrs, const TextVectorization *labels, logging_t *lg)
 {
     crf1de_t *crf1de = (crf1de_t*)this->internal;
-    crf1de->save_model( filename, w, ds.attrs(),  ds.labels(), lg);
+    crf1de->save_model( filename, w, attrs,  labels, lg);
 }
 
 /* LEVEL_NONE -> LEVEL_WEIGHT. */

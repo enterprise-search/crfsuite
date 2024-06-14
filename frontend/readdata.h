@@ -33,6 +33,7 @@
 #ifndef    __READDATA_H__
 #define    __READDATA_H__
 
-int read_data(FILE *fpi, FILE *fpo, crfsuite_dataset_t* data, int group);
+crfsuite_dataset_t read_data(TextVectorization*, TextVectorization*,
+    FILE *fpi, FILE *fpo, int group);
 
 #endif/*__READDATA_H__*/

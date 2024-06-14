@@ -235,7 +235,6 @@ int main_learn(int argc, char *argv[], const char *argv0)
     learn_option_t opt;
     const char *command = argv[0];
     FILE *fpi = stdin, *fpo = stdout, *fpe = stderr;
-    crfsuite_dataset_t data;
     crfsuite_trainer_t *trainer = NULL;
 
     /* Initializations. */
@@ -244,14 +243,13 @@ int main_learn(int argc, char *argv[], const char *argv0)
     /* Parse the command-line option. */
     arg_used = option_parse(++argv, --argc, parse_learn_options, &opt);
     if (arg_used < 0) {
-        ret = 1;
-        goto force_exit;
+        return 1;
     }
 
     /* Show the help message for this command if specified. */
     if (opt.help) {
         show_usage(fpo, argv0, command);
-        goto force_exit;
+        return 1;
     }
 
     /* Open a log file if necessary. */
@@ -269,22 +267,16 @@ int main_learn(int argc, char *argv[], const char *argv0)
         fpo = fopen(fname, "w");
         if (fpo == NULL) {
             fprintf(fpe, "ERROR: Failed to open the log file.\n");
-            ret = 1;
-            goto force_exit;
+            return 1;
         }
-    }
-
-    /* Create dictionaries for attributes and labels. */
-    data.attrs = new TextVectorization();
-    data.labels = new TextVectorization();    
+    }    
 
     /* Create a trainer instance. */
     sprintf(trainer_id, "train/%s/%s", opt.type, opt.algorithm);
     ret = crfsuite_create_instance(trainer_id, (void**)&trainer);
     if (!ret) {
         fprintf(fpe, "ERROR: Failed to create a trainer instance.\n");
-        ret = 1;
-        goto force_exit;
+        return 1;
     }
 
     /* Show the help message for the training algorithm if specified. */
@@ -315,7 +307,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
         }
 
         params->release(params);
-        goto force_exit;
+        return 1;
     }
 
     /* Set parameters. */
@@ -332,7 +324,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
 
         if (params->set(params, name, value) != 0) {
             fprintf(fpe, "ERROR: paraneter not found: %s\n", name);
-            goto force_exit;
+            return 1;
         }
         params->release(params);
     }
@@ -341,56 +333,51 @@ int main_learn(int argc, char *argv[], const char *argv0)
     time(&ts);
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%SZ", gmtime(&ts));
     fprintf(fpo, "Start time of the training: %s\n", timestamp);
-    fprintf(fpo, "\n");
 
     /* Read the training data. */
     fprintf(fpo, "Reading the data set(s)\n");
+    dataset_t ds(0, 0);
+    TextVectorization attrs;
+    TextVectorization labels;
     for (i = arg_used;i < argc;++i) {
         FILE *fp = (strcmp(argv[i], "-") == 0) ? fpi : fopen(argv[i], "r");
         if (fp == NULL) {
             fprintf(fpe, "ERROR: Failed to open the data set: %s\n", argv[i]);
-            ret = 1;
-            goto force_exit;        
+            return 1;
         }
 
         fprintf(fpo, "[%d] %s\n", i-arg_used+1, argv[i]);
         clk_begin = clock();
-        n = read_data(fp, fpo, &data, i-arg_used);
-        if (n == -1) {
-            fclose(fp);
-            ret = 1;
-            goto force_exit;
-        }
+        ds = read_data(&attrs, &labels, fp, fpo, i-arg_used);
         clk_current = clock();
         fprintf(fpo, "Number of instances: %d\n", n);
         fprintf(fpo, "Seconds required: %.3f\n", (clk_current - clk_begin) / (double)CLOCKS_PER_SEC);
         fclose(fp);
     }
     groups = argc-arg_used;
-    fprintf(fpo, "\n");
 
     /* Split into data sets if necessary. */
     if (0 < opt.split) {
         /* Shuffle the instances. */
-        for (i = 0;i < data.num_instances();++i) {
-            int j = rand() % data.num_instances();
-            std::swap(data.instances[i], data.instances[j]);
-        }
+        // for (i = 0;i < data.num_instances();++i) {
+        //     int j = rand() % data.num_instances();
+        //     std::swap(data.instances[i], data.instances[j]);
+        // }
 
-        /* Assign group numbers. */
-        for (i = 0;i < data.num_instances();++i) {
-            data.instances[i].group = i % opt.split;
-        }
+        // /* Assign group numbers. */
+        // for (i = 0;i < data.num_instances();++i) {
+        //     data.instances[i].group = i % opt.split;
+        // }
         groups = opt.split;
     }
 
     /* Report the statistics of the training data. */
     fprintf(fpo, "Statistics the data set(s)\n");
     fprintf(fpo, "Number of data sets (groups): %d\n", groups);
-    fprintf(fpo, "Number of instances: %d\n", data.num_instances());
-    fprintf(fpo, "Number of items: %d\n", data.totalitems());
-    fprintf(fpo, "Number of attributes: %d\n", data.attrs->num());
-    fprintf(fpo, "Number of labels: %d\n", data.labels->num());
+    fprintf(fpo, "Number of instances: %d\n", ds.size());
+    fprintf(fpo, "Number of items: %d\n", ds.totalitems());
+    fprintf(fpo, "Number of attributes: %d\n", ds.num_attrs());
+    fprintf(fpo, "Number of labels: %d\n", ds.num_labels());
     fprintf(fpo, "\n");
     fflush(fpo);
 
@@ -401,15 +388,15 @@ int main_learn(int argc, char *argv[], const char *argv0)
     if (opt.cross_validation) {
         for (i = 0;i < groups;++i) {
             fprintf(fpo, "===== Cross validation (%d/%d) =====\n", i+1, groups);
-            if (ret = trainer->train(&data, "", i)) {
-                goto force_exit;
+            if (ret = trainer->train(&ds, "", i, &attrs, &labels)) {
+                return 1;
             }
             fprintf(fpo, "\n");
         }
 
     } else {
-        if (ret = trainer->train(&data, opt.model, opt.holdout)) {
-            goto force_exit;
+        if (ret = trainer->train(&ds, opt.model, opt.holdout, &attrs, &labels)) {
+            return 1;
         }
 
     }

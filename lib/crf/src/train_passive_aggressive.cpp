@@ -256,7 +256,7 @@ int crfsuite_train_passive_aggressive(
 {
     int n, i, u, ret = 0;
     floatval_t *w = NULL, *ws = NULL, *wa = NULL;
-    const int N = trainset->num_instances();
+    const int N = trainset->size();
     const int K = gm->num_features;
     const int T = gm->cap_items;
     training_option_t opt;

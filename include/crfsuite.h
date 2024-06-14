@@ -252,17 +252,14 @@ public:
  *  for attributes and labels.
  */
 struct crfsuite_dataset_t{
-    /** Number of instances. */
-    size_t                 num_instances() const { return this->instances.size(); }
+private:
     /** Array of instances. */
+    size_t n_labels;
+    size_t n_attrs;
     std::vector<crfsuite_instance_t>     instances;
-
-    /** Dictionary object for attributes. */
-    TextVectorization    *attrs;
-    /** Dictionary object for labels. */
-    TextVectorization    *labels;
 public:
-
+    crfsuite_dataset_t(size_t L, size_t A) : instances(), n_labels(L), n_attrs(A) {}
+    crfsuite_dataset_t(std::vector<crfsuite_instance_t> v, size_t L, size_t A) : instances(v), n_labels(L), n_attrs(A) {}
     void append(const crfsuite_instance_t& inst)
     {
         if (0 < inst.num_items()) {
@@ -272,10 +269,10 @@ public:
 
     size_t maxlength() const
     {
-        int i, T = 0;
-        for (i = 0;i < this->num_instances();++i) {
-            if (T < this->instances[i].num_items()) {
-                T = this->instances[i].num_items();
+        int T = 0;
+        for (const auto& inst: instances) {
+            if (T < inst.num_items()) {
+                T = inst.num_items();
             }
         }
         return T;
@@ -283,13 +280,30 @@ public:
 
     size_t totalitems() const
     {
-        int i, n = 0;
-        for (i = 0;i < this->num_instances();++i) {
-            n += this->instances[i].num_items();
-        }
+        int n = 0;
+        for (const auto& inst: instances)
+            n += inst.num_items();
         return n;
     }
+    void shuffle() {
+        //     int i;
+        // for (i = 0;i < this->num_instances;++i) {
+        //     int j = rand() % this->num_instances;
+        //     int tmp = this->perm[j];
+        //     this->perm[j] = this->perm[i];
+        //     this->perm[i] = tmp;
+        // }
+    }
+    crfsuite_instance_t *get(int i)
+    {
+        return &this->instances[i];
+    }
+    size_t size() const { return this->instances.size(); }
+    size_t num_labels() const { return this->n_labels; }
+    size_t num_attrs() const { return this->n_attrs; }
 } ;
+
+typedef struct crfsuite_dataset_t dataset_t;
 
 /**@}*/
 
@@ -443,7 +457,7 @@ public:
      *  @param  holdout     The holdout group.
      *  @return int         The status code.
      */
-    virtual int train(const crfsuite_dataset_t *data, const char *filename, int holdout) = 0;
+    virtual int train(const crfsuite_dataset_t *data, const char *filename, int holdout, const TextVectorization *attrs, const TextVectorization *labels) = 0;
 };
 
 /**

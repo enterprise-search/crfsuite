@@ -49,7 +49,7 @@ void tag_encoder::holdout_evaluation(
 {
     int i;
     crfsuite_evaluation_t eval;
-    const int N = ds->num_instances();
+    const int N = ds->size();
     int max_length = 0;
 
     /* Initialize the evaluation table. */
