@@ -59,7 +59,7 @@ typedef struct tag_encoder encoder_t;
 
 struct dataset_t {
 private:
-    crfsuite_data_t *data;
+    crfsuite_dataset_t *data;
     std::vector<int> perm;
 public:
     const TextVectorization* labels() const { return this->data->labels; }
@@ -81,7 +81,7 @@ public:
         return &this->data->instances[this->perm[i]];
     }
 
-    void init_trainset(crfsuite_data_t *data, int holdout)
+    void init_trainset(crfsuite_dataset_t *data, int holdout)
     {      
         this->data = data;
 
@@ -92,7 +92,7 @@ public:
         }    
     }
 
-    void init_testset(crfsuite_data_t *data, int holdout)
+    void init_testset(crfsuite_dataset_t *data, int holdout)
     {
         for (int i = 0;i < data->num_instances();++i) {
             if (data->instances[i].group == holdout) {
@@ -119,7 +119,7 @@ struct tag_crfsuite_train_internal: public tag_crfsuite_trainer {
     ~tag_crfsuite_train_internal();
     void set_message_callback(void *instance, crfsuite_logging_callback cbm);
     crfsuite_params_t* params();
-    int train(const crfsuite_data_t *data, const char *filename, int holdout);
+    int train(const crfsuite_dataset_t *data, const char *filename, int holdout);
 };
 
 /**

@@ -235,7 +235,7 @@ int main_learn(int argc, char *argv[], const char *argv0)
     learn_option_t opt;
     const char *command = argv[0];
     FILE *fpi = stdin, *fpo = stdout, *fpe = stderr;
-    crfsuite_data_t data;
+    crfsuite_dataset_t data;
     crfsuite_trainer_t *trainer = NULL;
 
     /* Initializations. */

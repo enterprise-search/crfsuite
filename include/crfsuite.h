@@ -251,7 +251,7 @@ public:
  *  A data set consists of an array of instances and dictionary objects
  *  for attributes and labels.
  */
-struct crfsuite_data_t{
+struct crfsuite_dataset_t{
     /** Number of instances. */
     size_t                 num_instances() const { return this->instances.size(); }
     /** Array of instances. */
@@ -443,7 +443,7 @@ public:
      *  @param  holdout     The holdout group.
      *  @return int         The status code.
      */
-    virtual int train(const crfsuite_data_t *data, const char *filename, int holdout) = 0;
+    virtual int train(const crfsuite_dataset_t *data, const char *filename, int holdout) = 0;
 };
 
 /**

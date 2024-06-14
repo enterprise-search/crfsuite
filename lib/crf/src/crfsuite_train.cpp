@@ -99,7 +99,7 @@ crfsuite_params_t* tag_crfsuite_train_internal::params()
     return params;
 }
 
-int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *filename, int holdout)
+int tag_crfsuite_train_internal::train(const crfsuite_dataset_t *data, const char *filename, int holdout)
 {
     char *algorithm = NULL;
     logging_t *lg = this->lg;
@@ -109,9 +109,9 @@ int tag_crfsuite_train_internal::train(const crfsuite_data_t *data, const char *
     dataset_t testset;
 
     /* Prepare the data set(s) for training (and holdout evaluation). */
-    trainset.init_trainset((crfsuite_data_t*)data, holdout);
+    trainset.init_trainset((crfsuite_dataset_t*)data, holdout);
     if (0 <= holdout) {
-        testset.init_testset((crfsuite_data_t*)data, holdout);
+        testset.init_testset((crfsuite_dataset_t*)data, holdout);
         logging(lg, "Holdout group: %d\n", holdout+1);
         logging(lg, "\n");
     }

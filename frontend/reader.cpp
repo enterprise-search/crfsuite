@@ -56,7 +56,7 @@ static int progress(FILE *fpo, int prev, int current)
     return prev;
 }
 
-int read_data(FILE *fpi, FILE *fpo, crfsuite_data_t* data, int group)
+int read_data(FILE *fpi, FILE *fpo, crfsuite_dataset_t* data, int group)
 {
     int n = 0;
     int lid = -1;
