@@ -254,8 +254,6 @@ public:
 struct crfsuite_data_t{
     /** Number of instances. */
     size_t                 num_instances() const { return this->instances.size(); }
-    /** Maximum number of instances (internal use). */
-    size_t                 cap_instances() const { return this->instances.capacity(); }
     /** Array of instances. */
     std::vector<crfsuite_instance_t>     instances;
 
