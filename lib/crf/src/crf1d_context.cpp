@@ -106,42 +106,40 @@ void crf1d_context_t::crf1dc_exp_transition()
 
 void crf1d_context_t::crf1dc_alpha_score()
 {
-    floatval_t sum, *cur = NULL;
-    floatval_t *scale = &this->scale_factor[0];
-    const floatval_t *prev = NULL, *trans = NULL, *state = NULL;
     const int T = this->num_items;
     const int L = this->num_labels;
 
     /* Compute the alpha scores on nodes (0, *).
         alpha[0][j] = state[0][j]
      */
-    cur = (&((this->alpha_score)[(this->num_labels) * (0) + (0)]));
-    state = (&((this->exp_state)[(this->num_labels) * (0) + (0)]));
-    std::copy_n(state, L, cur);
-    sum = vecsum(cur, L);
-    *scale = (sum != 0.) ? 1. / sum : 1.;
-    vecscale(cur, *scale, L);
-    ++scale;
+    for (int i = 0; i < L; ++i)
+        (this->alpha_score)[(this->num_labels) * (0) + (i)] = (this->exp_state)[(this->num_labels) * (0) + (i)];
+    floatval_t sum = 0.0;
+    for (int i = 0; i < L; ++i)
+        sum += (this->alpha_score)[(this->num_labels) * (0) + (i)];
+    this->scale_factor[0] = (sum != 0.) ? 1. / sum : 1.;
+    for (int i = 0; i < L; ++i)
+        (this->alpha_score)[(this->num_labels) * (0) + (i)] *= this->scale_factor[0];
 
     /* Compute the alpha scores on nodes (t, *).
         alpha[t][j] = state[t][j] * \sum_{i} alpha[t-1][i] * trans[i][j]
      */
     for (int t = 1;t < T;++t) {
-        prev = (&((this->alpha_score)[(this->num_labels) * (t - 1) + (0)]));
-        cur = (&((this->alpha_score)[(this->num_labels) * (t) + (0)]));
-        state = (&((this->exp_state)[(this->num_labels) * (t) + (0)]));
 
         for (int i = 0; i < L; ++i)
             (this->alpha_score)[(this->num_labels) * (t) + (i)] = 0.0;
         for (int i = 0; i < L; ++i) {
-            trans = EXP_TRANS_SCORE(this, i);
-            vecaadd(cur, prev[i], trans, L);
+            for (int j = 0; j < L; ++j)
+                (this->alpha_score)[(this->num_labels) * (t) + (j)] += (this->alpha_score)[(this->num_labels) * (t - 1) + (i)] * (this->exp_trans)[(this->num_labels) * (i) + (j)];
         }
-        vecmul(cur, state, L);
-        sum = vecsum(cur, L);
-        *scale = (sum != 0.) ? 1. / sum : 1.;
-        vecscale(cur, *scale, L);
-        ++scale;
+        for (int i = 0; i < L; ++i)
+            (this->alpha_score)[(this->num_labels) * (t) + (i)] *= (this->exp_state)[(this->num_labels) * (t) + (i)];
+        sum = 0.0;
+        for (int i = 0; i < L; ++i)
+            sum += (this->alpha_score)[(this->num_labels) * (t) + (i)];
+        this->scale_factor[t] = (sum != 0.) ? 1. / sum : 1.;
+        for (int i = 0; i < L; ++i)
+            (this->alpha_score)[(this->num_labels) * (t) + (i)] *= this->scale_factor[t];
     }
 
     /* Compute the logarithm of the normalization factor here.
