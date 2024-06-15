@@ -223,13 +223,25 @@ static int exchange_options(crfsuite_params_t* params, training_option_t* opt, i
     return 0;
 }
 
+struct LbfgsAlgo:Algo {
+    LbfgsAlgo(crfsuite_params_t* params) {
+        exchange_options(params, NULL, 0);
+    }
+    int train(
+        encoder_t *gm,
+        dataset_t *trainset,
+        dataset_t *testset,
+        crfsuite_params_t *params,
+        logging_t *lg,
+        std::vector<floatval_t>& output
+        );
+};
 
-void crfsuite_train_lbfgs_init(crfsuite_params_t* params)
-{
-    exchange_options(params, NULL, 0);
+Algo* create_lbfgs_algo(crfsuite_params_t* params) {
+    return new LbfgsAlgo(params);
 }
 
-int crfsuite_train_lbfgs(
+int LbfgsAlgo::train(
     encoder_t *gm,
     dataset_t *trainset,
     dataset_t *testset,

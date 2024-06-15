@@ -50,7 +50,6 @@ tag_crfsuite_train_internal::tag_crfsuite_train_internal(int ftype, int algorith
     this->lg = (logging_t*)calloc(1, sizeof(logging_t));
     this->m_params = params_create_instance();
     this->feature_type = ftype;
-    this->algorithm = algorithm;
 
     this->gm = new tag_encoder();
     this->gm->exchange_options(this->m_params, 0);
@@ -58,7 +57,7 @@ tag_crfsuite_train_internal::tag_crfsuite_train_internal(int ftype, int algorith
     /* Initialize parameters for the training algorithm. */
     switch (algorithm) {
     case TRAIN_LBFGS:
-        crfsuite_train_lbfgs_init(this->m_params);
+    this->algo = create_lbfgs_algo(this->m_params);
         break;
     case TRAIN_L2SGD:
         crfsuite_train_l2sgd_init(this->m_params);
@@ -110,58 +109,7 @@ int tag_crfsuite_train_internal::train(const crfsuite_dataset_t *ds, const char 
     gm->set_data(trainset, lg);
 
     /* Call the training algorithm. */
-    switch (this->algorithm) {
-    case TRAIN_LBFGS:
-        crfsuite_train_lbfgs(
-            gm,
-            &trainset,
-            (holdout != -1 ? &testset : NULL),
-            this->m_params,
-            lg,
-            w
-            );
-        break;
-    case TRAIN_L2SGD:
-        crfsuite_train_l2sgd(
-            gm,
-            &trainset,
-            (holdout != -1 ? &testset : NULL),
-            this->m_params,
-            lg,
-            w
-            );
-        break;
-    case TRAIN_AVERAGED_PERCEPTRON:
-        crfsuite_train_averaged_perceptron(
-            gm,
-            &trainset,
-            (holdout != -1 ? &testset : NULL),
-            this->m_params,
-            lg,
-            w
-            );
-        break;
-    case TRAIN_PASSIVE_AGGRESSIVE:
-        crfsuite_train_passive_aggressive(
-            gm,
-            &trainset,
-            (holdout != -1 ? &testset : NULL),
-            this->m_params,
-            lg,
-            w
-            );
-        break;
-    case TRAIN_AROW:
-        crfsuite_train_arow(
-            gm,
-            &trainset,
-            (holdout != -1 ? &testset : NULL),
-            this->m_params,
-            lg,
-            w
-            );
-        break;
-    }
+    this->algo->train(gm,&trainset,(holdout != -1 ? &testset : NULL),this->m_params,lg,w);
     /* Store the model file. */
     if (filename != NULL && *filename != '\0') {
         gm->save_model(filename, w, attrs, labels, lg);

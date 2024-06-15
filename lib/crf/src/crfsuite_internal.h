@@ -60,6 +60,10 @@ typedef struct tag_encoder encoder_t;
 
 typedef void (*crfsuite_encoder_features_on_path_callback)(void *instance, int fid, floatval_t value);
 
+struct Algo {
+    virtual int train(encoder_t *gm,dataset_t *trainset,dataset_t *testset,crfsuite_params_t *params,logging_t *lg,std::vector<floatval_t>& output) = 0;
+};
+
 /**
  * Internal data structure for 
  */
@@ -68,7 +72,7 @@ struct tag_crfsuite_train_internal: public tag_crfsuite_trainer {
     crfsuite_params_t *m_params;       /**< Parameter interface. */
     logging_t* lg;              /**< Logging interface. */
     int feature_type;           /**< Feature type. */
-    int algorithm;              /**< Training algorithm. */
+    Algo* algo;              /**< Training algorithm. */
 
     tag_crfsuite_train_internal(int ftype, int algorithm);
     void set_message_callback(void *instance, crfsuite_logging_callback cbm);
@@ -166,17 +170,8 @@ void holdout_evaluation(
     const floatval_t *w,
     logging_t *lg
     );
-    
-int crfsuite_train_lbfgs(
-    encoder_t *gm,
-    dataset_t *trainset,
-    dataset_t *testset,
-    crfsuite_params_t *params,
-    logging_t *lg,
-    std::vector<floatval_t>& w
-    );
 
-void crfsuite_train_lbfgs_init(crfsuite_params_t* params);
+Algo* create_lbfgs_algo(crfsuite_params_t* params);
 
 void crfsuite_train_averaged_perceptron_init(crfsuite_params_t* params);
 
