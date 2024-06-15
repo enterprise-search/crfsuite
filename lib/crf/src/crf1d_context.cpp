@@ -106,7 +106,6 @@ void crf1d_context_t::crf1dc_exp_transition()
 
 void crf1d_context_t::crf1dc_alpha_score()
 {
-    int i, t;
     floatval_t sum, *cur = NULL;
     floatval_t *scale = &this->scale_factor[0];
     const floatval_t *prev = NULL, *trans = NULL, *state = NULL;
@@ -116,8 +115,8 @@ void crf1d_context_t::crf1dc_alpha_score()
     /* Compute the alpha scores on nodes (0, *).
         alpha[0][j] = state[0][j]
      */
-    cur = ALPHA_SCORE(this, 0);
-    state = EXP_STATE_SCORE(this, 0);
+    cur = (&((this->alpha_score)[(this->num_labels) * (0) + (0)]));
+    state = (&((this->exp_state)[(this->num_labels) * (0) + (0)]));
     std::copy_n(state, L, cur);
     sum = vecsum(cur, L);
     *scale = (sum != 0.) ? 1. / sum : 1.;
@@ -127,13 +126,14 @@ void crf1d_context_t::crf1dc_alpha_score()
     /* Compute the alpha scores on nodes (t, *).
         alpha[t][j] = state[t][j] * \sum_{i} alpha[t-1][i] * trans[i][j]
      */
-    for (t = 1;t < T;++t) {
-        prev = ALPHA_SCORE(this, t-1);
-        cur = ALPHA_SCORE(this, t);
-        state = EXP_STATE_SCORE(this, t);
+    for (int t = 1;t < T;++t) {
+        prev = (&((this->alpha_score)[(this->num_labels) * (t - 1) + (0)]));
+        cur = (&((this->alpha_score)[(this->num_labels) * (t) + (0)]));
+        state = (&((this->exp_state)[(this->num_labels) * (t) + (0)]));
 
-        std::fill_n(cur, L, 0.0);
-        for (i = 0;i < L;++i) {
+        for (int i = 0; i < L; ++i)
+            (this->alpha_score)[(this->num_labels) * (t) + (i)] = 0.0;
+        for (int i = 0; i < L; ++i) {
             trans = EXP_TRANS_SCORE(this, i);
             vecaadd(cur, prev[i], trans, L);
         }
@@ -148,7 +148,11 @@ void crf1d_context_t::crf1dc_alpha_score()
         norm = 1. / (C[0] * C[1] ... * C[T-1])
         log(norm) = - \sum_{t = 0}^{T-1} log(C[t]).
      */
-    this->log_norm = -vecsumlog(this->scale_factor.begin(), T);
+    floatval_t s = 0;
+    for (int i = 0; i < T; ++i) {
+        s += std::log(this->scale_factor[i]);
+    }
+    this->log_norm = -s;
 }
 
 void crf1d_context_t::crf1dc_beta_score()
