@@ -153,34 +153,31 @@ void crf1d_context_t::crf1dc_alpha_score()
 
 void crf1d_context_t::crf1dc_beta_score()
 {
-    int i, t;
-    floatval_t *cur = NULL;
     const floatval_t *next = NULL, *state = NULL, *trans = NULL;
     const int T = this->num_items;
     const int L = this->num_labels;
-    const floatval_t *scale = &this->scale_factor[T-1];
 
     /* Compute the beta scores at (T-1, *). */
-    cur = BETA_SCORE(this, T-1);
-    vecset(cur, *scale, L);
-    --scale;
+    for (int i = 0; i < L; ++i)
+        (this->beta_score)[(this->num_labels) * (T - 1) + (i)] = this->scale_factor[T-1];
 
     /* Compute the beta scores at (t, *). */
-    for (t = T-2;0 <= t;--t) {
-        cur = BETA_SCORE(this, t);
-        next = BETA_SCORE(this, t+1);
-        state = EXP_STATE_SCORE(this, t+1);
+    for (int t = T-2;0 <= t;--t) {
+        floatval_t * cur = BETA_SCORE(this, t);
+        next = (&((this->beta_score)[(this->num_labels) * (t + 1) + (0)]));
+        state = (&((this->exp_state)[(this->num_labels) * (t + 1) + (0)]));
 
-        std::copy_n(next, L, this->row.begin());
-        vecmul(this->row.begin(), state, L);
+        for (int i = 0; i < L; ++i)
+            this->row[i] = (this->beta_score)[(this->num_labels) * (t + 1) + (i)];
+        for (int i = 0; i < L; ++i)
+            this->row[i] *= (this->exp_state)[(this->num_labels) * (t + 1) + (i)];
 
         /* Compute the beta score at (t, i). */
-        for (i = 0;i < L;++i) {
+        for (int i = 0;i < L;++i) {
             trans = EXP_TRANS_SCORE(this, i);
             cur[i] = vecdot(trans, this->row.begin(), L);
         }
-        vecscale(cur, *scale, L);
-        --scale;
+        vecscale(cur, this->scale_factor[t], L);
     }
 }
 
