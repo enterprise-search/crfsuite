@@ -153,7 +153,6 @@ void crf1d_context_t::crf1dc_alpha_score()
 
 void crf1d_context_t::crf1dc_beta_score()
 {
-    const floatval_t *next = NULL, *state = NULL, *trans = NULL;
     const int T = this->num_items;
     const int L = this->num_labels;
 
@@ -163,9 +162,6 @@ void crf1d_context_t::crf1dc_beta_score()
 
     /* Compute the beta scores at (t, *). */
     for (int t = T-2;0 <= t;--t) {
-        floatval_t * cur = BETA_SCORE(this, t);
-        next = (&((this->beta_score)[(this->num_labels) * (t + 1) + (0)]));
-        state = (&((this->exp_state)[(this->num_labels) * (t + 1) + (0)]));
 
         for (int i = 0; i < L; ++i)
             this->row[i] = (this->beta_score)[(this->num_labels) * (t + 1) + (i)];
@@ -173,11 +169,15 @@ void crf1d_context_t::crf1dc_beta_score()
             this->row[i] *= (this->exp_state)[(this->num_labels) * (t + 1) + (i)];
 
         /* Compute the beta score at (t, i). */
-        for (int i = 0;i < L;++i) {
-            trans = EXP_TRANS_SCORE(this, i);
-            cur[i] = vecdot(trans, this->row.begin(), L);
+        for (int i = 0; i < L; ++i) {
+            floatval_t tmp = 0.0;
+            for (int j = 0; j < L; ++j)
+                tmp += (this->exp_trans)[(this->num_labels) * (i) + (j)] * this->row[j];
+
+            (this->beta_score)[(this->num_labels) * (t) + (i)] = tmp;
         }
-        vecscale(cur, this->scale_factor[t], L);
+        for (int i = 0; i < L; ++i)
+            (this->beta_score)[(this->num_labels) * (t) + (i)] *= this->scale_factor[t];
     }
 }
 
