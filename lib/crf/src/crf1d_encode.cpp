@@ -336,19 +336,14 @@ public:
     void set_data(dataset_t &ds,logging_t *lg)
     {
         clock_t begin = 0;
-        int T = 0;
+        
         const int L = ds.num_labels();
         const int A = ds.num_attrs();
         const int N = ds.size();
         crf1de_option_t *opt = &this->opt;
 
-        /* Find the maximum length of items in the data set. */
-        for (int i = 0;i < N;++i) {
-            const crfsuite_instance_t *inst = ds.get( i);
-            if (T < inst->num_items()) {
-                T = inst->num_items();
-            }
-        }
+        /* Find the maximum length of items in the data set. */        
+        int T = ds.maxlength();
 
         /* Construct a CRF context. */
         this->ctx = new crf1d_context_t(CTXF_MARGINALS | CTXF_VITERBI, L, T);
