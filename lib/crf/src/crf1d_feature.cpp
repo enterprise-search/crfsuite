@@ -197,10 +197,7 @@ int crf1df_init_references(
         - state features fired by each attribute (attributes)
         - transition features pointing from each label (trans)
     */
-    /*
-        Firstly, loop over the features to count the number of references.
-        We don't use realloc() to avoid memory fragmentation.
-     */
+
     for (int k = 0;k < K;++k) {
         const crf1df_feature_t *f = &features[k];
         switch (f->type) {
@@ -215,44 +212,4 @@ int crf1df_init_references(
         }
     }
 
-    /*
-        Secondarily, allocate memory blocks to store the feature references.
-        We also clear fl->num_features fields, which will be used as indices
-        in the next phase.
-     */
-    // for (int i = 0;i < A;++i) {
-    //     feature_refs_t *fl = &attributes[i];
-    //     fl->fids = (int*)calloc(fl->num_features, sizeof(int));
-    //     fl->num_features = 0;
-    // }
-    // for (int i = 0;i < L;++i) {
-    //     feature_refs_t *fl = &trans[i];
-    //     fl->fids = (int*)calloc(fl->num_features, sizeof(int));
-    //     fl->num_features = 0;
-    // }
-
-    /*
-        Finally, store the feature indices.
-     */
-    // feature_refs_t *fl = NULL;
-    // for (int k = 0;k < K;++k) {
-    //     const crf1df_feature_t *f = &features[k];
-    //     switch (f->type) {
-    //     case FT_STATE:
-    //         fl = &attributes[f->src];
-    //         if (fl->fidv[fl->num_features] != k) {
-    //             printf("not eq, v = %d, k = %d\n", fl->fidv[fl->num_features], k);
-    //         }
-    //         fl->fids[fl->num_features++] = k;
-    //         break;
-    //     case FT_TRANS:
-    //         fl = &trans[f->src];
-    //         if (fl->fidv[fl->num_features] != k) {
-    //             printf("not eq, v = %d, k = %d\n", fl->fidv[fl->num_features], k);
-    //             throw std::runtime_error("E");
-    //         }
-    //         fl->fids[fl->num_features++] = k;
-    //         break;
-    //     }
-    // }
 }
