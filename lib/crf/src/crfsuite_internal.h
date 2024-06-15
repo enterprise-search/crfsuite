@@ -68,12 +68,13 @@ struct Algo {
  * Internal data structure for 
  */
 struct tag_crfsuite_train_internal: public tag_crfsuite_trainer {
+private:
     encoder_t *gm;      /** Interface to the graphical model. */
     crfsuite_params_t *m_params;       /**< Parameter interface. */
     logging_t* lg;              /**< Logging interface. */
     int feature_type;           /**< Feature type. */
     Algo* algo;              /**< Training algorithm. */
-
+public:
     tag_crfsuite_train_internal(int ftype, int algorithm);
     void set_message_callback(void *instance, crfsuite_logging_callback cbm);
     crfsuite_params_t* params();
