@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(CQDB)
-enable_language(C)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+project(
+CQDB
+VERSION 1.0
+LANGUAGES C)
 
 add_library(cqdb src/cqdb.c src/lookup3.c)
 include_directories(${PROJECT_SOURCE_DIR}/include)
