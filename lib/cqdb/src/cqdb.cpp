@@ -461,7 +461,7 @@ cqdb_t* cqdb_reader(const void *buffer, size_t size)
         const uint8_t* p = NULL;
 
         /* Set memory block and size. */
-        db->buffer = buffer;
+        db->buffer = (const uint8_t*)buffer;
         db->size = size;
 
         /* Read the database header. */

@@ -1,6 +1,13 @@
+## Run
+
+```shell
+./main learn --set=c1=0.1 --set=c2=0.1 --set=max_iterations=100 --set=feature.possible_transitions=1 -m ner ../crfsuite-rs/train.data
+```
+
 ## Build
 
 ```shell
+cmake -DCMAKE_BUILD_TYPE=Release .
   134  git clone https://github.com/enterprise-search/liblbfgs.git
   135  git clone https://github.com/enterprise-search/crfsuite.git
   136  cd crfsuite/

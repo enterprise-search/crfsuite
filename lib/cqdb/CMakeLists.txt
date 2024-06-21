@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(
 CQDB
 VERSION 1.0
-LANGUAGES C)
+LANGUAGES CXX)
 
-add_library(cqdb src/cqdb.c src/lookup3.c)
+add_library(cqdb src/cqdb.cpp src/lookup3.cpp)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 if(CMAKE_COMPILER_IS_GNUCC)
     # Note: gcc does not implicitly set _POSIX_C_SOURCE or _XOPEN_SOURCE
