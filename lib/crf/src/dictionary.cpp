@@ -91,7 +91,9 @@ static void dictionary_free(crfsuite_dictionary_t* dic, const char *str)
 {
     free((char*)str);
 }
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 int crfsuite_dictionary_create_instance(const char *interface, void **ptr)
 {
     if (strcmp(interface, "dictionary") == 0) {
@@ -116,3 +118,6 @@ int crfsuite_dictionary_create_instance(const char *interface, void **ptr)
         return 1;
     }
 }
+#ifdef __cplusplus
+}
+#endif

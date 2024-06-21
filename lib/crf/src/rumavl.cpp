@@ -217,9 +217,9 @@ RUMAVL *rumavl_new (size_t reclen,
 	return NULL;
 
     if (alloc == NULL)
-	tree = malloc(sizeof(RUMAVL));
+        tree = (RUMAVL *)malloc(sizeof(RUMAVL));
     else
-	tree = alloc(NULL, sizeof(RUMAVL), udata);
+    tree = (RUMAVL*)alloc(NULL, sizeof(RUMAVL), udata);
 
     if (tree == NULL)
 	return NULL;
@@ -809,7 +809,7 @@ static RUMAVL_NODE *node_new(RUMAVL *tree, const void *record)
 {
     RUMAVL_NODE *node;
 
-    if ((node = mem_alloc(tree, sizeof(RUMAVL_NODE))) == NULL)
+    if ((node = (RUMAVL_NODE*)mem_alloc(tree, sizeof(RUMAVL_NODE))) == NULL)
 	return NULL;
 
     if ((node->rec = mem_alloc(tree, tree->reclen)) == NULL){
@@ -844,7 +844,7 @@ static int stack_push(RUMAVL *tree, RUMAVL_STACK **stack, RUMAVL_NODE **node,
 {
     RUMAVL_STACK *tmp;
     
-    if ((tmp = mem_alloc(tree, sizeof(RUMAVL_STACK))) == NULL)
+    if ((tmp = (RUMAVL_STACK*)mem_alloc(tree, sizeof(RUMAVL_STACK))) == NULL)
 	return -1;
     
     tmp->next = *stack;
